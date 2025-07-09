@@ -1,8 +1,8 @@
   export const metrics = {
     visitas: "1250",
     ventas: "$152.345",
-    "cant Productos": "1250",
-    Crecimiento: "25%",
+    productos: "1250",
+    crecimiento: "25%",
   };
 
   export const totalSalesData = [

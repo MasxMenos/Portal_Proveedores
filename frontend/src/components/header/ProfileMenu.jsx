@@ -2,8 +2,10 @@
 import React, { useState, useRef } from "react";
 import { User, UserCog, Settings, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function ProfileMenu({ isDark }) {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const wrapperRef = useRef(null);
   const closeTimer = useRef(null);
@@ -11,7 +13,7 @@ export default function ProfileMenu({ isDark }) {
 
   const toggleMenu = () => {
     clearTimeout(closeTimer.current);
-    setMenuOpen((open) => !open);
+    setMenuOpen(open => !open);
   };
 
   const handleMouseEnter = () => clearTimeout(closeTimer.current);
@@ -29,7 +31,9 @@ export default function ProfileMenu({ isDark }) {
     >
       <button
         onClick={toggleMenu}
-        className={`p-2 rounded transition-colors duration-200 ${isDark ? "hover:bg-zinc-800" : "hover:bg-gray-300"}`}
+        className={`p-2 rounded transition-colors duration-200 ${
+          isDark ? "hover:bg-zinc-800" : "hover:bg-gray-300"
+        }`}
       >
         <User size={22} className={isDark ? "text-gray-400" : "text-gray-600"} />
       </button>
@@ -37,7 +41,9 @@ export default function ProfileMenu({ isDark }) {
       {menuOpen && (
         <div
           className={`absolute right-0 mt-2 w-64 rounded-lg shadow-lg z-50 ${
-            isDark ? "bg-zinc-950 text-gray-200 border border-zinc-800" : "bg-white text-gray-800 border border-gray-200"
+            isDark
+              ? "bg-zinc-950 text-gray-200 border border-zinc-800"
+              : "bg-white text-gray-800 border border-gray-200"
           }`}
         >
           <button
@@ -47,7 +53,7 @@ export default function ProfileMenu({ isDark }) {
             }`}
           >
             <UserCog size={22} className={isDark ? "text-gray-400" : "text-gray-600"} />
-            <span>Perfil</span>
+            <span>{t("header.profile")}</span>
           </button>
           <button
             onClick={() => navigate("/configuracion")}
@@ -56,7 +62,7 @@ export default function ProfileMenu({ isDark }) {
             }`}
           >
             <Settings size={22} className={isDark ? "text-gray-400" : "text-gray-600"} />
-            <span>Configuración</span>
+            <span>{t("header.configuration")}</span>
           </button>
           <button
             onClick={() => navigate("/login")}
@@ -65,7 +71,7 @@ export default function ProfileMenu({ isDark }) {
             }`}
           >
             <LogOut size={22} className={isDark ? "text-gray-400" : "text-gray-600"} />
-            <span>Cerrar sesión</span>
+            <span>{t("header.signOut")}</span>
           </button>
         </div>
       )}

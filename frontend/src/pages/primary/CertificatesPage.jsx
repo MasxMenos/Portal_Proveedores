@@ -1,49 +1,35 @@
+// src/pages/CertificadosPage.jsx
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import EntidadPage from "../../layouts/EntityPage";
 import datosCertificados from "../../data/certificates";
 import { useTheme } from "../../components/ThemeContext";
 
-const CertificadosPage = () => {
+export default function CertificadosPage() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const isDark = theme === "dark";
 
   // Estado para el botón seleccionado
   const [selectedButton, setSelectedButton] = useState(null);
 
+  // Labels traducidos para los botones extra
+  const extras = [
+    t("entity.certificates.buttons.icaRetention"),
+    t("entity.certificates.buttons.sourceRetention"),
+    t("entity.certificates.buttons.vatRetention"),
+  ];
+
   return (
     <EntidadPage
       tipo="certificados"
-      titulo="Certificados"
-      encabezado="Certificados"
+      titulo={t("sidebar.certificates")}
+      encabezado={t("sidebar.certificates")}
       datos={datosCertificados}
       onNavigateBase="certificados"
-      extraContent={
-        <div className="flex flex-wrap gap-2 mb-4">
-          {[
-            "Retención I.C.A",
-            "Retención en la fuente",
-            "Retención IVA",
-          ].map((label) => (
-            <button
-              key={label}
-              onClick={() => setSelectedButton(label)}
-              className={`px-4 py-2 rounded transition-colors duration-200 ${
-                selectedButton === label
-                  ? isDark
-                    ? "bg-[#111416] text-white"
-                    : "bg-gray-300 text-black"
-                  : isDark
-                  ? "bg-[#0A0D0F] hover:bg-[#111416] text-white"
-                  : "bg-gray-200 hover:bg-gray-300 text-black"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      }
+      botonesExtra={extras}
+      selectedButton={selectedButton}
+      onSelectButton={setSelectedButton}
     />
   );
-};
-
-export default CertificadosPage;
+}

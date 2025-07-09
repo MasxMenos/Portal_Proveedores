@@ -1,15 +1,38 @@
 // src/components/entidad/EntidadTable.jsx
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { PlusCircle, Download as DownloadIcon } from "lucide-react";
 
-export default function EntidadTable({ isDark, tipo, paginatedData, onRowClick, totalPages, currentPage, setCurrentPage }) {
+export default function EntidadTable({
+  isDark,
+  tipo,
+  paginatedData,
+  onRowClick,
+  totalPages,
+  currentPage,
+  setCurrentPage,
+}) {
+  const { t } = useTranslation();
+  // obtenemos la lista de cabeceras como arreglo
+  const headers = t("entity.table.headers", { returnObjects: true });
+  const viewLabel = t("entity.table.view");
+
   return (
-    <div className={`overflow-auto rounded-lg ${isDark ? "bg-[#111]" : "bg-gray-100"}`}>
+    <div
+      className={`entity-table overflow-auto rounded-lg ${
+        isDark ? "bg-[#111]" : "bg-gray-100"
+      }`}
+    >
       <table className="min-w-full text-sm">
         <thead>
           <tr className={isDark ? "bg-[#222]" : "bg-gray-200"}>
-            {["CO", "Documento", "Fecha proveedor", "Fecha vencimiento", "Valor pago", "Saldo", "Ver"].map((h) => (
-              <th key={h} className={`px-4 py-2 text-left ${isDark ? "text-gray-400" : "text-gray-700"}`}>
+            {headers.map((h, idx) => (
+              <th
+                key={idx}
+                className={`px-4 py-2 text-left ${
+                  isDark ? "text-gray-400" : "text-gray-700"
+                }`}
+              >
                 {h}
               </th>
             ))}
@@ -19,7 +42,11 @@ export default function EntidadTable({ isDark, tipo, paginatedData, onRowClick, 
           {paginatedData.map((item, i) => (
             <tr
               key={i}
-              className={`border-t ${isDark ? "border-[#222] hover:bg-[#1a1a1a]" : "border-gray-300 hover:bg-gray-100"}`}
+              className={`border-t ${
+                isDark
+                  ? "border-[#222] hover:bg-[#1a1a1a]"
+                  : "border-gray-300 hover:bg-gray-100"
+              }`}
             >
               <td className="px-4 py-3">{item.co}</td>
               <td className="px-4 py-3">{item.documento}</td>
@@ -28,11 +55,15 @@ export default function EntidadTable({ isDark, tipo, paginatedData, onRowClick, 
               <td className="px-4 py-3">{item.valorPago}</td>
               <td className="px-4 py-3">{item.saldo}</td>
               <td className="px-4 py-3">
-                <span className="cursor-pointer" onClick={() => onRowClick(item.documento)}>
+                <span
+                  className="cursor-pointer"
+                  title={viewLabel}
+                  onClick={() => onRowClick(item.documento)}
+                >
                   {tipo === "certificados" ? (
-                    <DownloadIcon size={18} color="#203159" />
+                    <DownloadIcon size={18} color="#203259" />
                   ) : (
-                    <PlusCircle size={18} color="#203159" />
+                    <PlusCircle size={18} color="#203259" />
                   )}
                 </span>
               </td>

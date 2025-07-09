@@ -1,0 +1,204 @@
+{
+  "sidebar": {
+    "home": "Accueil",
+    "invoices": "Factures",
+    "payments": "Paiements",
+    "returns": "Retours",
+    "certificates": "Certificats",
+    "providers": "Fournisseurs"
+  },
+  "header": {
+    "breadcrumbPrefix": "/",
+    "searchPlaceholder": "Rechercher",
+    "help": "Aide",
+    "profile": "Profil",
+    "configuration": "Paramètres",
+    "signOut": "Se déconnecter"
+  },
+  "login": {
+    "title": "Connexion",
+    "subtitle": "Entrez vos identifiants pour continuer",
+    "userLabel": "Nom d’utilisateur",
+    "passwordLabel": "Mot de passe",
+    "rememberMe": "Se souvenir de moi",
+    "forgotPassword": "Mot de passe oublié ?",
+    "loginButton": "Se connecter"
+  },
+  "passwordRecovery": {
+    "title": "Mot de passe oublié ?",
+    "subtitle": "Entrez votre email pour le réinitialiser",
+    "emailLabel": "Email",
+    "sendButton": "Envoyer le lien",
+    "backToLogin": "Retour à la connexion"
+  },
+  "settings": {
+    "general": {
+      "title": "Paramètres généraux",
+      "subtitle": "Ajustez les préférences de votre compte",
+      "preferredLanguage": "Langue préférée",
+      "timeZone": "Fuseau horaire",
+      "notifications": "Activer les notifications par email",
+      "saveSettings": "Enregistrer"
+    },
+    "profileSettings": {
+      "title": "Paramètres du profil",
+      "subtitle": "Mettez à jour vos informations personnelles",
+      "accountInfo": {
+        "title": "Informations du compte",
+        "desc": "Mettez à jour vos informations personnelles"
+      },
+      "contactEmail": {
+        "title": "Email de contact",
+        "desc": "Gérez votre adresse email associée au compte"
+      },
+      "password": {
+        "title": "Mot de passe",
+        "desc": "Modifiez votre mot de passe actuel"
+      },
+      "labels": {
+        "uploadPhoto": "Télécharger une photo",
+        "deletePhoto": "Supprimer la photo",
+        "firstName": "Prénom",
+        "lastName": "Nom",
+        "email": "Email",
+        "currentPassword": "Mot de passe actuel",
+        "newPassword": "Nouveau mot de passe"
+      },
+      "buttons": {
+        "save": "Enregistrer les modifications"
+      }
+    }
+  },
+    "languages": {
+    "es": "Espagnol",
+    "en": "Anglais",
+    "fr": "Français"
+  },
+  "timezones": {
+    "GMT-5": "GMT-5 (Bogotá, Lima, Quito)",
+    "GMT-6": "GMT-6 (Mexico)",
+    "GMT-3": "GMT-3 (Buenos Aires)"
+  },
+
+  "entity": {
+    "filters": {
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "consult": "Rechercher"
+    },
+    "downloadXLSX": "Télécharger XLSX",
+    "table": {
+      "headers": [
+        "CO",
+        "Document",
+        "Date fournisseur",
+        "Date d’échéance",
+        "Montant du paiement",
+        "Solde",
+        "Voir"
+      ],
+      "view": "Voir"
+    },
+    "invoices": {
+      "buttons": {
+        "electronicInvoices": "Factures électroniques",
+        "commercialAgreementNotes": "Notes accords commerciaux",
+        "electronicCreditNotes": "Notes de crédit électroniques"
+      }
+    },
+    "payments": {
+      "buttons": {
+        "egressTransferCertificate": "Certificat de sortie de transfert",
+        "receivablesReclassification": "Reclassification des créances"
+      }
+    },
+    "certificates": {
+      "buttons": {
+        "icaRetention": "Rétention I.C.A.",
+        "sourceRetention": "Rétention à la source",
+        "vatRetention": "Rétention TVA"
+      }
+    },
+    "returns": {
+      "buttons": {
+        "damageReturn": "Retour pour dommage",
+        "purchaseReturn": "Retour pour achat"
+      }
+    }
+  },
+  "detail": {
+    "master": {
+      "labelDocumento": "Document",
+      "CO": "CO",
+      "providerDate": "Date fournisseur",
+      "dueDate": "Date d’échéance",
+      "paymentValue": "Montant du paiement",
+      "balance": "Solde"
+    },
+    "movementsTitle": "Écritures comptables",
+    "movements": {
+      "reg": "N°",
+      "accountCode": "Code compte",
+      "accountDescription": "DESCRIPTION DU COMPTE",
+      "debits": "Débits",
+      "credits": "Crédits"
+    },
+    "back": "Retour"
+  },
+  "buttons": {
+    "next": "Suivant",
+    "back": "Retour",
+    "skip": "Passer",
+    "finish": "Terminer"
+  },
+"tutorial": {
+  "sidebarIntro": "Ceci est le menu latéral. Vous pouvez naviguer entre les sections principales du portail.",
+  "goToHome": "Ce bouton vous mène à la section Accueil.",
+  "totalVisits": "Ici vous pouvez voir le nombre total de visites effectuées au commerce.",
+  "totalSales": "Ici vous pouvez consulter le total des ventes réalisées.",
+  "totalProductsSold": "Cette carte affiche le nombre de produits vendus.",
+  "salesGrowth": "Ici vous voyez la croissance des ventes par rapport au mois précédent.",
+  "salesChart": "Ce graphique montre la tendance des ventes sur les mois.",
+  "topProducts": "Ici vous pouvez voir les 5 produits les plus vendus au commerce.",
+  "contacts": "Dans ce tableau, vous trouverez les contacts pour le support ou les demandes.",
+  "goToInvoices": "Ce bouton vous mène à la section Factures.",
+  "selectDocType": "Pour interroger des documents, saisissez d’abord le type de document souhaité.",
+  "enterDateRange": "Ensuite, saisissez la plage de dates et cliquez sur Rechercher.",
+  "invoicesTable": "Ici sont affichées les factures selon les paramètres consultés.",
+  "viewDetail": "Pour voir vos documents en détail, cliquez sur ce bouton.",
+  "masterDetail": "Ici vous pouvez voir les informations détaillées de votre document sélectionné.",
+  "childDetail": "Sur la droite, associé au document principal, vous pouvez voir les documents liés et leurs mouvements.",
+  "goToPayments": "Ce bouton vous mène à la section Paiements.",
+  "paymentsTable": "Ici vous pouvez consulter les paiements effectués.",
+  "goToReturns": "Ce bouton vous mène à la section Retours.",
+  "returnsTable": "Ici vous pouvez voir vos retours enregistrés.",
+  "goToCertificates": "Ce bouton vous mène à la section Certificats.",
+  "certificatesTable": "Ici vous pouvez consulter vos certificats fiscaux.",
+  "buttons": {
+    "next": "Suivant",
+    "back": "Retour",
+    "skip": "Passer",
+    "finish": "Terminer",
+    "goToHome":"Aller à l'accueil",
+    "goToInvoices":"Aller aux factures"
+
+  }
+},
+  "homepage": {
+    "welcome": "Bon retour",
+    "metrics": {
+      "visitas": "Visites",
+      "ventas": "Ventes",
+      "productos": "Produits",
+      "crecimiento": "Croissance"
+    },
+    "totalSales": "Total des ventes",
+    "topProducts": "Meilleurs produits",
+    "contacts": {
+      "title": "Contacts",
+      "tipo": "Type",
+      "email": "Email",
+      "nota": "Note"
+    }
+  }
+}

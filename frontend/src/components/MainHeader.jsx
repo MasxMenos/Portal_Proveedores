@@ -4,6 +4,10 @@ import { Moon, Sun, HelpCircle } from "lucide-react";
 import { useTheme } from "./ThemeContext";
 import SearchBar from "./header/SearchBar"; 
 import ProfileMenu from "./header/ProfileMenu";
+import Shepherd from "shepherd.js";
+import "shepherd.js/dist/css/shepherd.css";
+import useTutorial from "..//hooks/useTutorial";
+
 
 
 export default function HeaderSuperior({
@@ -18,6 +22,7 @@ export default function HeaderSuperior({
 
   const [visible, setVisible] = useState(true);
   const [lastY, setLastY] = useState(0);
+  const { startTutorial } = useTutorial();
 
   const onScroll = useCallback(() => {
     const currentY = window.scrollY;
@@ -66,14 +71,16 @@ export default function HeaderSuperior({
               {isDark ? <Sun size={22} className="text-gray-400" /> : <Moon size={22} className="text-gray-600" />}
             </button>
 
+
             <button
-              onClick={onHelpClick}
+              onClick={startTutorial}
               className={`p-2 rounded transition-colors duration-200 ${
                 isDark ? "hover:bg-zinc-800" : "hover:bg-gray-300"
               }`}
             >
               <HelpCircle size={22} className={isDark ? "text-gray-400" : "text-gray-600"} />
             </button>
+
 
             <ProfileMenu isDark={isDark} />
           </div>

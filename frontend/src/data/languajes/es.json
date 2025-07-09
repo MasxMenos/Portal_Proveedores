@@ -1,0 +1,184 @@
+{
+  "sidebar": {
+    "home": "Inicio",
+    "invoices": "Facturas",
+    "payments": "Pagos",
+    "returns": "Devoluciones",
+    "certificates": "Certificados",
+    "providers": "Proveedores"
+  },
+  "header": {
+    "breadcrumbPrefix": "/",
+    "searchPlaceholder": "Buscar",
+    "help": "Ayuda",
+    "profile": "Perfil",
+    "configuration": "Configuración",
+    "signOut": "Cerrar sesión"
+  },
+  "login": {
+    "title": "Iniciar sesión",
+    "subtitle": "Ingrese sus credenciales para continuar",
+    "userLabel": "Usuario",
+    "passwordLabel": "Contraseña",
+    "rememberMe": "Recuérdame",
+    "forgotPassword": "¿Olvidó su contraseña?",
+    "loginButton": "Iniciar sesión"
+  },
+  "passwordRecovery": {
+    "title": "¿Olvidó su contraseña?",
+    "subtitle": "Ingrese su correo electrónico para restablecerla",
+    "emailLabel": "Correo electrónico",
+    "sendButton": "Enviar enlace de recuperación",
+    "backToLogin": "Volver a iniciar sesión"
+  },
+  "settings": {
+    "general": {
+      "title": "Configuración general",
+      "subtitle": "Ajusta tus preferencias de la cuenta",
+      "preferredLanguage": "Idioma preferido",
+      "timeZone": "Zona horaria",
+      "notifications": "Habilitar notificaciones por correo",
+      "saveSettings": "Guardar configuración"
+    }
+  },
+  "profileSettings": {
+    "title": "Configuración de perfil",
+    "subtitle": "Actualiza tu información personal",
+    "fullNameLabel": "Nombre completo",
+    "emailLabel": "Correo electrónico",
+    "phoneLabel": "Teléfono",
+    "newPasswordLabel": "Nueva contraseña",
+    "saveChanges": "Guardar cambios"
+  },
+    "languages": {
+    "es": "Español",
+    "en": "Inglés",
+    "fr": "Francés"
+  },
+  "timezones": {
+    "GMT-5": "GMT-5 (Bogotá, Lima, Quito)",
+    "GMT-6": "GMT-6 (Ciudad de México)",
+    "GMT-3": "GMT-3 (Buenos Aires)"
+  },
+  "entity": {
+    "filters": {
+      "startDate": "Fecha inicial",
+      "endDate": "Fecha final",
+      "consult": "Consultar"
+    },
+    
+    "downloadXLSX": "Descargar XLSX",
+    "table": {
+      "headers": [
+        "CO",
+        "Documento",
+        "Fecha proveedor",
+        "Fecha vencimiento",
+        "Valor pago",
+        "Saldo",
+        "Ver"
+      ],
+      "view": "Ver"
+    },
+    "invoices": {
+      "buttons": {
+        "electronicInvoices": "Facturas electrónicas",
+        "commercialAgreementNotes": "Notas acuerdos comerciales",
+        "electronicCreditNotes": "Notas crédito electrónicas"
+      }
+    },
+    "payments": {
+      "buttons": {
+        "egressTransferCertificate": "Certificado de egreso transferencia",
+        "receivablesReclassification": "Reclasificación cuentas por cobrar"
+      }
+    },
+    "certificates": {
+      "buttons": {
+        "icaRetention": "Retención I.C.A",
+        "sourceRetention": "Retención en la fuente",
+        "vatRetention": "Retención IVA"
+      }
+    },
+    "returns": {
+      "buttons": {
+        "returnByDamage": "Devolución por avería",
+        "returnByPurchase": "Devolución por compra"
+      }
+    }
+  },
+  "detail": {
+    "master": {
+      "labelDocumento": "Documento",
+      "CO": "CO",
+      "providerDate": "Fecha proveedor",
+      "dueDate": "Fecha vencimiento",
+      "paymentValue": "Valor pago",
+      "balance": "Saldo"
+    },
+    "movementsTitle": "Movimiento contable",
+    "movements": {
+      "reg": "Reg.",
+      "accountCode": "Código cuenta",
+      "accountDescription": "DESCRIPCIÓN CUENTA",
+      "debits": "Débitos",
+      "credits": "Créditos"
+    }
+  },
+  "buttons": {
+    "next": "Siguiente",
+    "back": "Atrás",
+    "skip": "Omitir",
+    "finish": "Finalizar"
+  },
+"tutorial": {
+  "sidebarIntro": "Este es el menú lateral. Desde aquí puedes navegar entre las principales secciones del portal.",
+  "goToHome": "Este botón te lleva a la sección de Inicio.",
+  "totalVisits": "Aquí puedes ver el total de visitas que has realizado al comercio.",
+  "totalSales": "Aquí puedes consultar el total de ventas realizadas.",
+  "totalProductsSold": "Esta tarjeta muestra la cantidad de productos vendidos.",
+  "salesGrowth": "Aquí se muestra el crecimiento de las ventas respecto al mes anterior.",
+  "salesChart": "Este gráfico muestra la tendencia de ventas a lo largo de los meses.",
+  "topProducts": "Aquí puedes ver los 5 productos más vendidos al comercio.",
+  "contacts": "En esta tabla puedes encontrar los contactos del área correspondiente para soporte o consultas.",
+  "goToInvoices": "Este botón te lleva a la sección de Facturas.",
+  "selectDocType": "Para realizar las consultas de los documentos primero ingrese el tipo de documento que quiere consultar.",
+  "enterDateRange": "Luego, ingrese el rango de fecha respectivo y dé clic al botón de consultar.",
+  "invoicesTable": "Aquí se muestran las facturas registradas según los parámetros consultados.",
+  "viewDetail": "Para poder ver sus documentos con mayor detalle, haga clic en este botón.",
+  "masterDetail": "Aquí puedes ver la información detallada de tu documento seleccionado.",
+  "childDetail": "En la parte derecha, asociado al documento maestro podrás observar los documentos que tienen relación directa con el mismo, junto con sus respectivos movimientos.",
+  "goToPayments": "Este botón te lleva a la sección de Pagos.",
+  "paymentsTable": "Aquí puedes consultar los pagos realizados.",
+  "goToReturns": "Este botón te lleva a la sección de Devoluciones.",
+  "returnsTable": "Aquí puedes ver tus devoluciones registradas.",
+  "goToCertificates": "Este botón te lleva a la sección de Certificados.",
+  "certificatesTable": "Aquí puedes consultar tus certificados tributarios.",
+  "buttons": {
+    "next": "Siguiente",
+    "back": "Atrás",
+    "skip": "Omitir",
+    "finish": "Finalizar",
+    "goToHome":"Ir a inicio",
+    "goToInvoices": "ir a facturas"
+  }
+}
+,
+  "homepage": {
+    "welcome": "Bienvenido de vuelta",
+    "metrics": {
+      "visitas": "Visitas",
+      "ventas": "Ventas",
+      "productos": "Productos",
+      "crecimiento": "Crecimiento"
+    },
+    "totalSales": "Total de ventas",
+    "topProducts": "Top Productos",
+    "contacts": {
+      "title": "Contactos",
+      "tipo": "Tipo",
+      "email": "Email",
+      "nota": "Nota"
+    }
+  }
+}
