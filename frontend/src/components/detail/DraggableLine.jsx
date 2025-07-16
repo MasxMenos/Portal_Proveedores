@@ -37,7 +37,7 @@ const DraggableLine = forwardRef(
       >
         <div
           ref={ref}
-          className={`child-${line.documento} absolute p-4 md:p-6 rounded-lg w-[90vw] max-w-[700px] left-[5vw] md:left-[300px] cursor-move z-10 ${
+          className={`child-${line.documento} absolute p-4 md:p-6 rounded-lg w-[90vw] max-w-[800px] left-[5vw] md:left-[300px] cursor-move z-10 ${
             isDark
               ? "bg-[#111] text-gray-200"
               : "bg-white text-gray-800 border border-gray-300"

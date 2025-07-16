@@ -180,7 +180,8 @@
     "skip": "Passer",
     "finish": "Terminer",
     "goToHome":"Aller à l'accueil",
-    "goToInvoices":"Aller aux factures"
+    "goToInvoices":"Aller aux factures",
+    "viewDetail": "Voir le détail"
 
   }
 },

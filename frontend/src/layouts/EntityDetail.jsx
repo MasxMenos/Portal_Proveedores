@@ -77,7 +77,7 @@ export default function EntidadDetail({ tipo }) {
           className="flex items-center gap-2 text-gray-400 hover:underline cursor-pointer"
           onClick={() => navigate(-1)}
         >
-          <ArrowLeftCircle size={20} /> {t("detail.back")}
+          <ArrowLeftCircle size={20} /> {t("buttons.back")}
         </button>
 
         <div

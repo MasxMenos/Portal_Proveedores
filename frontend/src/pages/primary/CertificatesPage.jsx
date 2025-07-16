@@ -22,7 +22,7 @@ export default function CertificadosPage() {
 
   return (
     <EntidadPage
-      tipo="certificados"
+      tipo="certificates"
       titulo={t("sidebar.certificates")}
       encabezado={t("sidebar.certificates")}
       datos={datosCertificados}
