@@ -35,9 +35,9 @@ export default function App() {
         <Route path="/devoluciones" element={<DevolucionesPage />} />
         <Route path="/certificados" element={<CertificadosPage />} />
 
-        <Route path="/facturas/:documentoId" element={<FacturaDetailPage />} />
-        <Route path="/pagos/:documentoId" element={<PagosDetailPage />} />
-        <Route path="/devoluciones/:documentoId" element={<DevolucionesDetailPage />} />
+        <Route path="/invoices/:documentoId" element={<FacturaDetailPage />} />
+        <Route path="/payments/:documentoId" element={<PagosDetailPage />} />
+        <Route path="/returns/:documentoId" element={<DevolucionesDetailPage />} />
       </Routes>
     </BrowserRouter>
   );

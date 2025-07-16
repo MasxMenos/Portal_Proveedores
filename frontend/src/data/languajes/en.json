@@ -120,6 +120,7 @@
         "vatRetention": "VAT retention"
       }
     },
+  
     "returns": {
       "buttons": {
         "damageReturn": "Return due to damage",
@@ -181,7 +182,8 @@
     "skip": "Skip",
     "finish": "Finish",
     "goToHome":"Go to Home",
-    "goToInvoices":"Go to Invoices"
+    "goToInvoices":"Go to Invoices",
+    "viewDetail": "View Detail"
   }
 }
 ,

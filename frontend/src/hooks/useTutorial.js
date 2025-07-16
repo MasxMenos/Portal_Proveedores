@@ -219,7 +219,7 @@ export default function useTutorial() {
         backBtn(tour, "facturas-table", "/facturas"),
         skipBtn(tour),
         {
-          text: t("buttons.viewDetail"),
+          text: t("tutorial.buttons.viewDetail"),
           classes: btnStyle,
           action: () => {
             tour.hide();
@@ -228,7 +228,7 @@ export default function useTutorial() {
             );
             if (!firstDoc) return console.error("Documento no hallado");
             const docId = firstDoc.textContent.trim();
-            navigate(`/facturas/${docId}`);
+            navigate(`/invoices/${docId}`);
             const waiter = setInterval(() => {
               if (document.querySelector(".master")) {
                 clearInterval(waiter);

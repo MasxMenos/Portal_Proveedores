@@ -19,11 +19,11 @@ export default function PagosPage() {
 
   return (
     <EntidadPage
-      tipo="pagos"
+      tipo="payments"
       titulo={t("sidebar.payments")}
       encabezado={t("sidebar.payments")}
       datos={datosPagos}
-      onNavigateBase="pagos"
+      onNavigateBase="payments"
       botonesExtra={extras}
       selectedButton={selectedButton}
       onSelectButton={setSelectedButton}

@@ -102,8 +102,8 @@
     },
     "returns": {
       "buttons": {
-        "returnByDamage": "Devolución por avería",
-        "returnByPurchase": "Devolución por compra"
+        "damageReturn": "Devolución por avería",
+        "purchaseReturn": "Devolución por compra"
       }
     }
   },
@@ -160,7 +160,8 @@
     "skip": "Omitir",
     "finish": "Finalizar",
     "goToHome":"Ir a inicio",
-    "goToInvoices": "ir a facturas"
+    "goToInvoices": "ir a facturas",
+    "viewDetail": "Ver detalle"
   }
 }
 ,

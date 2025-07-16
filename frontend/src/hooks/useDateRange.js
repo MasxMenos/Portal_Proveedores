@@ -11,7 +11,7 @@ function getToday() {
 
 function getFirstDayLastMonth() {
   const today = getToday();
-  return new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  return new Date(today.getFullYear(), today.getMonth() - 120, 1);
 }
 
 export function useDateRange() {

@@ -19,11 +19,11 @@ export default function DevolucionesPage() {
 
   return (
     <EntidadPage
-      tipo="devoluciones"
+      tipo="returns"
       titulo={t("sidebar.returns")}
       encabezado={t("sidebar.returns")}
       datos={datosDevoluciones}
-      onNavigateBase="devoluciones"
+      onNavigateBase="returns"
       botonesExtra={extras}
       selectedButton={selectedButton}
       onSelectButton={setSelectedButton}
