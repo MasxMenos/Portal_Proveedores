@@ -5,21 +5,22 @@ from datetime   import datetime, date
 @dataclass
 class InvoiceDTO:
     documento:         str
-    fecha_proveedor:   date
+    fecha_emision:     date
     fecha_vencimiento: date
     valor_pago:        float
-    saldo:             float
-    co:                str = "099"
+    co:                str
+    descuentos:        float
 
     @classmethod
     def from_conekta(cls, data: dict) -> "InvoiceDTO":
         # convierte el JSON de Conekta en nuestro DTO
-        fp = datetime.strptime(data["FechaProveedor"], "%Y/%m/%d").date()
+        fp = datetime.strptime(data["FechaEmision"], "%Y/%m/%d").date()
         fv = datetime.strptime(data["FechaVencimiento"], "%Y/%m/%d").date()
         return cls(
             documento         = data["Documento"],
-            fecha_proveedor   = fp,
+            fecha_emision   = fp,
             fecha_vencimiento = fv,
-            valor_pago        = float(data.get("ValorPago", 0)),
+            descuentos        = float(data.get("Descuentos", 0)),
             saldo             = float(data.get("Saldo", 0)),
+            co                = data["f350_id_co"]
         )

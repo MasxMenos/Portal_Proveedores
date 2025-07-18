@@ -1,32 +1,102 @@
-// src/pages/DevolucionesPage.jsx
-import React, { useState } from "react";
+// src/pages/ReturnsPage.jsx
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import EntidadPage from "../../layouts/EntityPage";
-import datosDevoluciones from "../../data/returns";
+import { useDateRange } from "../../hooks/useDateRange";
 import { useTheme } from "../../components/ThemeContext";
 
-export default function DevolucionesPage() {
+export default function ReturnsPage() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  const [selectedButton, setSelectedButton] = useState(null);
-
-  const extras = [
-    t("entity.returns.buttons.damageReturn"),
-    t("entity.returns.buttons.purchaseReturn"),
+  // 1) botones extra con su tipo de documento asociado
+  const botones = [
+    { label: t("entity.returns.buttons.damageReturn"),      tipo: "DPA" },
+    { label: t("entity.returns.buttons.purchaseReturn"), tipo: "DPC" },
   ];
+
+  // 2) estado de selección del botón
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  // 3) datos y loading
+  const [datos, setDatos]     = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // 4) filtros de fecha (rango)
+  const {
+    start: fechaInicio,
+    end:   fechaFin,
+    onStartChange,
+    onEndChange,
+  } = useDateRange();
+
+  // 5) función de fetch parametrizada
+  const fetchReturns = useCallback(
+    async (tipoDocto) => {
+      setLoading(true);
+      try {
+        // Parámetros base
+        const params = new URLSearchParams({
+          tipoDocto,
+          nit: "891300382",
+        });
+        // Solo agregamos fechas al query (el backend no las requiere)
+        if (fechaInicio) params.set("from", fechaInicio);
+        if (fechaFin)   params.set("to",   fechaFin);
+
+        const res = await fetch(`/api/returns/?${params.toString()}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const raw = await res.json();
+
+        // Filtrado extra en frontend por FechaProveedor
+        const filtrados = raw.filter(item => {
+          const f = new Date(item.FechaProveedor);
+          if (fechaInicio && f < new Date(fechaInicio)) return false;
+          if (fechaFin   && f > new Date(fechaFin))   return false;
+          return true;
+        });
+
+        setDatos(filtrados);
+      } catch (err) {
+        console.error("Error cargando devoluciones:", err);
+        setDatos([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fechaInicio, fechaFin]
+  );
+
+  // 6) ARRANQUE: consultamos el primer botón por defecto
+  useEffect(() => {
+    fetchReturns(botones[0].tipo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // solo al mount
+
+  // 7) manejador al click en un botón extra
+  const handleButtonClick = (idx) => {
+    setSelectedIndex(idx);
+    fetchReturns(botones[idx].tipo);
+  };
 
   return (
     <EntidadPage
       tipo="returns"
       titulo={t("sidebar.returns")}
       encabezado={t("sidebar.returns")}
-      datos={datosDevoluciones}
+      datos={datos}
       onNavigateBase="returns"
-      botonesExtra={extras}
-      selectedButton={selectedButton}
-      onSelectButton={setSelectedButton}
+      botonesExtra={botones.map(b => b.label)}
+      extraFilters={{
+        fechaInicio,
+        fechaFin,
+        onStartChange,
+        onEndChange,
+        onConsultar: () => fetchReturns(botones[selectedIndex].tipo),
+      }}
+      loading={loading}
+      selectedButtonIndex={selectedIndex}
+      onSelectButton={handleButtonClick}
     />
   );
 }

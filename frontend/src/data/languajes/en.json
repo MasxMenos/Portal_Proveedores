@@ -31,14 +31,14 @@
     "sendButton": "Send link",
     "backToLogin": "Back to login"
   },
-  "settings": {
+"settings": {
     "general": {
       "title": "General Settings",
       "subtitle": "Adjust your account preferences",
-      "preferredLanguage": "Preferred language",
-      "timeZone": "Time zone",
+      "preferredLanguage": "Preferred Language",
+      "timeZone": "Time Zone",
       "notifications": "Enable email notifications",
-      "saveSettings": "Save settings"
+      "saveSettings": "Save Settings"
     },
     "profileSettings": {
       "title": "Profile Settings",
@@ -49,27 +49,27 @@
       },
       "contactEmail": {
         "title": "Contact Email",
-        "desc": "Manage your account email address"
+        "desc": "Manage your account’s associated email address"
       },
       "password": {
         "title": "Password",
         "desc": "Change your current password"
       },
       "labels": {
-        "uploadPhoto": "Upload new photo",
+        "uploadPhoto": "Upload a photo",
         "deletePhoto": "Delete photo",
-        "firstName": "First name",
-        "lastName": "Last name",
+        "firstName": "First Name",
+        "lastName": "Last Name",
         "email": "Email",
-        "currentPassword": "Current password",
-        "newPassword": "New password"
+        "currentPassword": "Current Password",
+        "newPassword": "New Password"
       },
       "buttons": {
-        "save": "Save changes"
+        "save": "Save Changes"
       }
     }
   },
-    "languages": {
+  "languages": {
     "es": "Spanish",
     "en": "English",
     "fr": "French"
@@ -79,25 +79,88 @@
     "GMT-6": "GMT-6 (Mexico City)",
     "GMT-3": "GMT-3 (Buenos Aires)"
   },
-
   "entity": {
     "filters": {
       "startDate": "Start date",
       "endDate": "End date",
       "consult": "Consult"
     },
-    
     "downloadXLSX": "Download XLSX",
     "table": {
-      "headers": [
-        "CO",
-        "Document",
-        "Provider date",
-        "Due date",
-        "Payment amount",
-        "Balance",
-        "View"
-      ],
+      "invoices": {
+        "headers": [
+          "CO",
+          "Document",
+          "Issue date",
+          "Due date",
+          "Discounts",
+          "Amount paid",
+          "Download"
+        ],
+        "fields": [
+          "co",
+          "documento",
+          "fechaProveedor",
+          "fechaVencimiento",
+          "descuentos",
+          "valorPago"
+        ]
+      },
+      "payments": {
+        "headers": [
+          "CO",
+          "Document",
+          "Document date",
+          "Debit",
+          "Credit",
+          "View"
+        ],
+        "fields": [
+          "co",
+          "documento",
+          "fechaDocumento",
+          "valorDebito",
+          "valorCredito"
+        ]
+      },
+      "returns": {
+        "headers": [
+          "CO",
+          "Document",
+          "Return date",
+          "Reason",
+          "Balance",
+          "Download"
+        ],
+        "fields": [
+          "co",
+          "documento",
+          "fechaEmision",
+          "motivo",
+          "saldo"
+        ]
+      },
+      "certificates": {
+        "headers": [
+          "CO",
+          "Document",
+          "Period",
+          "City",
+          "Base value",
+          "Withholding value",
+          "Rate",
+          "Download"
+        ],
+        "fields": [
+          "co",
+          "documento",
+          "periodo",
+          "ciudad",
+          "valorBase",
+          "valorRetencion",
+          "tasa"
+        ]
+      },
       "view": "View"
     },
     "invoices": {
@@ -120,7 +183,6 @@
         "vatRetention": "VAT retention"
       }
     },
-  
     "returns": {
       "buttons": {
         "damageReturn": "Return due to damage",
@@ -154,39 +216,34 @@
     "finish": "Finish"
   },
   "tutorial": {
-  "sidebarIntro": "This is the sidebar. From here you can navigate between the main sections of the portal.",
-  "goToHome": "This button takes you to the Home section.",
-  "totalVisits": "Here you can see the total number of visits you've made to the store.",
-  "totalSales": "Here you can check the total sales made.",
-  "totalProductsSold": "This card shows the number of products sold.",
-  "salesGrowth": "Here you can see the sales growth compared to the previous month.",
-  "salesChart": "This chart shows the sales trend over the months.",
-  "topProducts": "Here you can see the top 5 products sold to the store.",
-  "contacts": "In this table you can find the contacts for support or inquiries.",
-  "goToInvoices": "This button takes you to the Invoices section.",
-  "selectDocType": "To query documents, first enter the document type you want to query.",
-  "enterDateRange": "Then enter the date range and click the Consult button.",
-  "invoicesTable": "Here the invoices registered according to the consulted parameters are displayed.",
-  "viewDetail": "To view your documents in more detail, click this button.",
-  "masterDetail": "Here you can see the detailed information of your selected document.",
-  "childDetail": "On the right, associated with the master document, you can see related documents and their movements.",
-  "goToPayments": "This button takes you to the Payments section.",
-  "paymentsTable": "Here you can check the payments made.",
-  "goToReturns": "This button takes you to the Returns section.",
-  "returnsTable": "Here you can view your recorded returns.",
-  "goToCertificates": "This button takes you to the Certificates section.",
-  "certificatesTable": "Here you can check your tax certificates.",
-  "buttons": {
-    "next": "Next",
-    "back": "Back",
-    "skip": "Skip",
-    "finish": "Finish",
-    "goToHome":"Go to Home",
-    "goToInvoices":"Go to Invoices",
-    "viewDetail": "View Detail"
-  }
-}
-,
+    "sidebarIntro": "This is the sidebar. From here you can navigate between the main sections of the portal.",
+    "goToHome": "This button takes you to the Home section.",
+    "totalVisits": "Here you can see the total number of visits you've made to the store.",
+    "totalSales": "Here you can check the total sales made.",
+    "totalProductsSold": "This card shows the number of products sold.",
+    "salesGrowth": "Here you can see the sales growth compared to the previous month.",
+    "salesChart": "This chart shows the sales trend over the months.",
+    "topProducts": "Here you can see the top 5 products sold to the store.",
+    "contacts": "In this table you can find the contacts for support or inquiries.",
+    "goToInvoices": "This button takes you to the Invoices section.",
+    "selectDocType": "To query documents, first enter the document type you want to query.",
+    "enterDateRange": "Then enter the date range and click Consult.",
+    "invoicesTable": "Here the invoices registered according to the consulted parameters are displayed.",
+    "viewDetail": "To view your documents in more detail, click this button.",
+    "masterDetail": "Here you can see the detailed information of your selected document.",
+    "childDetail": "On the right, associated with the master document, you can see related documents and their movements.",
+    "goToPayments": "This button takes you to the Payments section.",
+    "paymentsTable": "Here you can check the payments made.",
+    "goToReturns": "This button takes you to the Returns section.",
+    "returnsTable": "Here you can view your recorded returns.",
+    "goToCertificates": "This button takes you to the Certificates section.",
+    "certificatesTable": "Here you can check your tax certificates.",
+    "buttons": {
+      "goToHome": "Go to Home",
+      "goToInvoices": "Go to Invoices",
+      "viewDetail": "View detail"
+    }
+  },
   "homepage": {
     "welcome": "Welcome back",
     "metrics": {

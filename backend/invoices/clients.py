@@ -6,4 +6,4 @@ class InvoiceClient:
         self._client = ConektaClient()
 
     def fetch_invoices(self, tipo_docto: str, nit: str) -> dict:
-        return self._client.get_suppliers_documents(tipo_docto, nit)
+        return self._client.get_invoices_documents(tipo_docto, nit)
