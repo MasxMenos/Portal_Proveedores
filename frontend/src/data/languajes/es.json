@@ -31,24 +31,43 @@
     "sendButton": "Enviar enlace de recuperación",
     "backToLogin": "Volver a iniciar sesión"
   },
-  "settings": {
+ "settings": {
     "general": {
       "title": "Configuración general",
-      "subtitle": "Ajusta tus preferencias de la cuenta",
+      "subtitle": "Ajusta las preferencias de tu cuenta",
       "preferredLanguage": "Idioma preferido",
       "timeZone": "Zona horaria",
-      "notifications": "Habilitar notificaciones por correo",
+      "notifications": "Activar notificaciones por correo electrónico",
       "saveSettings": "Guardar configuración"
+    },
+    "profileSettings": {
+      "title": "Configuración de perfil",
+      "subtitle": "Actualiza tu información personal",
+      "accountInfo": {
+        "title": "Información de la cuenta",
+        "desc": "Actualiza tu información personal"
+      },
+      "contactEmail": {
+        "title": "Correo electrónico de contacto",
+        "desc": "Administra la dirección de correo asociada a tu cuenta"
+      },
+      "password": {
+        "title": "Contraseña",
+        "desc": "Cambia tu contraseña actual"
+      },
+      "labels": {
+        "uploadPhoto": "Cargar foto",
+        "deletePhoto": "Eliminar foto",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "email": "Correo electrónico",
+        "currentPassword": "Contraseña actual",
+        "newPassword": "Nueva contraseña"
+      },
+      "buttons": {
+        "save": "Guardar cambios"
+      }
     }
-  },
-  "profileSettings": {
-    "title": "Configuración de perfil",
-    "subtitle": "Actualiza tu información personal",
-    "fullNameLabel": "Nombre completo",
-    "emailLabel": "Correo electrónico",
-    "phoneLabel": "Teléfono",
-    "newPasswordLabel": "Nueva contraseña",
-    "saveChanges": "Guardar cambios"
   },
     "languages": {
     "es": "Español",
@@ -68,18 +87,84 @@
     },
     
     "downloadXLSX": "Descargar XLSX",
-    "table": {
-      "headers": [
-        "CO",
-        "Documento",
-        "Fecha proveedor",
-        "Fecha vencimiento",
-        "Valor pago",
-        "Saldo",
-        "Ver"
-      ],
+        "table": {
+      "invoices": {
+        "headers": [
+          "CO",
+          "Documento",
+          "Fecha proveedor",
+          "Fecha vencimiento",
+          "Descuentos",
+          "Valor pago",
+          "Descargar"
+        ],
+        "fields": [
+          "co",
+          "documento",
+          "fechaProveedor",
+          "fechaVencimiento",
+          "descuentos",
+          "valorPago"
+        ]
+      },
+      "payments": {
+        "headers": [
+          "CO",
+          "Documento",
+          "Fecha documento",
+          "Valor débito",
+          "Valor crédito",
+          "Ver"
+        ],
+        "fields": [
+          "co",
+          "documento",
+          "fechaDocumento",
+          "valorDebito",
+          "valorCredito"
+        ]
+      },
+      "returns": {
+        "headers": [
+          "CO",
+          "Documento",
+          "Fecha devolución",
+          "Motivo",
+          "Saldo",
+          "Descargar"
+        ],
+        "fields": [
+          "co",
+          "documento",
+          "fechaEmision",
+          "motivo",
+          "saldo"
+        ]
+      },
+      "certificates": {
+        "headers": [
+          "CO",
+          "Documento",
+          "Periodo",
+          "Ciudad",
+          "Valor Base",
+          "Valor Retencion",
+          "Tasa",
+          "Descargar"
+        ],
+        "fields": [
+          "co",
+          "documento",
+          "periodo",
+          "ciudad",
+          "valorBase",
+          "valorRetencion",
+          "tasa"
+        ]
+      },
       "view": "Ver"
     },
+    
     "invoices": {
       "buttons": {
         "electronicInvoices": "Facturas electrónicas",

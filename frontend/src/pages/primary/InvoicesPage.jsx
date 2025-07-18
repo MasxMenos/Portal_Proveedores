@@ -1,20 +1,20 @@
-// src/pages/FacturasPage.jsx
+// src/pages/invoicesPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import EntidadPage from "../../layouts/EntityPage";
 import { useDateRange } from "../../hooks/useDateRange";
 import { useTheme } from "../../components/ThemeContext";
 
-export default function FacturasPage() {
+export default function invoicesPage() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
   // 1) botones extra con su tipo de documento asociado
   const botones = [
-    { label: t("entity.invoices.buttons.electronicInvoices"),      tipo: "FVE" },
-    { label: t("entity.invoices.buttons.commercialAgreementNotes"), tipo: "NAC" },
-    { label: t("entity.invoices.buttons.electronicCreditNotes"),    tipo: "NCE" },
+    { label: t("entity.invoices.buttons.electronicInvoices"),        tipo: "FVE" },
+    { label: t("entity.invoices.buttons.commercialAgreementNotes"),   tipo: "NAC" },
+    { label: t("entity.invoices.buttons.electronicCreditNotes"),      tipo: "NCE" },
   ];
 
   // 2) estado de selección del botón
@@ -32,7 +32,7 @@ export default function FacturasPage() {
   } = useDateRange();
 
   // 5) función de fetch parametrizada
-  const fetchFacturas = useCallback(
+  const fetchInvoices = useCallback(
     async (tipoDocto) => {
       setLoading(true);
       try {
@@ -59,7 +59,7 @@ export default function FacturasPage() {
 
         setDatos(filtrados);
       } catch (err) {
-        console.error("Error cargando facturas:", err);
+        console.error("Error cargando devoluciones:", err);
         setDatos([]);
       } finally {
         setLoading(false);
@@ -70,14 +70,14 @@ export default function FacturasPage() {
 
   // 6) ARRANQUE: consultamos “FVE” por defecto
   useEffect(() => {
-    fetchFacturas(botones[0].tipo);
+    fetchInvoices(botones[0].tipo);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // solo al mount
 
   // 7) manejador al click en un botón extra
   const handleButtonClick = (idx) => {
     setSelectedIndex(idx);
-    fetchFacturas(botones[idx].tipo);
+    fetchInvoices(botones[idx].tipo);
   };
 
   return (
@@ -93,7 +93,7 @@ export default function FacturasPage() {
         fechaFin,
         onStartChange,
         onEndChange,
-        onConsultar: () => fetchFacturas(botones[selectedIndex].tipo),
+        onConsultar: () => fetchInvoices(botones[selectedIndex].tipo),
       }}
       loading={loading}
       selectedButtonIndex={selectedIndex}

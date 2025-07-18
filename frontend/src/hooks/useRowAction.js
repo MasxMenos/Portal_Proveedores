@@ -1,13 +1,18 @@
-// src/hooks/useRowAction.js
 import { useNavigate } from "react-router-dom";
 
 export function useRowAction(tipo, basePath) {
   const navigate = useNavigate();
-  return (documento) => {
+  // ahora recibimos el objeto completo "item"
+  return (item) => {
+    const docId = item.documento;
     if (tipo !== "certificados") {
-      navigate(`/${basePath}/${documento}`);
+      navigate(
+        `/${basePath}/${docId}`,
+        { state: { master: item } }
+      );
     } else {
-      console.log(`Descargar certificado: ${documento}`);
+      // para certificados seguimos igual
+      console.log(`Descargar certificado: ${docId}`);
     }
   };
 }

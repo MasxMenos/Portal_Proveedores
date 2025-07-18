@@ -1,7 +1,7 @@
 // src/components/detail/DraggableLine.jsx
 import React, { forwardRef } from "react";
 import Draggable from "react-draggable";
-import { ChevronDown, ChevronRight, Download } from "lucide-react";
+import { ChevronDown, ChevronRight, Download } from "lucide-react"
 import { useTheme } from "../ThemeContext";
 import { useTranslation } from "react-i18next";
 

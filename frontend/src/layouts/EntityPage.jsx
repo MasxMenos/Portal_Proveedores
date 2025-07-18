@@ -1,5 +1,5 @@
 // src/pages/EntidadPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/MainSidebar";
 import HeaderSuperior from "../components/MainHeader";
@@ -27,29 +27,39 @@ export default function EntidadPage({
 }) {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
-  const activePage = useActivePage(titulo);
-  const navigate = useNavigate();
-  const handleNavClick = (path) => navigate(path);
-  const onRowClick = useRowAction(tipo, onNavigateBase);
 
-  // filtros de fecha: si vienen del padre usamos esos, sino creamos nuestros propios
+  const activePage    = useActivePage(titulo);
+  const navigate      = useNavigate();
+  const handleNavClick = (path) => navigate(path);
+  const onRowClick    = useRowAction(tipo, onNavigateBase);
+
+  // filtros: o los recibe el padre o crea los suyos
   const {
     start: fechaInicio,
-    end: fechaFin,
+    end:   fechaFin,
     onStartChange,
     onEndChange,
     onConsultar,
   } = extraFilters || useDateRange();
 
-  // paginación
+  // ** Aquí extraemos también pageNumbers, hasPrevGroup, etc. **
   const {
     currentPage,
     totalPages,
     paginatedData,
+    pageNumbers,
+    hasPrevGroup,
+    hasNextGroup,
+    prevGroupPage,
+    nextGroupPage,
     setCurrentPage,
   } = usePagination(datos, 10);
 
-  // si el padre no controla la selección, la gestionamos localmente
+    useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedButtonIndex, setCurrentPage]);
+
+  // selección de botones extra
   const [localSelected, setLocalSelected] = useState(null);
   const selected = selectedButtonIndex !== undefined
     ? selectedButtonIndex
@@ -63,40 +73,27 @@ export default function EntidadPage({
       <Sidebar activePage={activePage} onNavClick={handleNavClick} />
 
       <main className="flex-1 p-6 md:ml-64 space-y-6 overflow-auto">
-        <HeaderSuperior
-          activePage={encabezado}
-          title={titulo}
-          onToggleTheme={toggleTheme}
-        />
+        <HeaderSuperior activePage={encabezado} title={titulo} onToggleTheme={toggleTheme} />
 
-{/* Botones extra */}
+        {botonesExtra.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4" id="botones_consulta">
+            {botonesExtra.map((label, idx) => (
+              <button
+                key={label}
+                onClick={() => selectFn(idx)}
+                className={`px-4 py-2 rounded transition-colors duration-200 ${
+                  selected === idx
+                    ? (isDark ? "bg-[#111416] text-white" : "bg-gray-300 text-black")
+                    : (isDark ? "bg-[#0A0D0F] hover:bg-[#111416] text-white" : "bg-gray-200 hover:bg-gray-300 text-black")
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
-{/* Botones extra */}
-<div className="flex flex-wrap gap-2 mb-4">
-  {botonesExtra.map((label, idx) => (
-    <button
-      key={label}
-      onClick={() => selectFn(idx)}
-      className={`
-        px-4 py-2 rounded transition-colors duration-200
-        ${
-          selected === idx
-            ? isDark
-              ? "bg-[#111416] text-white"
-              : "bg-gray-300 text-black"
-            : isDark
-              ? "bg-[#0A0D0F] hover:bg-[#111416] text-white"
-              : "bg-gray-200 hover:bg-gray-300 text-black"
-        }
-      `}
-    >
-      {label}
-    </button>
-  ))}
-</div>
-
-
-        {/* Filtros de fecha y botón consultar */}
+        {/* Filtros y botón consultar */}
         <EntidadFilters
           isDark={isDark}
           fechaInicio={fechaInicio}
@@ -106,15 +103,11 @@ export default function EntidadPage({
           onConsultar={onConsultar}
         />
 
-        {/* Descargar XLSX */}
         <EntidadDownloadButton isDark={isDark} />
 
-        {/* Tabla o indicador de carga */}
         {loading ? (
           <div className="text-center py-8">
-            <span className={isDark ? "text-gray-300" : "text-gray-700"}>
-              Cargando...
-            </span>
+            <span className={isDark ? "text-gray-300" : "text-gray-700"}>Cargando...</span>
           </div>
         ) : (
           <EntidadTable
@@ -122,8 +115,15 @@ export default function EntidadPage({
             tipo={tipo}
             paginatedData={paginatedData}
             onRowClick={onRowClick}
-            totalPages={totalPages}
+            
+            /* paginación */
             currentPage={currentPage}
+            totalPages={totalPages}
+            pageNumbers={pageNumbers}
+            hasPrevGroup={hasPrevGroup}
+            hasNextGroup={hasNextGroup}
+            prevGroupPage={prevGroupPage}
+            nextGroupPage={nextGroupPage}
             setCurrentPage={setCurrentPage}
           />
         )}

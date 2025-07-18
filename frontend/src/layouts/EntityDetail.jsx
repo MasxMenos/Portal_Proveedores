@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useLayoutEffect,
 } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Sidebar from "../components/MainSidebar";
 import HeaderSuperior from "../components/MainHeader";
@@ -23,6 +23,8 @@ export default function EntidadDetail({ tipo }) {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
   const { documentoId } = useParams();
+  const { state } = useLocation();
+  const masterFromTable = state?.master;
   const activePage = useActivePage(tipo);
   const navigate = useNavigate();
 
@@ -37,7 +39,9 @@ export default function EntidadDetail({ tipo }) {
   const [positions, setPositions] = useState({ master: null, children: {} });
   const [paginationStates, setPaginationStates] = useState({});
 
-  const { master, lines } = useMasterLines(documentoId);
+    // Si venía en location.state, lo usamos; si no, caemos al fetch
+  const { master: masterFetched, lines } = useMasterLines(documentoId);
+  const master = masterFromTable || masterFetched;
   const containerRect = useContainerRect(containerRef);
   const measurePositions = useMeasurePositions(
     masterRef,
@@ -77,7 +81,7 @@ export default function EntidadDetail({ tipo }) {
           className="flex items-center gap-2 text-gray-400 hover:underline cursor-pointer"
           onClick={() => navigate(-1)}
         >
-          <ArrowLeftCircle size={20} /> {t("buttons.back")}
+          <ArrowLeftCircle size={20} /> {t("detail.back")}
         </button>
 
         <div
@@ -114,7 +118,14 @@ export default function EntidadDetail({ tipo }) {
             </svg>
           )}
 
-          <EntityMaster isDark={isDark} master={master} ref={masterRef} />
+         
+    <EntityMaster
+      isDark={isDark}
+      tipo={tipo}
+      master={master}
+      ref={masterRef}
+    />
+
 
           {lines.map((line, idx) => {
             if (!childRefs.current[line.id]) {

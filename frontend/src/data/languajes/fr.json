@@ -69,7 +69,7 @@
       }
     }
   },
-    "languages": {
+  "languages": {
     "es": "Espagnol",
     "en": "Anglais",
     "fr": "Français"
@@ -79,7 +79,6 @@
     "GMT-6": "GMT-6 (Mexico)",
     "GMT-3": "GMT-3 (Buenos Aires)"
   },
-
   "entity": {
     "filters": {
       "startDate": "Date de début",
@@ -88,15 +87,80 @@
     },
     "downloadXLSX": "Télécharger XLSX",
     "table": {
-      "headers": [
-        "CO",
-        "Document",
-        "Date fournisseur",
-        "Date d’échéance",
-        "Montant du paiement",
-        "Solde",
-        "Voir"
-      ],
+      "invoices": {
+        "headers": [
+          "CO",
+          "Document",
+          "Date d’émission",
+          "Date d’échéance",
+          "Remises",
+          "Montant payé",
+          "Télécharger"
+        ],
+        "fields": [
+          "co",
+          "documento",
+          "fechaProveedor",
+          "fechaVencimiento",
+          "descuentos",
+          "valorPago"
+        ]
+      },
+      "payments": {
+        "headers": [
+          "CO",
+          "Document",
+          "Date document",
+          "Débit",
+          "Crédit",
+          "Voir"
+        ],
+        "fields": [
+          "co",
+          "documento",
+          "fechaDocumento",
+          "valorDebito",
+          "valorCredito"
+        ]
+      },
+      "returns": {
+        "headers": [
+          "CO",
+          "Document",
+          "Date retour",
+          "Motif",
+          "Solde",
+          "Télécharger"
+        ],
+        "fields": [
+          "co",
+          "documento",
+          "fechaEmision",
+          "motivo",
+          "saldo"
+        ]
+      },
+      "certificates": {
+        "headers": [
+          "CO",
+          "Document",
+          "Période",
+          "Ville",
+          "Valeur de base",
+          "Valeur de retenue",
+          "Taux",
+          "Télécharger"
+        ],
+        "fields": [
+          "co",
+          "documento",
+          "periodo",
+          "ciudad",
+          "valorBase",
+          "valorRetencion",
+          "tasa"
+        ]
+      },
       "view": "Voir"
     },
     "invoices": {
@@ -151,40 +215,35 @@
     "skip": "Passer",
     "finish": "Terminer"
   },
-"tutorial": {
-  "sidebarIntro": "Ceci est le menu latéral. Vous pouvez naviguer entre les sections principales du portail.",
-  "goToHome": "Ce bouton vous mène à la section Accueil.",
-  "totalVisits": "Ici vous pouvez voir le nombre total de visites effectuées au commerce.",
-  "totalSales": "Ici vous pouvez consulter le total des ventes réalisées.",
-  "totalProductsSold": "Cette carte affiche le nombre de produits vendus.",
-  "salesGrowth": "Ici vous voyez la croissance des ventes par rapport au mois précédent.",
-  "salesChart": "Ce graphique montre la tendance des ventes sur les mois.",
-  "topProducts": "Ici vous pouvez voir les 5 produits les plus vendus au commerce.",
-  "contacts": "Dans ce tableau, vous trouverez les contacts pour le support ou les demandes.",
-  "goToInvoices": "Ce bouton vous mène à la section Factures.",
-  "selectDocType": "Pour interroger des documents, saisissez d’abord le type de document souhaité.",
-  "enterDateRange": "Ensuite, saisissez la plage de dates et cliquez sur Rechercher.",
-  "invoicesTable": "Ici sont affichées les factures selon les paramètres consultés.",
-  "viewDetail": "Pour voir vos documents en détail, cliquez sur ce bouton.",
-  "masterDetail": "Ici vous pouvez voir les informations détaillées de votre document sélectionné.",
-  "childDetail": "Sur la droite, associé au document principal, vous pouvez voir les documents liés et leurs mouvements.",
-  "goToPayments": "Ce bouton vous mène à la section Paiements.",
-  "paymentsTable": "Ici vous pouvez consulter les paiements effectués.",
-  "goToReturns": "Ce bouton vous mène à la section Retours.",
-  "returnsTable": "Ici vous pouvez voir vos retours enregistrés.",
-  "goToCertificates": "Ce bouton vous mène à la section Certificats.",
-  "certificatesTable": "Ici vous pouvez consulter vos certificats fiscaux.",
-  "buttons": {
-    "next": "Suivant",
-    "back": "Retour",
-    "skip": "Passer",
-    "finish": "Terminer",
-    "goToHome":"Aller à l'accueil",
-    "goToInvoices":"Aller aux factures",
-    "viewDetail": "Voir le détail"
-
-  }
-},
+  "tutorial": {
+    "sidebarIntro": "Ceci est le menu latéral. Vous pouvez naviguer entre les sections principales du portail.",
+    "goToHome": "Ce bouton vous mène à la section Accueil.",
+    "totalVisits": "Ici vous pouvez voir le nombre total de visites effectuées au commerce.",
+    "totalSales": "Ici vous pouvez consulter le total des ventes réalisées.",
+    "totalProductsSold": "Cette carte affiche le nombre de produits vendus.",
+    "salesGrowth": "Ici vous voyez la croissance des ventes par rapport au mois précédent.",
+    "salesChart": "Ce graphique montre la tendance des ventes sur les mois.",
+    "topProducts": "Ici vous pouvez voir les 5 produits les plus vendus au commerce.",
+    "contacts": "Dans ce tableau, vous trouverez les contacts pour le support ou les demandes.",
+    "goToInvoices": "Ce bouton vous mène à la section Factures.",
+    "selectDocType": "Pour interroger des documents, saisissez d’abord le type de document souhaité.",
+    "enterDateRange": "Ensuite, saisissez la plage de dates et cliquez sur Rechercher.",
+    "invoicesTable": "Ici sont affichées les factures selon les paramètres consultés.",
+    "viewDetail": "Pour voir vos documents en détail, cliquez sur ce bouton.",
+    "masterDetail": "Ici vous pouvez voir les informations détaillées de votre document sélectionné.",
+    "childDetail": "Sur la droite, associé au document principal, vous pouvez voir les documents liés et leurs mouvements.",
+    "goToPayments": "Ce bouton vous mène à la section Paiements.",
+    "paymentsTable": "Ici vous pouvez consulter les paiements effectués.",
+    "goToReturns": "Ce bouton vous mène à la section Retours.",
+    "returnsTable": "Ici vous pouvez voir vos retours enregistrés.",
+    "goToCertificates": "Ce bouton vous mène à la section Certificats.",
+    "certificatesTable": "Ici vous pouvez consulter vos certificats fiscaux.",
+    "buttons": {
+      "goToHome": "Aller à l'accueil",
+      "goToInvoices": "Aller aux factures",
+      "viewDetail": "Voir le détail"
+    }
+  },
   "homepage": {
     "welcome": "Bon retour",
     "metrics": {

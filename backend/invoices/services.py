@@ -23,7 +23,7 @@ def get_invoices(
     results: List[InvoiceDTO] = []
     for item in records:
         # parsear fechas YYYY/MM/DD
-        fp = datetime.strptime(item["FechaProveedor"], "%Y-%m-%d").date()
+        fp = datetime.strptime(item["FechaEmision"], "%Y-%m-%d").date()
         fv = datetime.strptime(item["FechaVencimiento"], "%Y-%m-%d").date()
 
 
@@ -36,11 +36,11 @@ def get_invoices(
         # crear DTO (co es fijo "099")
         dto = InvoiceDTO(
             documento         = item.get("Documento", ""),
-            fecha_proveedor   = item.get("FechaProveedor", ""),
-            fecha_vencimiento = item.get("FechaVencimiento", ""),
+            fecha_emision   = fp,
+            fecha_vencimiento = fv,
             valor_pago        = float(item.get("ValorPago", 0)),
-            saldo             = float(item.get("Saldo", 0)),
-            co                 = "099",
+            descuentos             = float(item.get("Descuento", 0)),
+            co                 = item.get("f350_id_co", "099"),
         )
         results.append(dto)
 
