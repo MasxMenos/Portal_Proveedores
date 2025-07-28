@@ -40,51 +40,8 @@ const DraggableLine = forwardRef(
     const defaultY = idx * 180 + 40;
 
 
-    const STORAGE_KEY = `checks-payments-${masterDocumento}`;
 
-    // Estado local del checkbox
-    const [localChecked, setLocalChecked] = React.useState(isChecked);
-
-    // 1) Inicializar o actualizar total y checked[] en storage
-   // Inicializa total y lista checked en storage (sólo al montar)
-    React.useEffect(() => {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({ total: totalLines, checked: [] })
-        );
-      }
-    // sólo en el primer render
-    }, []); 
-
-    // 2) Escuchar cambios de storage (otras pestañas)
-    React.useEffect(() => {
-      const handler = (e) => {
-        if (e.key !== STORAGE_KEY) return;
-        const state = JSON.parse(e.newValue || "{}");
-        const isNow = state.checked.includes(line.id);
-        setLocalChecked(isNow);
-        onToggleChecked(isNow);
-      };
-      window.addEventListener("storage", handler);
-      return () => window.removeEventListener("storage", handler);
-    }, [STORAGE_KEY, line.id]);
-
-    // 3) Cuando toggles, persiste en storage
-    const handleCheckbox = (checked) => {
-      setLocalChecked(checked);
-      onToggleChecked(checked);
-
-      const state = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      const arr = new Set(state.checked);
-      if (checked) arr.add(line.id);
-      else arr.delete(line.id);
-
-      state.checked = Array.from(arr);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    };
-
+    
     /* -------------------------------------------------- */
     /* Helpers                                            */
     /* -------------------------------------------------- */
@@ -203,10 +160,10 @@ const DraggableLine = forwardRef(
                   console.log(`Descargar documento: ${line.documento}`);
                 }}
               />
-             <input
-               type="checkbox"
-               checked={localChecked}
-               onChange={(e) => handleCheckbox(e.target.checked)}
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={(e) => onToggleChecked(e.target.checked)}
                 className="w-4 h-4 accent-brand-500 cursor-pointer"
                 title={t("detail.checkboxTooltip", "Marcar como revisado")}
               />
