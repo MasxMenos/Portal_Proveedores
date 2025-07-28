@@ -4,7 +4,7 @@ from .dtos    import CertificatesDTO
 from datetime import datetime
 from typing import List
 
-def get_Certificates(
+def get_certificates(
     tipo_docto: str,
     nit:        str,
     from_date:  str = None,
@@ -40,5 +40,6 @@ def get_Certificates(
             co                 = item.get("CO", "099"),
         )
         results.append(dto)
+        results.sort(key=lambda dto: dto.fecha_documento, reverse=True)
 
     return results

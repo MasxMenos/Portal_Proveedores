@@ -14,7 +14,6 @@ from pathlib import Path
 from datetime import timedelta
 import os
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -28,8 +27,15 @@ SECRET_KEY = "django-insecure-crpd@9dbz*(c#&^lvo1k^olh+0&mxib@7(*ir)#nkq7c!p!xby
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "x11psp8r-8000.use2.devtunnels.ms",   # tu dominio devtunnel
+]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://x11psp8r-8000.use2.devtunnels.ms",
+]
 
 # Application definition
 
@@ -39,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    "daphne",
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -48,7 +55,10 @@ INSTALLED_APPS = [
     'invoices',        
     'payments',        
     'returns',         
-    'certificates'
+    'certificates',
+    "channels",
+    "channels_redis",   #  solo si usas Redis como layer
+
 ]
 
 MIDDLEWARE = [
@@ -81,43 +91,60 @@ TEMPLATES = [
 ]
 
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'mxm',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+
+# Añade el backend personalizado:
+AUTHENTICATION_BACKENDS = [
+    'users.backends.PrvUsuarioBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+
+# Configura DRF para JWT:
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
-    #'DEFAULT_PERMISSION_CLASSES': [
-    #    'rest_framework.permissions.IsAuthenticated',
-    #],
+    ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
 
-
+from datetime import timedelta
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'AUTH_HEADER_TYPES': ('Bearer',),
+        'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
 }
 
-WSGI_APPLICATION = "backend.wsgi.application"
 
+#WSGI_APPLICATION = "backend.wsgi.application"
 
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
-    }
-}
-
+ASGI_APPLICATION = "backend.asgi.application"
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",    
     "http://127.0.0.1:5173",
    
 ]
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [("localhost", 6379)]},
+    }
+}
+
+REDIS_URL = "redis://localhost:6379/0"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

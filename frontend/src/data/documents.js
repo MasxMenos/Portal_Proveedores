@@ -9,19 +9,26 @@ export const masterTemplate = {
 
 export const linesTemplate = [
   {
-    CO: "009",
-    fecha: "2025/06/05",
-    debitos: 6933,
-    creditos: 9693,
-    movements: [
-      { reg: 1, cuenta: "22010101011", desc: "Proveedores nacionales", CO: "099" },
-      { reg: 2, cuenta: "29880101011", desc: "Órdenes de compra x legalizar", CO: "099" },
-      { reg: 3, cuenta: "240801024", desc: "19% Devol compras directas", CO: "099" },
-      { reg: 4, cuenta: "22020101011", desc: "Proveedores internacionales", CO: "099" },
-      { reg: 5, cuenta: "23010101011", desc: "Otros gastos", CO: "099" },
-      { reg: 6, cuenta: "24090101011", desc: "Descuentos", CO: "099" },
-      { reg: 7, cuenta: "25010101011", desc: "Impuestos adicionales", CO: "099" },
-      { reg: 8, cuenta: "26010101011", desc: "Intereses moratorios", CO: "099" },
-    ],
-  },
+        CO: "099",
+        documento: "01-1124",
+        fecha: "2024-11-30",
+        debitos: 781650.0,
+        creditos: 781650.0,
+        movements: [
+            {
+                "CO": "099",
+                "Documento": "-",
+                "Debitos": 0.0,
+                "Creditos": 0.0
+            }
+        ],
+        retencion: [
+            {
+                CO: "099",
+                Clase: "RTECOMPR",
+                Descripcion: "COMPRAS DEL 3.5%",
+                Total_Retencion: 28350.0
+            }
+        ]
+    },
 ];

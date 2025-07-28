@@ -10,6 +10,11 @@ export default function ReturnsPage() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
+      // Recuperar usuario autenticado (almacenado en localStorage)
+  const stored = localStorage.getItem("user");
+  const user = stored ? JSON.parse(stored) : null;
+  const nit = user?.username || ""; // usa campo 'username' como NIT si existe
+
   // 1) botones extra con su tipo de documento asociado
   const botones = [
     { label: t("entity.returns.buttons.damageReturn"),      tipo: "DPA" },
@@ -38,7 +43,7 @@ export default function ReturnsPage() {
         // Parámetros base
         const params = new URLSearchParams({
           tipoDocto,
-          nit: "891300382",
+          nit,
         });
         // Solo agregamos fechas al query (el backend no las requiere)
         if (fechaInicio) params.set("from", fechaInicio);
@@ -64,7 +69,7 @@ export default function ReturnsPage() {
         setLoading(false);
       }
     },
-    [fechaInicio, fechaFin]
+    [fechaInicio, fechaFin, nit]
   );
 
   // 6) ARRANQUE: consultamos el primer botón por defecto

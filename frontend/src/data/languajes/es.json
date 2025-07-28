@@ -28,16 +28,16 @@
     "title": "¿Olvidó su contraseña?",
     "subtitle": "Ingrese su correo electrónico para restablecerla",
     "emailLabel": "Correo electrónico",
-    "sendButton": "Enviar enlace de recuperación",
-    "backToLogin": "Volver a iniciar sesión"
+    "sendButton": "Enviar enlace",
+    "backToLogin": "Volver al inicio de sesión"
   },
- "settings": {
+  "settings": {
     "general": {
       "title": "Configuración general",
       "subtitle": "Ajusta las preferencias de tu cuenta",
       "preferredLanguage": "Idioma preferido",
       "timeZone": "Zona horaria",
-      "notifications": "Activar notificaciones por correo electrónico",
+      "notifications": "Habilitar notificaciones por correo",
       "saveSettings": "Guardar configuración"
     },
     "profileSettings": {
@@ -48,15 +48,15 @@
         "desc": "Actualiza tu información personal"
       },
       "contactEmail": {
-        "title": "Correo electrónico de contacto",
-        "desc": "Administra la dirección de correo asociada a tu cuenta"
+        "title": "Correo de contacto",
+        "desc": "Administra el correo electrónico asociado a tu cuenta"
       },
       "password": {
         "title": "Contraseña",
         "desc": "Cambia tu contraseña actual"
       },
       "labels": {
-        "uploadPhoto": "Cargar foto",
+        "uploadPhoto": "Subir foto",
         "deletePhoto": "Eliminar foto",
         "firstName": "Nombre",
         "lastName": "Apellido",
@@ -69,7 +69,7 @@
       }
     }
   },
-    "languages": {
+  "languages": {
     "es": "Español",
     "en": "Inglés",
     "fr": "Francés"
@@ -81,13 +81,12 @@
   },
   "entity": {
     "filters": {
-      "startDate": "Fecha inicial",
-      "endDate": "Fecha final",
+      "startDate": "Fecha inicio",
+      "endDate": "Fecha fin",
       "consult": "Consultar"
     },
-    
     "downloadXLSX": "Descargar XLSX",
-        "table": {
+    "table": {
       "invoices": {
         "headers": [
           "CO",
@@ -95,7 +94,7 @@
           "Fecha proveedor",
           "Fecha vencimiento",
           "Descuentos",
-          "Valor pago",
+          "Valor pagado",
           "Descargar"
         ],
         "fields": [
@@ -112,8 +111,9 @@
           "CO",
           "Documento",
           "Fecha documento",
-          "Valor débito",
-          "Valor crédito",
+          "Débito",
+          "Crédito",
+          "Progreso",
           "Ver"
         ],
         "fields": [
@@ -147,8 +147,8 @@
           "Documento",
           "Periodo",
           "Ciudad",
-          "Valor Base",
-          "Valor Retencion",
+          "Valor base",
+          "Valor retenido",
           "Tasa",
           "Descargar"
         ],
@@ -164,30 +164,29 @@
       },
       "view": "Ver"
     },
-    
     "invoices": {
       "buttons": {
         "electronicInvoices": "Facturas electrónicas",
-        "commercialAgreementNotes": "Notas acuerdos comerciales",
-        "electronicCreditNotes": "Notas crédito electrónicas"
+        "commercialAgreementNotes": "Notas de convenio comercial",
+        "electronicCreditNotes": "Notas de crédito electrónicas"
       }
     },
     "payments": {
       "buttons": {
-        "egressTransferCertificate": "Certificado de egreso transferencia",
-        "receivablesReclassification": "Reclasificación cuentas por cobrar"
+        "egressTransferCertificate": "Certificado de traslado de egresos",
+        "receivablesReclassification": "Reclasificación de cuentas por cobrar"
       }
     },
     "certificates": {
       "buttons": {
-        "icaRetention": "Retención I.C.A",
+        "icaRetention": "Retención de I.C.A.",
         "sourceRetention": "Retención en la fuente",
-        "vatRetention": "Retención IVA"
+        "vatRetention": "Retención de IVA"
       }
     },
     "returns": {
       "buttons": {
-        "damageReturn": "Devolución por avería",
+        "damageReturn": "Devolución por daños",
         "purchaseReturn": "Devolución por compra"
       }
     }
@@ -201,69 +200,65 @@
       "paymentValue": "Valor pago",
       "balance": "Saldo"
     },
-    "movementsTitle": "Movimiento contable",
+    "movementsTitle": "Asientos contables",
     "movements": {
       "reg": "Reg.",
       "accountCode": "Código cuenta",
       "accountDescription": "DESCRIPCIÓN CUENTA",
       "debits": "Débitos",
       "credits": "Créditos"
-    }
+    },
+    "back": "Volver"
   },
   "buttons": {
     "next": "Siguiente",
     "back": "Atrás",
-    "skip": "Omitir",
+    "skip": "Saltar",
     "finish": "Finalizar"
   },
-"tutorial": {
-  "sidebarIntro": "Este es el menú lateral. Desde aquí puedes navegar entre las principales secciones del portal.",
-  "goToHome": "Este botón te lleva a la sección de Inicio.",
-  "totalVisits": "Aquí puedes ver el total de visitas que has realizado al comercio.",
-  "totalSales": "Aquí puedes consultar el total de ventas realizadas.",
-  "totalProductsSold": "Esta tarjeta muestra la cantidad de productos vendidos.",
-  "salesGrowth": "Aquí se muestra el crecimiento de las ventas respecto al mes anterior.",
-  "salesChart": "Este gráfico muestra la tendencia de ventas a lo largo de los meses.",
-  "topProducts": "Aquí puedes ver los 5 productos más vendidos al comercio.",
-  "contacts": "En esta tabla puedes encontrar los contactos del área correspondiente para soporte o consultas.",
-  "goToInvoices": "Este botón te lleva a la sección de Facturas.",
-  "selectDocType": "Para realizar las consultas de los documentos primero ingrese el tipo de documento que quiere consultar.",
-  "enterDateRange": "Luego, ingrese el rango de fecha respectivo y dé clic al botón de consultar.",
-  "invoicesTable": "Aquí se muestran las facturas registradas según los parámetros consultados.",
-  "viewDetail": "Para poder ver sus documentos con mayor detalle, haga clic en este botón.",
-  "masterDetail": "Aquí puedes ver la información detallada de tu documento seleccionado.",
-  "childDetail": "En la parte derecha, asociado al documento maestro podrás observar los documentos que tienen relación directa con el mismo, junto con sus respectivos movimientos.",
-  "goToPayments": "Este botón te lleva a la sección de Pagos.",
-  "paymentsTable": "Aquí puedes consultar los pagos realizados.",
-  "goToReturns": "Este botón te lleva a la sección de Devoluciones.",
-  "returnsTable": "Aquí puedes ver tus devoluciones registradas.",
-  "goToCertificates": "Este botón te lleva a la sección de Certificados.",
-  "certificatesTable": "Aquí puedes consultar tus certificados tributarios.",
-  "buttons": {
-    "next": "Siguiente",
-    "back": "Atrás",
-    "skip": "Omitir",
-    "finish": "Finalizar",
-    "goToHome":"Ir a inicio",
-    "goToInvoices": "ir a facturas",
-    "viewDetail": "Ver detalle"
-  }
-}
-,
+  "tutorial": {
+    "sidebarIntro": "Este es el menú lateral. Desde aquí puedes navegar entre las secciones principales del portal.",
+    "goToHome": "Este botón te lleva a la sección de Inicio.",
+    "totalVisits": "Aquí puedes ver el número total de visitas que has realizado a la tienda.",
+    "totalSales": "Aquí puedes consultar el total de ventas realizadas.",
+    "totalProductsSold": "Esta tarjeta muestra el número de productos vendidos.",
+    "salesGrowth": "Aquí puedes ver el crecimiento de ventas comparado con el mes anterior.",
+    "salesChart": "Este gráfico muestra la tendencia de ventas a lo largo de los meses.",
+    "topProducts": "Aquí puedes ver los 5 productos más vendidos a la tienda.",
+    "contacts": "En esta tabla puedes encontrar los contactos de soporte o consultas.",
+    "goToInvoices": "Este botón te lleva a la sección de Facturas.",
+    "selectDocType": "Para consultar documentos, primero ingresa el tipo de documento que deseas consultar.",
+    "enterDateRange": "Luego ingresa el rango de fechas y haz clic en Consultar.",
+    "invoicesTable": "Aquí se muestran las facturas registradas según los parámetros consultados.",
+    "viewDetail": "Para ver tus documentos con más detalle, haz clic en este botón.",
+    "masterDetail": "Aquí puedes ver la información detallada de tu documento seleccionado.",
+    "childDetail": "A la derecha, asociado al documento maestro, puedes ver los documentos relacionados y sus movimientos.",
+    "goToPayments": "Este botón te lleva a la sección de Pagos.",
+    "paymentsTable": "Aquí puedes consultar los pagos realizados.",
+    "goToReturns": "Este botón te lleva a la sección de Devoluciones.",
+    "returnsTable": "Aquí puedes ver tus devoluciones registradas.",
+    "goToCertificates": "Este botón te lleva a la sección de Certificados.",
+    "certificatesTable": "Aquí puedes consultar tus certificados tributarios.",
+    "buttons": {
+      "goToHome": "Ir a Inicio",
+      "goToInvoices": "Ir a Facturas",
+      "viewDetail": "Ver detalle"
+    }
+  },
   "homepage": {
-    "welcome": "Bienvenido de vuelta",
+    "welcome": "Bienvenido de nuevo",
     "metrics": {
       "visitas": "Visitas",
       "ventas": "Ventas",
       "productos": "Productos",
       "crecimiento": "Crecimiento"
     },
-    "totalSales": "Total de ventas",
-    "topProducts": "Top Productos",
+    "totalSales": "Ventas totales",
+    "topProducts": "Productos destacados",
     "contacts": {
       "title": "Contactos",
       "tipo": "Tipo",
-      "email": "Email",
+      "email": "Correo electrónico",
       "nota": "Nota"
     }
   }

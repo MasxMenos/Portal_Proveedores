@@ -13,6 +13,7 @@ import "./styles/tailwind.css"  // ruta RELATIVA al propio App.jsx
 import ProfileSettingsPage from "./pages/auth/ProfileSettingsPage.jsx";
 import GeneralSettingsPage from "./pages/auth/GeneralSettingsPage.jsx";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage.jsx";
+import RequireAuth from "./components/auth/RequireAuth.jsx";
 
 export default function App() {
   return (
@@ -23,21 +24,22 @@ export default function App() {
 
         {/* Aquí mapeas /login a tu LoginPage */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/recuperar_contrasena" element={<ForgotPasswordPage />} />
         
+        <Route element={<RequireAuth />}>
         <Route path="/configuracion_perfil" element={<ProfileSettingsPage />} />
         <Route path="/configuracion" element={<GeneralSettingsPage />} />
-        <Route path="/recuperar_contrasena" element={<ForgotPasswordPage />} />
-
         <Route path="/inicio" element={<InicioPage />} />
-
         <Route path="/facturas" element={<FacturasPage />} />
         <Route path="/pagos" element={<PagosPage />} />
         <Route path="/devoluciones" element={<DevolucionesPage />} />
         <Route path="/certificados" element={<CertificadosPage />} />
-
         <Route path="/invoices/:documentoId" element={<FacturaDetailPage />} />
         <Route path="/payments/:documentoId" element={<PagosDetailPage />} />
         <Route path="/returns/:documentoId" element={<DevolucionesDetailPage />} />
+        </Route>
+
+      <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );

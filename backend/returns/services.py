@@ -41,6 +41,7 @@ def get_returns(
             saldo             = float(item.get("Saldo",0))
         )
         results.append(dto)
+        results.sort(key=lambda dto: dto.fecha_emision, reverse=True)
 
     return results
 

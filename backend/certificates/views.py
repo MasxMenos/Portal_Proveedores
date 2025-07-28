@@ -7,6 +7,7 @@ from .serializers import CertificatesSerializer
 
 class CertificatesListView(APIView):
     permission_classes = [AllowAny]
+    
 
     def get(self, request):
         tipo_docto = request.query_params.get("tipoDocto")

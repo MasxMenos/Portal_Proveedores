@@ -8,7 +8,8 @@ export default function EntidadTable({
   tipo,
   paginatedData,
   onRowClick,
-
+  currencyFields = [],
+  progressData = {},
   /* paginación */
   currentPage,
   totalPages,
@@ -23,6 +24,8 @@ export default function EntidadTable({
   const headers   = t(`entity.table.${tipo}.headers`, { returnObjects: true });
   const fields    = t(`entity.table.${tipo}.fields`,  { returnObjects: true });
   const viewLabel = t("entity.view");
+  const progressLabel = t("entity.progress", "Progreso");
+  const showProgress = tipo === "payments"; 
 
   const handleAction = (item) => {
     if (tipo === "payments") {
@@ -30,12 +33,19 @@ export default function EntidadTable({
     } else {
       const link = document.createElement("a");
       link.href = "/blank.pdf";
-      link.download = `${documento}.pdf`;
+      link.download = `${item.documento}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
   };
+
+  // Formateador de moneda (ajusta locale y currency según necesites)
+  const currencyFormatter = new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    minimumFractionDigits: 2,
+  });
 
   return (
     <div className={`entity-table overflow-auto rounded-lg ${isDark ? "bg-[#111]" : "bg-gray-100"}`}>
@@ -60,12 +70,25 @@ export default function EntidadTable({
                 isDark ? "border-[#222] hover:bg-[#1a1a1a]" : "border-gray-300 hover:bg-gray-100"
               }`}
             >
-              {fields.map((fieldKey, idx) => (
-                <td key={idx} className="px-4 py-3 text-center">
-                  {item[fieldKey]}
-                </td>
-              ))}
+              {fields.map((fieldKey, idx) => {
+                let value = item[fieldKey];
+                // Si este campo está en currencyFields y es number, lo formateamos
+                if (currencyFields.includes(fieldKey) && typeof value === "number") {
+                  value = currencyFormatter.format(value);
+                }
+                return (
+                  <td key={idx} className="px-4 py-3 text-center">
+                    {value}
+                  </td>
+                );
+              })}
 
+              {/* ────── NUEVA CELDA PROGRESO ────── */}
+              {showProgress && (
+                <td className="px-4 py-3 text-center">
+                  {`${Math.round((progressData[item.documento]||0)*100)}%`}
+                </td>
+              )}
               <td className="px-4 py-3 text-center">
                 <span
                   className="cursor-pointer inline-flex items-center justify-center"

@@ -113,6 +113,7 @@
           "Document date",
           "Debit",
           "Credit",
+          "Progress",
           "View"
         ],
         "fields": [

@@ -22,6 +22,18 @@ export default function ProfileMenu({ isDark }) {
     closeTimer.current = setTimeout(() => setMenuOpen(false), 2000);
   };
 
+  const handleLogout = () => {
+    // Eliminar tokens e información de usuario
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("user");
+    // Redirigir a login
+    navigate("/login", { replace: true });
+  };
+
   return (
     <div
       ref={wrapperRef}
@@ -65,7 +77,7 @@ export default function ProfileMenu({ isDark }) {
             <span>{t("header.configuration")}</span>
           </button>
           <button
-            onClick={() => navigate("/login")}
+            onClick={handleLogout}
             className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded transition-colors ${
               isDark ? "hover:bg-zinc-800" : "hover:bg-gray-100"
             }`}

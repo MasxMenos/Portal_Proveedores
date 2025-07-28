@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.10",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
+    "framer-motion": "^12.23.6",
     "i18next": "^25.3.1",
     "i18next-browser-languagedetector": "^8.2.0",
     "lucide-react": "^0.523.0",

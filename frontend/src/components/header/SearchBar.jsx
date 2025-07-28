@@ -1,10 +1,17 @@
 // src/components/header/SearchBar.jsx
-import React from "react";
+import React, { useState } from "react";
 import { Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export default function SearchBar({ isDark, onSearch }) {
   const { t } = useTranslation();
+  const [query, setQuery] = useState("");
+
+  const handleChange = (e) => {
+    const v = e.target.value;
+    setQuery(v);
+    onSearch(v);   
+  };
 
   return (
     <div className="relative hidden sm:block">
@@ -16,8 +23,9 @@ export default function SearchBar({ isDark, onSearch }) {
       />
       <input
         type="text"
+        value={query}
         placeholder={t("header.searchPlaceholder")}
-        onChange={(e) => onSearch(e.target.value)}
+        onChange={handleChange}
         className={`
           pl-10 pr-4 py-1 rounded text-base focus:outline-none w-52 h-10
           ${isDark ? "bg-zinc-900 text-white" : "bg-gray-200 text-black"}

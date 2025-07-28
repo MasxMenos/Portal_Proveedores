@@ -5,10 +5,16 @@ import EntidadPage from "../../layouts/EntityPage";
 import { useDateRange } from "../../hooks/useDateRange";
 import { useTheme } from "../../components/ThemeContext";
 
+
 export default function PaymentsPage() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const isDark = theme === "dark";
+
+    // Recuperar usuario autenticado (almacenado en localStorage)
+  const stored = localStorage.getItem("user");
+  const user = stored ? JSON.parse(stored) : null;
+  const nit = user?.username || ""; // usa campo 'username' como NIT si existe
 
   // 1) botones extra con su tipo de documento asociado
   const botones = [
@@ -38,7 +44,7 @@ export default function PaymentsPage() {
         // Parámetros base
         const params = new URLSearchParams({
           tipoDocto,
-          nit: "891300382",
+          nit,
         });
         // Solo agregamos fechas al query (el backend no las requiere)
         if (fechaInicio) params.set("from", fechaInicio);
@@ -64,7 +70,7 @@ export default function PaymentsPage() {
         setLoading(false);
       }
     },
-    [fechaInicio, fechaFin]
+    [fechaInicio, fechaFin, nit]
   );
 
   // 6) ARRANQUE: consultamos “FVE” por defecto

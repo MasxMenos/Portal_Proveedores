@@ -1,4 +1,4 @@
-// src/data/facturas.js
+// src/data/payments.js
 
 const datosPagos = [
   {
@@ -62,25 +62,6 @@ const datosPagos = [
     valorPago: "$3.500,00",
     saldo: "$48.000,00",
   },
-  ,
-  {
-    co: "099",
-    documento: "BELO-888620",
-    fechaProveedor: "2025/01/02",
-    fechaVencimiento: "2025/02/05",
-    valorPago: "$3.500,00",
-    saldo: "$48.000,00",
-  },
-  ,
-  {
-    co: "099",
-    documento: "BELO-888620",
-    fechaProveedor: "2025/01/02",
-    fechaVencimiento: "2025/02/05",
-    valorPago: "$3.500,00",
-    saldo: "$48.000,00",
-  },
-  
   // ... más registros
 ];
 

@@ -1,6 +1,9 @@
 # Payments/dtos.py
 from dataclasses import dataclass
 from datetime   import datetime, date
+from typing import List, Optional
+import json
+
 
 @dataclass
 class PaymentsDTO:
@@ -21,3 +24,28 @@ class PaymentsDTO:
             valor_credito      = float(data.get("ValorCredito", 0)),
             co             = data.get("CO", "099"),
         )
+
+
+@dataclass
+class MovementDTO:
+    CO: str
+    Documento: str
+    Debitos: float
+    Creditos: float
+
+@dataclass
+class RetencionDTO:
+    CO: str
+    Clase: str
+    Descripcion: str
+    Total_Retencion: float
+
+@dataclass
+class PaymentsDetailDTO:
+    CO: str
+    documento: str
+    fecha: str           # yyyy-mm-dd
+    debitos: float
+    creditos: float
+    movements: List[MovementDTO]
+    retencion: List[RetencionDTO]

@@ -43,5 +43,6 @@ def get_invoices(
             co                 = item.get("f350_id_co", "099"),
         )
         results.append(dto)
+        results.sort(key=lambda dto: dto.fecha_emision, reverse=True)
 
     return results
