@@ -1,20 +1,26 @@
-// src/pages/invoicesPage.jsx
+// src/pages/primary/InvoicesPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import EntidadPage from "../../layouts/EntityPage";
 import { useDateRange } from "../../hooks/useDateRange";
 import { useTheme } from "../../components/ThemeContext";
 
-export default function invoicesPage() {
+export default function InvoicesPage() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
+  // Recuperar usuario autenticado (almacenado en localStorage)
+  const stored = localStorage.getItem("user");
+  const user = stored ? JSON.parse(stored) : null;
+  const nit = user?.username || ""; // usa campo 'username' como NIT si existe
+  
+
   // 1) botones extra con su tipo de documento asociado
   const botones = [
-    { label: t("entity.invoices.buttons.electronicInvoices"),        tipo: "FVE" },
-    { label: t("entity.invoices.buttons.commercialAgreementNotes"),   tipo: "NAC" },
-    { label: t("entity.invoices.buttons.electronicCreditNotes"),      tipo: "NCE" },
+    { label: t("entity.invoices.buttons.electronicInvoices"),      tipo: "FVE" },
+    { label: t("entity.invoices.buttons.commercialAgreementNotes"), tipo: "NAC" },
+    { label: t("entity.invoices.buttons.electronicCreditNotes"),    tipo: "NCE" },
   ];
 
   // 2) estado de selección del botón
@@ -36,22 +42,17 @@ export default function invoicesPage() {
     async (tipoDocto) => {
       setLoading(true);
       try {
-        // Parámetros base
-        const params = new URLSearchParams({
-          tipoDocto,
-          nit: "891300382",
-        });
-        // Solo agregamos fechas al query (el backend no las requiere)
+        const params = new URLSearchParams({ tipoDocto, nit });
         if (fechaInicio) params.set("from", fechaInicio);
         if (fechaFin)   params.set("to",   fechaFin);
 
-        const res = await fetch(`/api/invoices/?${params.toString()}`);
+        const res = await fetch(`/api/invoices/?${params}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const raw = await res.json();
 
-        // Filtrado extra en frontend por FechaProveedor
+        // Filtrado extra en frontend por fechaProveedor
         const filtrados = raw.filter(item => {
-          const f = new Date(item.FechaProveedor);
+          const f = new Date(item.fechaProveedor);
           if (fechaInicio && f < new Date(fechaInicio)) return false;
           if (fechaFin   && f > new Date(fechaFin))   return false;
           return true;
@@ -59,20 +60,22 @@ export default function invoicesPage() {
 
         setDatos(filtrados);
       } catch (err) {
-        console.error("Error cargando devoluciones:", err);
+        console.error("Error cargando facturas:", err);
         setDatos([]);
       } finally {
         setLoading(false);
       }
     },
-    [fechaInicio, fechaFin]
+    [fechaInicio, fechaFin, nit]
   );
 
   // 6) ARRANQUE: consultamos “FVE” por defecto
   useEffect(() => {
-    fetchInvoices(botones[0].tipo);
+    if (nit) {
+      fetchInvoices(botones[0].tipo);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // solo al mount
+  }, [nit]);
 
   // 7) manejador al click en un botón extra
   const handleButtonClick = (idx) => {
@@ -81,23 +84,26 @@ export default function invoicesPage() {
   };
 
   return (
-    <EntidadPage
-      tipo="invoices"
-      titulo={t("sidebar.invoices")}
-      encabezado={t("sidebar.invoices")}
-      datos={datos}
-      onNavigateBase="invoices"
-      botonesExtra={botones.map(b => b.label)}
-      extraFilters={{
-        fechaInicio,
-        fechaFin,
-        onStartChange,
-        onEndChange,
-        onConsultar: () => fetchInvoices(botones[selectedIndex].tipo),
-      }}
-      loading={loading}
-      selectedButtonIndex={selectedIndex}
-      onSelectButton={handleButtonClick}
-    />
+    <div className="space-y-4">
+      <EntidadPage
+        tipo="invoices"
+        titulo={t("sidebar.invoices")}
+        encabezado={t("sidebar.invoices")}
+        datos={datos}
+        onNavigateBase="invoices"
+        botonesExtra={botones.map(b => b.label)}
+        extraFilters={{
+          fechaInicio,
+          fechaFin,
+          onStartChange,
+          onEndChange,
+          onConsultar: () => fetchInvoices(botones[selectedIndex].tipo),
+        }}
+        loading={loading}
+        selectedButtonIndex={selectedIndex}
+        onSelectButton={handleButtonClick}
+        currencyFields={["descuentos", "valorPago"]}
+      />
+    </div>
   );
 }

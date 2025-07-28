@@ -7,3 +7,6 @@ class PaymentsClient:
 
     def fetch_payments(self, tipo_docto: str, nit: str) -> dict:
         return self._client.get_payments_documents(tipo_docto, nit)
+    
+    def fetch_payments_detail(self, tipo_docto: str, csc: str) -> dict:
+        return self._client.get_payments_detail(tipo_docto, csc)

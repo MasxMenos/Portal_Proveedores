@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny
 from .services  import get_invoices
 from .serializers import InvoiceSerializer
 
+
 class InvoiceListView(APIView):
     permission_classes = [AllowAny]
 

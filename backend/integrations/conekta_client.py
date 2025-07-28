@@ -68,3 +68,18 @@ class ConektaClient:
         resp = self.session.get(self.BASE_URL, params=params)
         resp.raise_for_status()
         return resp.json()
+
+
+    def get_payments_detail(self, tipo_docto: str, csc: str) -> dict:
+        """
+        Llama a la consulta get_payments_detail y
+        devuelve el JSON ya parseado.
+        """
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "get_payments_detail",
+            "parametros": f"TipoDocto={tipo_docto}|ConsecDocto={csc}",
+        }
+        resp = self.session.get(self.BASE_URL, params=params)
+        resp.raise_for_status()
+        return resp.json()

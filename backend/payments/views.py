@@ -1,9 +1,13 @@
 # invoices/views.py
 from rest_framework.views    import APIView
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.permissions import AllowAny
 from .services  import get_payments
 from .serializers import PaymentsSerializer
+from .services   import get_payments_detail
+from .serializers import PaymentsDetailSerializer
+
 
 class PaymentsListView(APIView):
     permission_classes = [AllowAny]
@@ -31,3 +35,21 @@ class PaymentsListView(APIView):
         # serializa directamente las instancias de InvoiceDTO
         serializer = PaymentsSerializer(dtos, many=True)
         return Response(serializer.data)
+
+
+class PaymentsDetailView(APIView):
+    permission_classes = [AllowAny]   # o IsAuthenticated si tu JWT aplica
+
+    def get(self, request):
+        tipo_docto = request.query_params.get("tipoDocto")
+        csc        = request.query_params.get("csc")
+
+        if not tipo_docto or not csc:
+            return Response(
+                {"detail": "Debe enviar tipoDocto y csc"},
+                status=400
+            )
+
+        dtos = get_payments_detail(tipo_docto, csc)
+        data = PaymentsDetailSerializer(dtos, many=True).data
+        return Response(data)

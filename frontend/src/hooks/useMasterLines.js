@@ -1,25 +1,78 @@
 // src/hooks/useMasterLines.js
-import { useEffect, useState } from "react";
-import { masterTemplate, linesTemplate } from "../data/documents";
+import { useState, useEffect } from "react";
 
-export function useMasterLines(documentoId) {
-  const [master, setMaster] = useState(null);
-  const [lines, setLines] = useState([]);
+/**
+ * Hook que trae maestro + líneas desde el backend **y** los guarda en localStorage
+ * para que al recargar la vista aparezcan al instante sin parpadeo.
+ *
+ * @param {Object}   params
+ * @param {string}   params.tipo         payments | invoices | returns …
+ * @param {string}   params.documentoId  CSC / id del documento a consultar
+ * @param {string=}  params.tipoDocto    RCP / FVE … (opcional)
+ */
+export function useMasterLines({ tipo, documentoId, tipoDocto }) {
+  const cacheKey = `detail:${tipo}:${documentoId}`;
 
+  // ───────────────────────── cache → estado inicial ─────────────────────────
+  const [master, setMaster] = useState(() => {
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+      return cached?.master ?? null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [lines, setLines] = useState(() => {
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+      return cached?.lines ?? [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState(null);
+
+  // ───────────────────────── fetch + cache ────────────────────────────────
   useEffect(() => {
-    setMaster({
-      ...masterTemplate,
-      documento: documentoId,
-    });
+    if (!tipo || !documentoId) return;
 
-    setLines(
-      [...Array(3)].map((_, idx) => ({
-        id: idx + 1,
-        documento: documentoId,
-        ...linesTemplate[0], // usa la plantilla base y extiéndela
-      }))
-    );
-  }, [documentoId]);
+    // Si ya tenemos líneas, evitamos mostrar spinner de carga
+    if (!lines.length) setLoading(true);
+    setError(null);
 
-  return { master, lines };
+    const params = new URLSearchParams();
+    if (tipoDocto) params.append("tipoDocto", tipoDocto);
+    params.append("csc", documentoId);
+
+    fetch(`/api/${tipo}/detail/?${params.toString()}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+      })
+      .then((data) => {
+        if (!Array.isArray(data) || !data.length) {
+          setMaster(null);
+          setLines([]);
+          localStorage.removeItem(cacheKey);
+          return;
+        }
+
+        const [first, ...rest] = data;
+        const newLines = [first, ...rest].map((item, idx) => ({ id: idx + 1, ...item }));
+
+        setMaster({ ...first });
+        setLines(newLines);
+
+        // 🔒 Guardar en cache
+        localStorage.setItem(cacheKey, JSON.stringify({ master: { ...first }, lines: newLines }));
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+    // Sólo refetch si cambia el documento o tipo
+  }, [tipo, documentoId, tipoDocto]);
+
+  return { master, lines, loading, error };
 }

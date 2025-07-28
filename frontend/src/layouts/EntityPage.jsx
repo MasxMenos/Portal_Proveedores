@@ -1,5 +1,5 @@
 // src/pages/EntidadPage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/MainSidebar";
 import HeaderSuperior from "../components/MainHeader";
@@ -12,6 +12,7 @@ import { usePagination } from "../hooks/usePagination";
 import { useDateRange } from "../hooks/useDateRange";
 import { useActivePage } from "../hooks/useActivePage";
 import { useRowAction } from "../hooks/useRowAction";
+import { useTranslation } from "react-i18next";
 
 export default function EntidadPage({
   tipo,
@@ -33,7 +34,7 @@ export default function EntidadPage({
   const handleNavClick = (path) => navigate(path);
   const onRowClick    = useRowAction(tipo, onNavigateBase);
 
-  // filtros: o los recibe el padre o crea los suyos
+  // filtros de fecha
   const {
     start: fechaInicio,
     end:   fechaFin,
@@ -42,7 +43,45 @@ export default function EntidadPage({
     onConsultar,
   } = extraFilters || useDateRange();
 
-  // ** Aquí extraemos también pageNumbers, hasPrevGroup, etc. **
+  // ─────────────────────────────────────
+  // 1) estado y filtrado global de búsqueda
+  const [searchTerm, setSearchTerm] = useState("");
+
+const filteredDatos = useMemo(() => {
+  if (!searchTerm) return datos;
+  const q = searchTerm.toLowerCase();
+
+  // 1) Primero filtramos solo los que contengan q en algún campo
+  const matches = datos.filter(item =>
+    Object.values(item).some(v => 
+      v != null && v.toString().toLowerCase().includes(q)
+    )
+  );
+
+  // 2) Ahora ordenamos según tres niveles de prioridad:
+  //    nivel 0 = algún campo **igual** a q
+  //    nivel 1 = algún campo **empieza** con q
+  //    nivel 2 = algún campo **contiene** q en otra posición
+  return matches.sort((a, b) => {
+    const aVals = Object.values(a).map(v => String(v).toLowerCase());
+    const bVals = Object.values(b).map(v => String(v).toLowerCase());
+
+    const rank = vals => {
+      if (vals.some(v => v === q)) return 0;
+      if (vals.some(v => v.startsWith(q))) return 1;
+      return 2;
+    };
+
+    const ra = rank(aVals);
+    const rb = rank(bVals);
+    if (ra !== rb) return ra - rb;
+    return 0; // mismo rango: mantenemos orden original
+  });
+}, [datos, searchTerm]);
+
+
+
+  // 2) paginación sobre filteredDatos
   const {
     currentPage,
     totalPages,
@@ -53,18 +92,31 @@ export default function EntidadPage({
     prevGroupPage,
     nextGroupPage,
     setCurrentPage,
-  } = usePagination(datos, 10);
+  } = usePagination(filteredDatos, 10);
 
-    useEffect(() => {
+  // reset página al cambiar filtro o tipo
+  useEffect(() => {
     setCurrentPage(1);
-  }, [selectedButtonIndex, setCurrentPage]);
+  }, [selectedButtonIndex, setCurrentPage, searchTerm]);
 
   // selección de botones extra
   const [localSelected, setLocalSelected] = useState(null);
-  const selected = selectedButtonIndex !== undefined
-    ? selectedButtonIndex
-    : localSelected;
+  const selected = selectedButtonIndex ?? localSelected;
   const selectFn = onSelectButton || setLocalSelected;
+  // ─────────────────────────────────────
+
+  // 3) Calcular progreso desde localStorage
+  const progressData = useMemo(() => {
+    const prog = {};
+    filteredDatos.forEach((item) => {
+      const key = `checks-payments-${item.documento}`;
+      const stored = JSON.parse(localStorage.getItem(key) || "{}");
+      const total   = stored.total   || 0;
+      const checked = Array.isArray(stored.checkedIds) ? stored.checkedIds : [];
+      prog[item.documento] = total > 0 ? checked.length / total : 0;
+    });
+    return prog;
+  }, [filteredDatos]);
 
   return (
     <div className={`flex flex-col md:flex-row min-h-screen ${
@@ -73,7 +125,13 @@ export default function EntidadPage({
       <Sidebar activePage={activePage} onNavClick={handleNavClick} />
 
       <main className="flex-1 p-6 md:ml-64 space-y-6 overflow-auto">
-        <HeaderSuperior activePage={encabezado} title={titulo} onToggleTheme={toggleTheme} />
+        {/* ahora le paso setSearchTerm */}
+        <HeaderSuperior
+          activePage={encabezado}
+          title={titulo}
+          onToggleTheme={toggleTheme}
+          onSearch={setSearchTerm}
+        />
 
         {botonesExtra.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4" id="botones_consulta">
@@ -93,7 +151,6 @@ export default function EntidadPage({
           </div>
         )}
 
-        {/* Filtros y botón consultar */}
         <EntidadFilters
           isDark={isDark}
           fechaInicio={fechaInicio}
@@ -103,7 +160,12 @@ export default function EntidadPage({
           onConsultar={onConsultar}
         />
 
-        <EntidadDownloadButton isDark={isDark} />
+        <EntidadDownloadButton
+          isDark={isDark}
+          tipo={tipo}
+          data={filteredDatos}    // exporta _todos_ los registros sin paginar
+        />
+
 
         {loading ? (
           <div className="text-center py-8">
@@ -115,7 +177,8 @@ export default function EntidadPage({
             tipo={tipo}
             paginatedData={paginatedData}
             onRowClick={onRowClick}
-            
+            progressData={progressData}
+            filterTerm={searchTerm}        // ← pasamos el término al table
             /* paginación */
             currentPage={currentPage}
             totalPages={totalPages}
@@ -125,6 +188,15 @@ export default function EntidadPage({
             prevGroupPage={prevGroupPage}
             nextGroupPage={nextGroupPage}
             setCurrentPage={setCurrentPage}
+            currencyFields={[
+              "descuentos",
+              "valorPago",
+              "valorDebito",
+              "valorCredito",
+              "saldo",
+              "valorBase",
+              "valorRetencion",
+            ]}
           />
         )}
       </main>
