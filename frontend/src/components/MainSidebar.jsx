@@ -13,6 +13,19 @@ export default function Sidebar({ activePage, onNavClick }) {
   const isDark = theme === "dark";
   const { t } = useTranslation();
 
+  // Recuperar usuario autenticado (almacenado en localStorage)
+  let userName = t("sidebar.providers"); // valor por defecto (traducción anterior)
+  try {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const user = JSON.parse(stored);
+      // Puedes cambiar a user.nombre, user.name, o user.username según tu estructura real
+      userName = user?.name || user?.nombre || user?.username || userName;
+    }
+  } catch {
+    // Nada, fallback a valor por defecto
+  }
+
   const navItems = [
     { key: "home",        icon: <Home size={22}   color="#203259" />, path: "/inicio" },
     { key: "invoices",    icon: <FileText size={22} color="#203259" />, path: "/facturas" },
@@ -61,7 +74,7 @@ export default function Sidebar({ activePage, onNavClick }) {
         </div>
         <SidebarFooter
           isDark={isDark}
-          providerName={t("sidebar.providers")}
+          providerName={userName}   // ← Aquí pasa el nombre de usuario autenticado
         />
       </aside>
     </>

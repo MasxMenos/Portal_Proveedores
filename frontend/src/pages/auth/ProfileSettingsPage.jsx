@@ -182,10 +182,10 @@ export default function ProfileSettingsPage() {
               {/* Sección: Correo */}
               <section>
                 <h2 className={sectionTitle}>
-                  {t("settings.profileSettings.contactcorreo.title")}
+                  {t("settings.profileSettings.contactEmail.title")}
                 </h2>
                 <p className={sectionDesc}>
-                  {t("settings.profileSettings.contactcorreo.desc")}
+                  {t("settings.profileSettings.contactEmail.desc")}
                 </p>
                 <input
                   type="correo"

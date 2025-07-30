@@ -12,7 +12,7 @@ class PaymentsSerializer(serializers.Serializer):
 
 class MovementSerializer(serializers.Serializer):
     CO        = serializers.CharField()
-    Documento = serializers.CharField()
+    Descripcion     = serializers.CharField()
     Debitos   = serializers.FloatField()
     Creditos  = serializers.FloatField()
 
@@ -23,7 +23,7 @@ class RetencionSerializer(serializers.Serializer):
     Total_Retencion = serializers.FloatField()
 
 class PaymentsDetailSerializer(serializers.Serializer):
-    CO       = serializers.CharField()
+    CO        = serializers.CharField()
     documento = serializers.CharField()
     fecha     = serializers.DateField(format="%Y-%m-%d")
     debitos   = serializers.FloatField()

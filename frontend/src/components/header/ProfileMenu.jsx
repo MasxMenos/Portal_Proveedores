@@ -67,15 +67,7 @@ export default function ProfileMenu({ isDark }) {
             <UserCog size={22} className={isDark ? "text-gray-400" : "text-gray-600"} />
             <span>{t("header.profile")}</span>
           </button>
-          <button
-            onClick={() => navigate("/configuracion")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded transition-colors ${
-              isDark ? "hover:bg-zinc-800" : "hover:bg-gray-100"
-            }`}
-          >
-            <Settings size={22} className={isDark ? "text-gray-400" : "text-gray-600"} />
-            <span>{t("header.configuration")}</span>
-          </button>
+          
           <button
             onClick={handleLogout}
             className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded transition-colors ${

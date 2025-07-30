@@ -49,31 +49,6 @@ const DraggableLine = forwardRef(
       if (!movementsPaginados.length) return null;
       const sample = movementsPaginados[0];
 
-      // 🔀 Formato antiguo (reg / cuenta / desc)
-      if ("reg" in sample) {
-        return (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-gray-400">
-                <th className="py-1 text-left">{t("detail.master.CO", "CO")}</th>
-                <th className="py-1 text-left">{t("detail.movements.reg", "Reg")}</th>
-                <th className="py-1 text-left">{t("detail.movements.accountCode", "Cuenta")}</th>
-                <th className="py-1 text-left">{t("detail.movements.accountDescription", "Descripción")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {movementsPaginados.map((m) => (
-                <tr key={m.reg} className={`border-t ${isDark ? "border-[#222]" : "border-gray-300"}`}>
-                  <td className="py-1">{m.CO}</td>
-                  <td className="py-1">{m.reg}</td>
-                  <td className="py-1">{m.cuenta}</td>
-                  <td className="py-1">{m.desc}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        );
-      }
 
       // 🔀 Formato nuevo (Documento / Débitos / Créditos)
       return (
@@ -81,7 +56,7 @@ const DraggableLine = forwardRef(
           <thead>
             <tr className="text-gray-400">
               <th className="py-1 text-left">{t("detail.master.CO", "CO")}</th>
-              <th className="py-1 text-left">{t("detail.movements.document", "Documento")}</th>
+              <th className="py-1 text-left">{t("detail.movements.description", "Descripcion")}</th>
               <th className="py-1 text-left">{t("detail.movements.debits", "Débitos")}</th>
               <th className="py-1 text-left">{t("detail.movements.credits", "Créditos")}</th>
             </tr>
@@ -90,7 +65,7 @@ const DraggableLine = forwardRef(
             {movementsPaginados.map((m, i) => (
               <tr key={i} className={`border-t ${isDark ? "border-[#222]" : "border-gray-300"}`}>
                 <td className="py-1">{m.CO}</td>
-                <td className="py-1">{m.Documento ?? "-"}</td>
+                <td className="py-1">{m.Descripcion ?? "-"}</td>
                 <td className="py-1">${(m.Debitos ?? 0).toLocaleString()}</td>
                 <td className="py-1">${(m.Creditos ?? 0).toLocaleString()}</td>
               </tr>
@@ -144,7 +119,7 @@ const DraggableLine = forwardRef(
       >
         <div
           ref={ref}
-          className={`child-${line.documento} absolute p-4 md:p-6 rounded-lg w-[90vw] max-w-[700px] left-[5vw] md:left-[300px] cursor-move z-10 ${
+          className={`child-${line.documento} absolute p-4 md:p-6 rounded-lg w-[90vw] max-w-[800px] left-[5vw] md:left-[300px] cursor-move z-10 ${
             isDark ? "bg-[#111] text-gray-200" : "bg-white text-gray-800 border border-gray-300"
           }`}
         >

@@ -47,6 +47,7 @@
         "title": "Información de la cuenta",
         "desc": "Actualiza tu información personal"
       },
+      
       "contactEmail": {
         "title": "Correo de contacto",
         "desc": "Administra el correo electrónico asociado a tu cuenta"
@@ -62,7 +63,8 @@
         "lastName": "Apellido",
         "email": "Correo electrónico",
         "currentPassword": "Contraseña actual",
-        "newPassword": "Nueva contraseña"
+        "newPassword": "Nueva contraseña",
+        "companyName": "Razon social"
       },
       "buttons": {
         "save": "Guardar cambios"
@@ -200,15 +202,22 @@
       "paymentValue": "Valor pago",
       "balance": "Saldo"
     },
-    "movementsTitle": "Asientos contables",
+    "movementsTitle": "Movimientos contables",
     "movements": {
+      "description": "Descripcion",
       "reg": "Reg.",
       "accountCode": "Código cuenta",
       "accountDescription": "DESCRIPCIÓN CUENTA",
       "debits": "Débitos",
       "credits": "Créditos"
     },
-    "back": "Volver"
+       "retention": {
+      "clase": "Clase",
+      "description": "Descripción",
+      "total": "Total"
+    },
+    "back": "Volver",
+    "retentionTitle": "Retenciones"
   },
   "buttons": {
     "next": "Siguiente",

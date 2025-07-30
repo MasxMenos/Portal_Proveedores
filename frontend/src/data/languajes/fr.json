@@ -62,7 +62,8 @@
         "lastName": "Nom",
         "email": "Email",
         "currentPassword": "Mot de passe actuel",
-        "newPassword": "Nouveau mot de passe"
+        "newPassword": "Nouveau mot de passe",
+        "companyName": "Raison sociale"
       },
       "buttons": {
         "save": "Enregistrer les modifications"
@@ -200,15 +201,22 @@
       "paymentValue": "Montant du paiement",
       "balance": "Solde"
     },
-    "movementsTitle": "Écritures comptables",
+    "movementsTitle": "- Mouvements comptables",
     "movements": {
       "reg": "N°",
+      "description": "Description",
       "accountCode": "Code compte",
       "accountDescription": "DESCRIPTION DU COMPTE",
       "debits": "Débits",
       "credits": "Crédits"
     },
-    "back": "Retour"
+        "retention": {
+      "clase": "Classe",
+      "description": "Description",
+      "total": "Total"
+    },
+    "back": "Retour",
+    "retentionTitle": "Retenues"
   },
   "buttons": {
     "next": "Suivant",

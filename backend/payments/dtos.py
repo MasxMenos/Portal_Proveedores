@@ -29,7 +29,7 @@ class PaymentsDTO:
 @dataclass
 class MovementDTO:
     CO: str
-    Documento: str
+    Descripcion: str
     Debitos: float
     Creditos: float
 

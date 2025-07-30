@@ -1,32 +1,31 @@
-// src/pages/paymentsPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import EntidadPage from "../../layouts/EntityPage";
 import { useDateRange } from "../../hooks/useDateRange";
 import { useTheme } from "../../components/ThemeContext";
 
-
 export default function PaymentsPage() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-    // Recuperar usuario autenticado (almacenado en localStorage)
+  // Recuperar usuario autenticado (almacenado en localStorage)
   const stored = localStorage.getItem("user");
   const user = stored ? JSON.parse(stored) : null;
-  const nit = user?.username || ""; // usa campo 'username' como NIT si existe
+  const nit = user?.username || "";
 
   // 1) botones extra con su tipo de documento asociado
   const botones = [
-    { label: t("entity.payments.buttons.egressTransferCertificate"),      tipo: "CET" },
+    { label: t("entity.payments.buttons.egressTransferCertificate"), tipo: "CET" },
     { label: t("entity.payments.buttons.receivablesReclassification"), tipo: "RCC" },
   ];
 
   // 2) estado de selección del botón
   const [selectedIndex, setSelectedIndex] = useState(0);
   // 3) datos y loading
-  const [datos, setDatos]     = useState([]);
+  const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);    // <-- NUEVO
 
   // 4) filtros de fecha (rango)
   const {
@@ -40,15 +39,14 @@ export default function PaymentsPage() {
   const fetchPayments = useCallback(
     async (tipoDocto) => {
       setLoading(true);
+      setError(null);     // <-- Limpia error antes del fetch
       try {
-        // Parámetros base
         const params = new URLSearchParams({
           tipoDocto,
           nit,
         });
-        // Solo agregamos fechas al query (el backend no las requiere)
         if (fechaInicio) params.set("from", fechaInicio);
-        if (fechaFin)   params.set("to",   fechaFin);
+        if (fechaFin)   params.set("to", fechaFin);
 
         const res = await fetch(`/api/payments/?${params.toString()}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -66,6 +64,12 @@ export default function PaymentsPage() {
       } catch (err) {
         console.error("Error cargando devoluciones:", err);
         setDatos([]);
+        // Mensaje amigable si es timeout
+        if (err.name === "AbortError" || (""+err).includes("timeout")) {
+          setError("La consulta tardó demasiado en responder. Por favor, intenta nuevamente.");
+        } else {
+          setError(err.message || "Error al cargar los pagos.");
+        }
       } finally {
         setLoading(false);
       }
@@ -101,6 +105,7 @@ export default function PaymentsPage() {
         onConsultar: () => fetchPayments(botones[selectedIndex].tipo),
       }}
       loading={loading}
+      error={error}          
       selectedButtonIndex={selectedIndex}
       onSelectButton={handleButtonClick}
     />
