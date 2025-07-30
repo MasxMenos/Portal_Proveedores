@@ -14,6 +14,7 @@ import { useActivePage } from "../hooks/useActivePage";
 import { useRowAction } from "../hooks/useRowAction";
 import { useTranslation } from "react-i18next";
 
+
 export default function EntidadPage({
   tipo,
   titulo,
@@ -23,6 +24,7 @@ export default function EntidadPage({
   botonesExtra = [],
   extraFilters,          // { start, end, onStartChange, onEndChange, onConsultar }
   loading = false,
+  error = null,
   selectedButtonIndex,   // índice controlado por el padre (opcional)
   onSelectButton,        // callback del padre para cambiar selección (opcional)
 }) {
@@ -33,6 +35,17 @@ export default function EntidadPage({
   const navigate      = useNavigate();
   const handleNavClick = (path) => navigate(path);
   const onRowClick    = useRowAction(tipo, onNavigateBase);
+  const [progressRefresh, setProgressRefresh] = useState(0);
+
+    useEffect(() => {
+    function handler(e) {
+      if (e.key && e.key.startsWith("checks:payments:")) {
+        setProgressRefresh((v) => v + 1);
+      }
+    }
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, []);
 
   // filtros de fecha
   const {
@@ -105,18 +118,23 @@ const filteredDatos = useMemo(() => {
   const selectFn = onSelectButton || setLocalSelected;
   // ─────────────────────────────────────
 
-  // 3) Calcular progreso desde localStorage
-  const progressData = useMemo(() => {
-    const prog = {};
-    filteredDatos.forEach((item) => {
-      const key = `checks-payments-${item.documento}`;
-      const stored = JSON.parse(localStorage.getItem(key) || "{}");
-      const total   = stored.total   || 0;
-      const checked = Array.isArray(stored.checkedIds) ? stored.checkedIds : [];
-      prog[item.documento] = total > 0 ? checked.length / total : 0;
-    });
-    return prog;
-  }, [filteredDatos]);
+
+const progressData = useMemo(() => {
+  const prog = {};
+  filteredDatos.forEach((item) => {
+    const key = `checks:payments:${item.documento}`;
+    const checksObj = JSON.parse(localStorage.getItem(key) || "{}");
+    // Solo ids válidos (todas las hijas visitadas alguna vez)
+    const checkIds = Object.keys(checksObj).filter(id => !id.startsWith("__") && !id.startsWith("_"));
+    const total = checksObj.__total || item.totalLineas || 0;
+    const checkedCount = checkIds.filter(id => checksObj[id] === true).length;
+    prog[item.documento] = total > 0 ? checkedCount / total : 0;
+  });
+  return prog;
+}, [filteredDatos, progressRefresh]);
+
+
+
 
   return (
     <div className={`flex flex-col md:flex-row min-h-screen ${
@@ -168,37 +186,44 @@ const filteredDatos = useMemo(() => {
 
 
         {loading ? (
-          <div className="text-center py-8">
-            <span className={isDark ? "text-gray-300" : "text-gray-700"}>Cargando...</span>
-          </div>
-        ) : (
-          <EntidadTable
-            isDark={isDark}
-            tipo={tipo}
-            paginatedData={paginatedData}
-            onRowClick={onRowClick}
-            progressData={progressData}
-            filterTerm={searchTerm}        // ← pasamos el término al table
-            /* paginación */
-            currentPage={currentPage}
-            totalPages={totalPages}
-            pageNumbers={pageNumbers}
-            hasPrevGroup={hasPrevGroup}
-            hasNextGroup={hasNextGroup}
-            prevGroupPage={prevGroupPage}
-            nextGroupPage={nextGroupPage}
-            setCurrentPage={setCurrentPage}
-            currencyFields={[
-              "descuentos",
-              "valorPago",
-              "valorDebito",
-              "valorCredito",
-              "saldo",
-              "valorBase",
-              "valorRetencion",
-            ]}
-          />
-        )}
+  <div className="text-center py-8">
+    <span className={isDark ? "text-gray-300" : "text-gray-700"}>Cargando...</span>
+  </div>
+) : error ? (
+  <div className="text-center py-8">
+    <span className="text-red-500 text-lg">
+      {typeof error === "string" ? error : "La consulta tardó demasiado en responder. Por favor, intenta nuevamente."}
+    </span>
+  </div>
+) : (
+  <EntidadTable
+    isDark={isDark}
+    tipo={tipo}
+    paginatedData={paginatedData}
+    onRowClick={onRowClick}
+    progressData={progressData}
+    filterTerm={searchTerm}
+    /* paginación */
+    currentPage={currentPage}
+    totalPages={totalPages}
+    pageNumbers={pageNumbers}
+    hasPrevGroup={hasPrevGroup}
+    hasNextGroup={hasNextGroup}
+    prevGroupPage={prevGroupPage}
+    nextGroupPage={nextGroupPage}
+    setCurrentPage={setCurrentPage}
+    currencyFields={[
+      "descuentos",
+      "valorPago",
+      "valorDebito",
+      "valorCredito",
+      "saldo",
+      "valorBase",
+      "valorRetencion",
+    ]}
+  />
+)}
+
       </main>
     </div>
   );

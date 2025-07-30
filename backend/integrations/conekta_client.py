@@ -13,73 +13,53 @@ class ConektaClient:
             "Content-Type": "application/json",
         })
 
+    def _safe_get(self, params):
+        try:
+            resp = self.session.get(self.BASE_URL, params=params, timeout=40)
+            resp.raise_for_status()
+            return resp.json()
+        except requests.exceptions.Timeout:
+            raise Exception("El servicio externo tardó demasiado. Intente más tarde.")
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"Ocurrió un error al consultar el servicio externo: {str(e)}")
+
     def get_invoices_documents(self, tipo_docto: str, nit: str) -> dict:
-        """
-        Llama a la consulta get_invoices_documents y
-        devuelve el JSON ya parseado.
-        """
         params = {
             "idCompania": self.COMPANY_ID,
             "descripcion": "get_invoices_documents",
             "parametros": f"TipoDocto={tipo_docto}|Nit={nit}",
         }
-        resp = self.session.get(self.BASE_URL, params=params)
-        resp.raise_for_status()
-        return resp.json()
+        return self._safe_get(params)
     
     def get_payments_documents(self, tipo_docto: str, nit: str) -> dict:
-        """
-        Llama a la consulta get_payments_documents y
-        devuelve el JSON ya parseado.
-        """
         params = {
             "idCompania": self.COMPANY_ID,
             "descripcion": "get_payments_documents",
             "parametros": f"TipoDocto={tipo_docto}|Nit={nit}",
         }
-        resp = self.session.get(self.BASE_URL, params=params)
-        resp.raise_for_status()
-        return resp.json()
+        return self._safe_get(params)
     
     def get_returns_documents(self, tipo_docto: str, nit: str) -> dict:
-        """
-        Llama a la consulta get_returns_documents y
-        devuelve el JSON ya parseado.
-        """
         params = {
             "idCompania": self.COMPANY_ID,
             "descripcion": "get_returns_documents",
             "parametros": f"TipoDocto={tipo_docto}|Nit={nit}",
         }
-        resp = self.session.get(self.BASE_URL, params=params)
-        resp.raise_for_status()
-        return resp.json()
+        return self._safe_get(params)
 
     def get_certificates_documents(self, tipo_docto: str, nit: str) -> dict:
-        """
-        Llama a la consulta get_certificates_documents y
-        devuelve el JSON ya parseado.
-        """
         params = {
             "idCompania": self.COMPANY_ID,
             "descripcion": "get_suppliers_documents",
             "parametros": f"TipoDocto={tipo_docto}|Nit={nit}",
         }
-        resp = self.session.get(self.BASE_URL, params=params)
-        resp.raise_for_status()
-        return resp.json()
-
+        return self._safe_get(params)
 
     def get_payments_detail(self, tipo_docto: str, csc: str) -> dict:
-        """
-        Llama a la consulta get_payments_detail y
-        devuelve el JSON ya parseado.
-        """
+        descripcion = "get_payments_rcc_detail" if tipo_docto == "RCC" else "get_payments_detail"
         params = {
             "idCompania": self.COMPANY_ID,
-            "descripcion": "get_payments_detail",
+            "descripcion": descripcion,
             "parametros": f"TipoDocto={tipo_docto}|ConsecDocto={csc}",
         }
-        resp = self.session.get(self.BASE_URL, params=params)
-        resp.raise_for_status()
-        return resp.json()
+        return self._safe_get(params)

@@ -35,6 +35,17 @@ export function useMasterLines({ tipo, documentoId, tipoDocto }) {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
 
+  // Helper para timeout en fetch
+  function fetchWithTimeout(resource, options = {}) {
+    const { timeout = 30000 } = options; // 60s default
+    return Promise.race([
+      fetch(resource, options),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("La petición tardó demasiado. Intenta de nuevo.")), timeout)
+      )
+    ]);
+  }
+
   // ───────────────────────── fetch + cache ────────────────────────────────
   useEffect(() => {
     if (!tipo || !documentoId) return;
@@ -47,7 +58,8 @@ export function useMasterLines({ tipo, documentoId, tipoDocto }) {
     if (tipoDocto) params.append("tipoDocto", tipoDocto);
     params.append("csc", documentoId);
 
-    fetch(`/api/${tipo}/detail/?${params.toString()}`)
+    // ⏰ Usa fetchWithTimeout
+    fetchWithTimeout(`/api/${tipo}/detail/?${params.toString()}`, { timeout: 30000 })
       .then(async (res) => {
         if (!res.ok) throw new Error(await res.text());
         return res.json();

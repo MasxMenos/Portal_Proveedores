@@ -97,15 +97,31 @@ const [tipoDocto, csc] = useMemo(() => {
 
   if (!master) return null;
 
+useEffect(() => {
+  if (lines && lines.length && documentoId) {
+    const key = `checks:payments:${documentoId}`;
+    let stored = {};
+    try {
+      stored = JSON.parse(localStorage.getItem(key) || '{}');
+    } catch { /* nada */ }
+    if (stored.__total !== lines.length) {
+      stored.__total = lines.length;
+      localStorage.setItem(key, JSON.stringify(stored));
+    }
+  }
+}, [lines, documentoId]);
+
+
+
   /** Líneas visibles paginadas (memo para evitar refs nuevas) **/
-  const visibleLines = useMemo(
-    () =>
-      lines.slice(
-        (cardsPage - 1) * CARDS_PER_PAGE,
-        cardsPage * CARDS_PER_PAGE
-      ),
-    [lines, cardsPage]
-  );
+const visibleLines = useMemo(
+  () => lines.slice(
+      (cardsPage - 1) * CARDS_PER_PAGE,
+      cardsPage * CARDS_PER_PAGE
+    ),
+  [lines, cardsPage]
+);
+
 
   const totalPages = Math.ceil(lines.length / CARDS_PER_PAGE);
   const groupIndex = Math.floor((cardsPage - 1) / MAX_ICONS);
@@ -136,7 +152,7 @@ const [tipoDocto, csc] = useMemo(() => {
 
         <div
           ref={containerRef}
-          className="relative w-full h-[150vh] p-4 md:p-8"
+          className="relative min-w-[200vw] h-[150vh] p-4 md:p-8"
         >
           {/* SVG de líneas entre maestro e hijos */}
           {containerRect && positions.master && (
@@ -245,47 +261,56 @@ const [tipoDocto, csc] = useMemo(() => {
             </AnimatePresence>
           </div>
 
-          {/* Líneas hijas paginadas y arrastrables */}
-          {loading && !lines.length && (
+{/* Líneas hijas paginadas y arrastrables */}
+{loading && !lines.length && (
   <div className="flex justify-center items-center h-40 text-gray-400">
     {t("detail.loading", "Cargando...")}
   </div>
 )}
 
-{!loading && visibleLines.map((line, idx) => {
-            if (!childRefs.current[line.id]) {
-              childRefs.current[line.id] = React.createRef();
-            }
+{/* Bloque de error visible */}
+{!loading && error && (!lines || lines.length === 0) && (
+  <div className="flex justify-center items-center h-40 text-red-500 text-lg">
+    <span>
+      {"Ocurrió un error inesperado, intente de nuevo más tarde"}
+    </span>
+  </div>
+)}
 
-            const MOVS_PER_PAGE = 5;
-            const currentPage = paginationStates[line.id] || 1;
-            const start = (currentPage - 1) * MOVS_PER_PAGE;
-            const paginatedMovs = line.movements.slice(
-              start,
-              start + MOVS_PER_PAGE
-            );
+{!loading && (!error || (lines && lines.length > 0)) && visibleLines.map((line, idx) => {
+  if (!childRefs.current[line.id]) {
+    childRefs.current[line.id] = React.createRef();
+  }
 
-            return (
-              <DraggableLine
-                key={line.id}
-                ref={childRefs.current[line.id]}
-                line={line}
-                idx={idx}
-                expanded={expanded}
-                setExpanded={setExpanded}
-                onDrag={measurePositions}
-                onStop={measurePositions}
-                movementsPaginados={paginatedMovs}
-                totalPaginas={Math.ceil(line.movements.length / MOVS_PER_PAGE)}
-                paginaActual={currentPage}
-                setPaginaActual={(page) =>
-                  setPaginationStates((prev) => ({ ...prev, [line.id]: page }))
-                }
-                  isChecked={!!checks[line.id]}
-                 onToggleChecked={(val) => toggleCheck(line.id, val)}
-              />
-            );
-          })}
+  const MOVS_PER_PAGE = 5;
+  const currentPage = paginationStates[line.id] || 1;
+  const start = (currentPage - 1) * MOVS_PER_PAGE;
+  const paginatedMovs = line.movements.slice(
+    start,
+    start + MOVS_PER_PAGE
+  );
+
+  return (
+    <DraggableLine
+      key={line.id}
+      ref={childRefs.current[line.id]}
+      line={line}
+      idx={idx}
+      expanded={expanded}
+      setExpanded={setExpanded}
+      onDrag={measurePositions}
+      onStop={measurePositions}
+      movementsPaginados={paginatedMovs}
+      totalPaginas={Math.ceil(line.movements.length / MOVS_PER_PAGE)}
+      paginaActual={currentPage}
+      setPaginaActual={(page) =>
+        setPaginationStates((prev) => ({ ...prev, [line.id]: page }))
+      }
+      isChecked={!!checks[line.id]}
+      onToggleChecked={(val) => toggleCheck(line.id, val)}
+    />
+  );
+})}
         </div>
       </main>
     </div>

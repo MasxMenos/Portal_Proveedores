@@ -62,7 +62,8 @@
         "lastName": "Last Name",
         "email": "Email",
         "currentPassword": "Current Password",
-        "newPassword": "New Password"
+        "newPassword": "New Password",
+        "companyName": "Company Name"
       },
       "buttons": {
         "save": "Save Changes"
@@ -200,15 +201,22 @@
       "paymentValue": "Payment amount",
       "balance": "Balance"
     },
-    "movementsTitle": "Accounting entries",
+    "movementsTitle": "Accounting movements",
     "movements": {
       "reg": "Reg.",
+      "description": "Description",
       "accountCode": "Account code",
       "accountDescription": "ACCOUNT DESCRIPTION",
       "debits": "Debits",
       "credits": "Credits"
     },
-    "back": "Back"
+    "retention": {
+      "clase": "Class",
+      "description": "Description",
+      "total": "Total"
+    },
+    "back": "Back",
+    "retentionTitle": "Retentions"
   },
   "buttons": {
     "next": "Next",
