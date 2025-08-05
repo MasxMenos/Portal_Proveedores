@@ -63,3 +63,11 @@ class ConektaClient:
             "parametros": f"TipoDocto={tipo_docto}|ConsecDocto={csc}",
         }
         return self._safe_get(params)
+
+    def get_users(self, Usuario: str) -> dict:
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "get_users",
+            "parametros": f"Usuario={Usuario}",
+        }
+        return self._safe_get(params)

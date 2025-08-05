@@ -2,6 +2,7 @@
 import React, { forwardRef } from "react";
 import { Download } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useDocumentDownload } from "../../hooks/useDocumentDownload";
 
 const EntityMaster = forwardRef(({ isDark, master, tipo }, ref) => {
   const { t } = useTranslation();
@@ -18,6 +19,8 @@ const EntityMaster = forwardRef(({ isDark, master, tipo }, ref) => {
   // Campos restantes, excluyendo el índice primario
   const restFields  = fields.filter((_f, idx) => idx !== primaryIndex);
   const restHeaders = headers.filter((_h, idx) => idx !== primaryIndex);
+  let onRowClick =null
+  const handleDownload = useDocumentDownload(tipo=null, onRowClick=null);
 
   return (
     <div
@@ -31,7 +34,11 @@ const EntityMaster = forwardRef(({ isDark, master, tipo }, ref) => {
       {/* Encabezado con etiqueta para el documento */}
       <div className="flex justify-between items-center mb-4">
         <span className="font-medium">{docHeader}</span>
-        <Download size={20} className="text-gray-400 cursor-pointer" />
+        <Download size={20} onClick={() =>
+            // Aquí llamas directo al hook:
+            handleDownload({ documento: master[docField] })
+                }
+                className="text-gray-400 cursor-pointer" />
       </div>
 
       {/* Valor del documento en grande */}

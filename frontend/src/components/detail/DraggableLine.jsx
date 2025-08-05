@@ -4,6 +4,7 @@ import Draggable from "react-draggable";
 import { ChevronDown, ChevronRight, Download } from "lucide-react";
 import { useTheme } from "../ThemeContext";
 import { useTranslation } from "react-i18next";
+import { useDocumentDownload } from "../../hooks/useDocumentDownload";
 
 /**
  * Tarjeta hija draggable.
@@ -27,8 +28,8 @@ const DraggableLine = forwardRef(
       setPaginaActual,
       isChecked,
       onToggleChecked,
-      totalLines,            // ← número total de cartas hijas
-      masterDocumento,
+      tipo,
+      onRowClick,
     },
     ref
   ) => {
@@ -39,24 +40,21 @@ const DraggableLine = forwardRef(
     const defaultX = 360;
     const defaultY = idx * 180 + 40;
 
+    // Hook reutilizable para descargas / navegación
+    const handleAction = useDocumentDownload(tipo, onRowClick);
 
-
-    
     /* -------------------------------------------------- */
     /* Helpers                                            */
     /* -------------------------------------------------- */
     const renderMovementsTable = () => {
       if (!movementsPaginados.length) return null;
-      const sample = movementsPaginados[0];
 
-
-      // 🔀 Formato nuevo (Documento / Débitos / Créditos)
       return (
         <table className="w-full text-sm">
           <thead>
             <tr className="text-gray-400">
               <th className="py-1 text-left">{t("detail.master.CO", "CO")}</th>
-              <th className="py-1 text-left">{t("detail.movements.description", "Descripcion")}</th>
+              <th className="py-1 text-left">{t("detail.movements.description", "Descripción")}</th>
               <th className="py-1 text-left">{t("detail.movements.debits", "Débitos")}</th>
               <th className="py-1 text-left">{t("detail.movements.credits", "Créditos")}</th>
             </tr>
@@ -88,7 +86,7 @@ const DraggableLine = forwardRef(
                 <th className="py-1 text-left">{t("detail.master.CO", "CO")}</th>
                 <th className="py-1 text-left">{t("detail.retention.clase", "Clase")}</th>
                 <th className="py-1 text-left">{t("detail.retention.description", "Descripción")}</th>
-                <th className="py-1 text-left">{t("detail.retention.total", "Total")}</th> 
+                <th className="py-1 text-left">{t("detail.retention.total", "Total")}</th>
               </tr>
             </thead>
             <tbody>
@@ -111,6 +109,7 @@ const DraggableLine = forwardRef(
     /* -------------------------------------------------- */
     return (
       <Draggable
+        handle=".text-header"
         nodeRef={ref}
         defaultPosition={{ x: defaultX, y: defaultY }}
         bounds="parent"
@@ -129,11 +128,12 @@ const DraggableLine = forwardRef(
             <div className="flex items-center gap-3">
               <Download
                 size={18}
-                className="text-gray-400"
+                className="text-gray-400 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log(`Descargar documento: ${line.documento}`);
+                  handleAction(line);
                 }}
+                title={t("detail.downloadTooltip", "Descargar documento")}
               />
               <input
                 type="checkbox"
@@ -145,7 +145,7 @@ const DraggableLine = forwardRef(
             </div>
 
             {/* Info básica */}
-            <div className="flex-1 overflow-x-auto">
+            <div className="flex-1 overflow-x-auto text-header">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-4 text-sm whitespace-nowrap min-w-max">
                 <div className="text-gray-400">{t("detail.master.CO", "CO")}</div>
                 <div className="text-gray-400">{t("detail.master.labelDocumento", "Documento")}</div>

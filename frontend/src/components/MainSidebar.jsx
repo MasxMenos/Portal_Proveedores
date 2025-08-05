@@ -58,9 +58,10 @@ export default function Sidebar({ activePage, onNavClick }) {
 
       <aside
         className={`
-          fixed inset-y-0 left-0 w-64 h-screen flex flex-col justify-between
+          fixed inset-y-0 left-0 w-64 max-h-screen flex flex-col justify-between
           transform ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
           transition-transform duration-200 ease-in-out z-50
+          overflow-y-auto
           ${isDark ? "bg-zinc-950 text-white" : "bg-white text-black"}
         `}
       >
@@ -74,7 +75,7 @@ export default function Sidebar({ activePage, onNavClick }) {
         </div>
         <SidebarFooter
           isDark={isDark}
-          providerName={userName}   // ← Aquí pasa el nombre de usuario autenticado
+          providerName={userName}  
         />
       </aside>
     </>

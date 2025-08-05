@@ -28,7 +28,7 @@
     "title": "Forgot password?",
     "subtitle": "Enter your email to reset it",
     "emailLabel": "Email",
-    "sendButton": "Send link",
+    "sendButton": "Generate password",
     "backToLogin": "Back to login"
   },
 "settings": {

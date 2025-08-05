@@ -1,5 +1,5 @@
 // src/pages/InicioPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -27,7 +27,30 @@ export default function InicioPage() {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
 
-  // Estado para la página activa en el sidebar
+  // Estado descripción de usuario
+  const [descripcion, setDescripcion] = useState("");
+  const token = localStorage.getItem("accessToken")?.trim();
+
+  useEffect(() => {
+    // traer perfil
+    (async () => {
+      try {
+        const res = await fetch("/api/users/profile/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setDescripcion(data.descripcion || "");
+        }
+      } catch {
+        // silencio en falla
+      }
+    })();
+  }, [token]);
+
+  // Sidebar
   const [activePage, setActivePage] = useState(t("sidebar.home"));
   const handleNavClick = (path) => {
     const key = path.slice(1) || "home";
@@ -35,7 +58,7 @@ export default function InicioPage() {
     navigate(path);
   };
 
-  // Clases según tema (claro / oscuro)
+  // clases según tema
   const bgClass = isDark ? "bg-black text-white" : "bg-white text-black";
   const cardClass = isDark ? "bg-[#111] text-[#9DA0A5]" : "bg-gray-100 text-gray-800";
   const sectionTitleClass = isDark ? "text-gray-400" : "text-gray-600";
@@ -44,29 +67,25 @@ export default function InicioPage() {
 
   return (
     <div className={`flex flex-col md:flex-row min-h-screen ${bgClass}`}>
-      {/* Sidebar */}
       <Sidebar activePage={activePage} onNavClick={handleNavClick} />
 
-      {/* Contenido principal */}
       <main className="flex-1 md:ml-64 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
-        {/* Header superior */}
         <HeaderSuperior
           activePage={t("sidebar.home")}
           title={t("homepage.welcome")}
           onToggleTheme={toggleTheme}
         />
 
-        {/* Métricas */}
-        <div
-          id="inicio-metricas"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
-        >
+        {/* DESCRIPCIÓN DEL USUARIO */}
+        {descripcion && (
+          <div className="px-4 mb-6 text-lg font-medium">
+            {descripcion}
+          </div>
+        )}
+
+        <div id="inicio-metricas" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {Object.entries(metrics).map(([key, value]) => (
-            <div
-              key={key}
-              id={key}
-              className={`rounded-lg p-4 flex flex-col ${cardClass}`}
-            >
+            <div key={key} className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
               <span className="text-lg text-gray-400 capitalize">
                 {t(`homepage.metrics.${key}`)}
               </span>
@@ -75,9 +94,7 @@ export default function InicioPage() {
           ))}
         </div>
 
-        {/* Gráficos: ventas y top productos */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          {/* Total de ventas */}
           <div className="lg:col-span-2 flex flex-col" id="inicio-ventas-chart">
             <h2 className={`${sectionTitleClass} text-base sm:text-lg mb-2`}>
               {t("homepage.totalSales")}
@@ -101,7 +118,6 @@ export default function InicioPage() {
             </div>
           </div>
 
-          {/* Top productos */}
           <div className="flex flex-col" id="inicio-ventas-top">
             <h2 className={`${sectionTitleClass} text-base sm:text-lg mb-2`}>
               {t("homepage.topProducts")}
@@ -126,11 +142,7 @@ export default function InicioPage() {
           </div>
         </div>
 
-        {/* Tabla de contactos */}
-        <div
-          id="inicio-contactos"
-          className={`rounded-lg p-4 overflow-auto ${cardClass}`}
-        >
+        <div id="inicio-contactos" className={`rounded-lg p-4 overflow-auto ${cardClass}`}>
           <h2 className={`mb-2 ${tableHeaderClass}`}>{t("homepage.contacts.title")}</h2>
           <table className="w-full text-sm">
             <thead>

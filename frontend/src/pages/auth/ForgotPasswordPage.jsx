@@ -1,5 +1,5 @@
 // src/pages/ForgotPasswordPage.jsx
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "../../components/ThemeContext";
@@ -15,9 +15,44 @@ export default function ForgotPasswordPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const handleReset = () => {
-    console.log("Enviando enlace de recuperación...");
-    navigate("/login");
+  const [username, setUsername]   = useState("");
+  const [email, setEmail]         = useState("");
+  const [error, setError]         = useState("");
+  const [message, setMessage]     = useState("");
+  const [loading, setLoading]     = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setMessage("");
+
+    if (!username.trim() || !email.trim()) {
+      setError("Por favor ingresa usuario y correo.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/users/password-reset/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: username.trim(),
+          correo:   email.trim().toLowerCase(),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        // muestra detalle (pista) que envía el backend
+        setError(json.detail || "Error al restablecer contraseña");
+      } else {
+        setMessage(`Su nueva contraseña es: ${json.new_password}`);
+      }
+    } catch {
+      setError("Error de conexión. Intenta más tarde.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,7 +61,7 @@ export default function ForgotPasswordPage() {
         isDark ? "bg-[#0d0d0d] text-white" : "bg-gray-100 text-black"
       }`}
     >
-      {/* Toggle theme */}
+      {/* Toggle tema */}
       <button
         onClick={toggleTheme}
         className={`absolute top-4 right-4 p-2 rounded transition-colors duration-200 ${
@@ -44,22 +79,30 @@ export default function ForgotPasswordPage() {
         title={t("passwordRecovery.title")}
         subtitle={t("passwordRecovery.subtitle")}
       >
-        <form
-          className="space-y-6"
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleReset();
-          }}
-        >
+        {error   && <p className="text-sm text-red-500 mb-2">{error}</p>}
+        {message && <p className="text-sm text-green-500 mb-2">{message}</p>}
+
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <InputField
+            id="username"
+            label="Usuario"
+            type="text"
+            placeholder="Usuario"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+
           <InputField
             id="email"
             label={t("passwordRecovery.emailLabel")}
             type="email"
             placeholder={t("passwordRecovery.emailLabel")}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
 
-          <PrimaryButton fullWidth onClick={handleReset}>
-            {t("passwordRecovery.sendButton")}
+          <PrimaryButton type="submit" fullWidth disabled={loading}>
+            {loading ? "Procesando..." : t("passwordRecovery.sendButton")}
           </PrimaryButton>
 
           <button

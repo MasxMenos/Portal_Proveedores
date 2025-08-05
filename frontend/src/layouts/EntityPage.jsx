@@ -14,7 +14,6 @@ import { useActivePage } from "../hooks/useActivePage";
 import { useRowAction } from "../hooks/useRowAction";
 import { useTranslation } from "react-i18next";
 
-
 export default function EntidadPage({
   tipo,
   titulo,
@@ -30,24 +29,41 @@ export default function EntidadPage({
 }) {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
-
-  const activePage    = useActivePage(titulo);
-  const navigate      = useNavigate();
-  const handleNavClick = (path) => navigate(path);
-  const onRowClick    = useRowAction(tipo, onNavigateBase);
+  const navigate = useNavigate();
+  const onRowClick = useRowAction(tipo, onNavigateBase);
   const [progressRefresh, setProgressRefresh] = useState(0);
+  const { t } = useTranslation();
+  const activePage = useActivePage(titulo);
 
-    useEffect(() => {
-    function handler(e) {
-      if (e.key && e.key.startsWith("checks:payments:")) {
-        setProgressRefresh((v) => v + 1);
-      }
+  // ────────────────────────────── persistencia del botón extra ──────────────────────────────
+  const storageKey = `EntidadPage:${titulo}:filterIndex`;
+  const [localSelected, _setLocalSelected] = useState(() => {
+    const saved = localStorage.getItem(storageKey);
+    if (saved !== null) {
+      const idx = parseInt(saved, 10);
+      if (!isNaN(idx)) return idx;
     }
-    window.addEventListener("storage", handler);
-    return () => window.removeEventListener("storage", handler);
-  }, []);
+    return selectedButtonIndex ?? 0;
+  });
+  // cuando cambie selectedButtonIndex desde padre, sobreescribimos
+  useEffect(() => {
+    if (selectedButtonIndex != null) {
+      _setLocalSelected(selectedButtonIndex);
+      localStorage.setItem(storageKey, selectedButtonIndex);
+    }
+  }, [selectedButtonIndex]);
+  const selected = selectedButtonIndex != null ? selectedButtonIndex : localSelected;
 
-  // filtros de fecha
+  const setLocalSelected = (idx) => {
+    _setLocalSelected(idx);
+    localStorage.setItem(storageKey, idx);
+  };
+  const handleSelect = (idx) => {
+    if (onSelectButton) onSelectButton(idx);
+    else setLocalSelected(idx);
+  };
+
+  // ────────────────────────────── filtros de fecha ──────────────────────────────
   const {
     start: fechaInicio,
     end:   fechaFin,
@@ -56,45 +72,29 @@ export default function EntidadPage({
     onConsultar,
   } = extraFilters || useDateRange();
 
-  // ─────────────────────────────────────
-  // 1) estado y filtrado global de búsqueda
+  // ────────────────────────────── búsqueda global ──────────────────────────────
   const [searchTerm, setSearchTerm] = useState("");
+  const filteredDatos = useMemo(() => {
+    if (!searchTerm) return datos;
+    const q = searchTerm.toLowerCase();
+    const matches = datos.filter(item =>
+      Object.values(item).some(v =>
+        v != null && v.toString().toLowerCase().includes(q)
+      )
+    );
+    return matches.sort((a, b) => {
+      const rank = vals => {
+        if (vals.some(v => v === q))      return 0;
+        if (vals.some(v => v.startsWith(q))) return 1;
+        return 2;
+      };
+      const ra = rank(Object.values(a).map(v => String(v).toLowerCase()));
+      const rb = rank(Object.values(b).map(v => String(v).toLowerCase()));
+      return ra - rb;
+    });
+  }, [datos, searchTerm]);
 
-const filteredDatos = useMemo(() => {
-  if (!searchTerm) return datos;
-  const q = searchTerm.toLowerCase();
-
-  // 1) Primero filtramos solo los que contengan q en algún campo
-  const matches = datos.filter(item =>
-    Object.values(item).some(v => 
-      v != null && v.toString().toLowerCase().includes(q)
-    )
-  );
-
-  // 2) Ahora ordenamos según tres niveles de prioridad:
-  //    nivel 0 = algún campo **igual** a q
-  //    nivel 1 = algún campo **empieza** con q
-  //    nivel 2 = algún campo **contiene** q en otra posición
-  return matches.sort((a, b) => {
-    const aVals = Object.values(a).map(v => String(v).toLowerCase());
-    const bVals = Object.values(b).map(v => String(v).toLowerCase());
-
-    const rank = vals => {
-      if (vals.some(v => v === q)) return 0;
-      if (vals.some(v => v.startsWith(q))) return 1;
-      return 2;
-    };
-
-    const ra = rank(aVals);
-    const rb = rank(bVals);
-    if (ra !== rb) return ra - rb;
-    return 0; // mismo rango: mantenemos orden original
-  });
-}, [datos, searchTerm]);
-
-
-
-  // 2) paginación sobre filteredDatos
+  // ────────────────────────────── paginación ──────────────────────────────
   const {
     currentPage,
     totalPages,
@@ -107,43 +107,40 @@ const filteredDatos = useMemo(() => {
     setCurrentPage,
   } = usePagination(filteredDatos, 10);
 
-  // reset página al cambiar filtro o tipo
+  // reset página al cambiar filtro, búsqueda o tipo
+  useEffect(() => setCurrentPage(1), [selected, searchTerm, setCurrentPage]);
+
+  // ────────────────────────────── progreso ──────────────────────────────
   useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedButtonIndex, setCurrentPage, searchTerm]);
+    const handler = (e) => {
+      if (e.key && e.key.startsWith(`checks:${tipo}:`)) {
+        setProgressRefresh(v => v + 1);
+      }
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, [tipo]);
 
-  // selección de botones extra
-  const [localSelected, setLocalSelected] = useState(null);
-  const selected = selectedButtonIndex ?? localSelected;
-  const selectFn = onSelectButton || setLocalSelected;
-  // ─────────────────────────────────────
-
-
-const progressData = useMemo(() => {
-  const prog = {};
-  filteredDatos.forEach((item) => {
-    const key = `checks:payments:${item.documento}`;
-    const checksObj = JSON.parse(localStorage.getItem(key) || "{}");
-    // Solo ids válidos (todas las hijas visitadas alguna vez)
-    const checkIds = Object.keys(checksObj).filter(id => !id.startsWith("__") && !id.startsWith("_"));
-    const total = checksObj.__total || item.totalLineas || 0;
-    const checkedCount = checkIds.filter(id => checksObj[id] === true).length;
-    prog[item.documento] = total > 0 ? checkedCount / total : 0;
-  });
-  return prog;
-}, [filteredDatos, progressRefresh]);
-
-
-
+  const progressData = useMemo(() => {
+    const prog = {};
+    filteredDatos.forEach(item => {
+      const key = `checks:${tipo}:${item.documento}`;
+      const checksObj = JSON.parse(localStorage.getItem(key) || "{}");
+      const total      = checksObj.__total || item.totalLineas || 0;
+      const checkedCnt = Object.entries(checksObj)
+        .filter(([k,v]) => !k.startsWith("__") && v === true).length;
+      prog[item.documento] = total > 0 ? (checkedCnt / total) : 0;
+    });
+    return prog;
+  }, [filteredDatos, progressRefresh, tipo]);
 
   return (
     <div className={`flex flex-col md:flex-row min-h-screen ${
       isDark ? "bg-black text-white" : "bg-white text-black"
     }`}>
-      <Sidebar activePage={activePage} onNavClick={handleNavClick} />
+      <Sidebar activePage={activePage} onNavClick={navigate} />
 
       <main className="flex-1 p-6 md:ml-64 space-y-6 overflow-auto">
-        {/* ahora le paso setSearchTerm */}
         <HeaderSuperior
           activePage={encabezado}
           title={titulo}
@@ -151,16 +148,19 @@ const progressData = useMemo(() => {
           onSearch={setSearchTerm}
         />
 
+        {/* ─── Botones extra ─────────────────── */}
         {botonesExtra.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4" id="botones_consulta">
             {botonesExtra.map((label, idx) => (
               <button
                 key={label}
-                onClick={() => selectFn(idx)}
+                onClick={() => handleSelect(idx)}
                 className={`px-4 py-2 rounded transition-colors duration-200 ${
                   selected === idx
                     ? (isDark ? "bg-[#111416] text-white" : "bg-gray-300 text-black")
-                    : (isDark ? "bg-[#0A0D0F] hover:bg-[#111416] text-white" : "bg-gray-200 hover:bg-gray-300 text-black")
+                    : (isDark
+                        ? "bg-[#0A0D0F] hover:bg-[#111416] text-white"
+                        : "bg-gray-200 hover:bg-gray-300 text-black")
                 }`}
               >
                 {label}
@@ -169,6 +169,7 @@ const progressData = useMemo(() => {
           </div>
         )}
 
+        {/* ─── Filtros de fecha ─────────────────── */}
         <EntidadFilters
           isDark={isDark}
           fechaInicio={fechaInicio}
@@ -178,52 +179,55 @@ const progressData = useMemo(() => {
           onConsultar={onConsultar}
         />
 
+        {/* ─── Exportar XLSX ─────────────────── */}
         <EntidadDownloadButton
           isDark={isDark}
           tipo={tipo}
-          data={filteredDatos}    // exporta _todos_ los registros sin paginar
+          data={filteredDatos}
         />
 
-
+        {/* ─── Contenido ─────────────────── */}
         {loading ? (
-  <div className="text-center py-8">
-    <span className={isDark ? "text-gray-300" : "text-gray-700"}>Cargando...</span>
-  </div>
-) : error ? (
-  <div className="text-center py-8">
-    <span className="text-red-500 text-lg">
-      {typeof error === "string" ? error : "La consulta tardó demasiado en responder. Por favor, intenta nuevamente."}
-    </span>
-  </div>
-) : (
-  <EntidadTable
-    isDark={isDark}
-    tipo={tipo}
-    paginatedData={paginatedData}
-    onRowClick={onRowClick}
-    progressData={progressData}
-    filterTerm={searchTerm}
-    /* paginación */
-    currentPage={currentPage}
-    totalPages={totalPages}
-    pageNumbers={pageNumbers}
-    hasPrevGroup={hasPrevGroup}
-    hasNextGroup={hasNextGroup}
-    prevGroupPage={prevGroupPage}
-    nextGroupPage={nextGroupPage}
-    setCurrentPage={setCurrentPage}
-    currencyFields={[
-      "descuentos",
-      "valorPago",
-      "valorDebito",
-      "valorCredito",
-      "saldo",
-      "valorBase",
-      "valorRetencion",
-    ]}
-  />
-)}
-
+          <div className="text-center py-8">
+            <span className={isDark ? "text-gray-300" : "text-gray-700"}>
+              {t("buttons.loading", "Cargando...")}
+            </span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <span className="text-red-500 text-lg">
+              {typeof error === "string"
+                ? error
+                : t("errors.timeout", "La consulta tardó demasiado.")}
+            </span>
+          </div>
+        ) : (
+          <EntidadTable
+            isDark={isDark}
+            tipo={tipo}
+            paginatedData={paginatedData}
+            onRowClick={onRowClick}
+            progressData={progressData}
+            filterTerm={searchTerm}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageNumbers={pageNumbers}
+            hasPrevGroup={hasPrevGroup}
+            hasNextGroup={hasNextGroup}
+            prevGroupPage={prevGroupPage}
+            nextGroupPage={nextGroupPage}
+            setCurrentPage={setCurrentPage}
+            currencyFields={[
+              "descuentos",
+              "valorPago",
+              "valorDebito",
+              "valorCredito",
+              "saldo",
+              "valorBase",
+              "valorRetencion",
+            ]}
+          />
+        )}
       </main>
     </div>
   );

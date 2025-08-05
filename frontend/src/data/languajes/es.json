@@ -28,7 +28,7 @@
     "title": "¿Olvidó su contraseña?",
     "subtitle": "Ingrese su correo electrónico para restablecerla",
     "emailLabel": "Correo electrónico",
-    "sendButton": "Enviar enlace",
+    "sendButton": "Generar contraseña",
     "backToLogin": "Volver al inicio de sesión"
   },
   "settings": {
