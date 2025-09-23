@@ -3,6 +3,7 @@ from .clients import InvoiceClient
 from .dtos    import InvoiceDTO
 from datetime import datetime
 from typing import List
+from .dtos import NacFormatDTO
 
 def get_invoices(
     tipo_docto: str,
@@ -46,3 +47,17 @@ def get_invoices(
         results.sort(key=lambda dto: dto.fecha_emision, reverse=True)
 
     return results
+
+def get_nac_format(tipo_docto: str, csc: str) -> NacFormatDTO:
+    """
+    Llama a PaymentsClient.get_rcc_format y normaliza a RccFormatDTO.
+    """
+    client = InvoiceClient()
+    raw    = client.fetch_nac_format(csc)
+    # la respuesta va en raw["detalle"]["Table"][0]
+    row = {}
+    try:
+        row = raw.get("detalle", {}).get("Table", [])[0] or {}
+    except Exception:
+        row = {}
+    return NacFormatDTO.from_conekta(row)

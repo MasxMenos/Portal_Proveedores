@@ -13,8 +13,11 @@ const EntityMaster = forwardRef(({ isDark, master, tipo }, ref) => {
 
   // Índice del campo primario (documento) es 1
   const primaryIndex = 1;
+  const secondaryIndex = 2;
   const docField  = fields[primaryIndex];
   const docHeader = headers[primaryIndex];
+
+  const coField = fields[secondaryIndex];
 
   // Campos restantes, excluyendo el índice primario
   const restFields  = fields.filter((_f, idx) => idx !== primaryIndex);
@@ -36,7 +39,7 @@ const EntityMaster = forwardRef(({ isDark, master, tipo }, ref) => {
         <span className="font-medium">{docHeader}</span>
         <Download size={20} onClick={() =>
             // Aquí llamas directo al hook:
-            handleDownload({ documento: master[docField] })
+            handleDownload({ documento: master[docField] , co: master[coField]})
                 }
                 className="text-gray-400 cursor-pointer" />
       </div>

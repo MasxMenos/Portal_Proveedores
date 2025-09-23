@@ -2,8 +2,8 @@
 from rest_framework.views    import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from .services  import get_invoices
-from .serializers import InvoiceSerializer
+from .services  import get_invoices, get_nac_format
+from .serializers import InvoiceSerializer, NacFormatSerializer
 
 
 class InvoiceListView(APIView):
@@ -31,4 +31,15 @@ class InvoiceListView(APIView):
 
         # serializa directamente las instancias de InvoiceDTO
         serializer = InvoiceSerializer(dtos, many=True)
+        return Response(serializer.data)
+
+class NacFormatView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        csc = request.query_params.get("csc")
+        if not csc:
+            return Response({"detail": "Debe enviar csc"}, status=400)
+        dto = get_nac_format(None, csc)
+        serializer = NacFormatSerializer(dto)
         return Response(serializer.data)

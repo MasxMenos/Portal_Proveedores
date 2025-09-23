@@ -83,7 +83,7 @@ export default function EntidadTable({
                 <span
                   className="cursor-pointer inline-flex items-center justify-center"
                   title={viewLabel}
-                  onClick={() => handleAction(item)}
+                  onClick={() => handleAction(item, item.co)}
                 >
                   {tipo === "payments" ? (
                     <PlusCircle size={18} color="#203259" />

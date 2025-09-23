@@ -10,3 +10,11 @@ class PaymentsClient:
     
     def fetch_payments_detail(self, tipo_docto: str, csc: str) -> dict:
         return self._client.get_payments_detail(tipo_docto, csc)
+    
+  
+    def fetch_rcc_format(self, csc: str) -> dict:
+        return self._client.get_rcc_format(csc)
+    
+    def fetch_cet_format(self, csc: str) -> dict:
+        return self._client.get_cet_format(csc)
+    

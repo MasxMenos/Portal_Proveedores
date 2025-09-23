@@ -4,7 +4,7 @@ from .dtos    import PaymentsDTO
 from datetime import datetime
 from typing import Optional, Dict, Any, List, Union
 import json
-from .dtos import PaymentsDetailDTO, MovementDTO, RetencionDTO
+from .dtos import PaymentsDetailDTO, MovementDTO, RetencionDTO, RccFormatDTO
 
 def get_payments(
     tipo_docto: str,
@@ -148,4 +148,34 @@ def get_payments_detail(tipo_docto: str, csc: str) -> list[PaymentsDetailDTO]:
 
     return dtos
 
+
+
+def get_rcc_format(tipo_docto: str, csc: str) -> RccFormatDTO:
+    """
+    Llama a PaymentsClient.get_rcc_format y normaliza a RccFormatDTO.
+    """
+    client = PaymentsClient()
+    raw    = client.fetch_rcc_format(csc)
+    # la respuesta va en raw["detalle"]["Table"][0]
+    row = {}
+    try:
+        row = raw.get("detalle", {}).get("Table", [])[0] or {}
+    except Exception:
+        row = {}
+    return RccFormatDTO.from_conekta(row)
+
+
+def get_cet_format(tipo_docto: str, csc: str) -> RccFormatDTO:
+    """
+    Llama a PaymentsClient.get_rcc_format y normaliza a RccFormatDTO.
+    """
+    client = PaymentsClient()
+    raw    = client.fetch_cet_format(csc)
+    # la respuesta va en raw["detalle"]["Table"][0]
+    row = {}
+    try:
+        row = raw.get("detalle", {}).get("Table", [])[0] or {}
+    except Exception:
+        row = {}
+    return RccFormatDTO.from_conekta(row)
 

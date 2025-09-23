@@ -1,0 +1,7 @@
+ERROR DURANTE LA EJECUCIÓN
+Debes editar PATH_A con la ruta real al archivo. Valor actual: '/ruta/a/A.xlsx'
+
+Traceback (most recent call last):
+  File "c:\Users\Auxsistemas\Desktop\proyectos\Terceros\merge_terceros_inline.py", line 376, in main
+    raise ValueError(f"Debes editar {k} con la ruta real al archivo. Valor actual: {paths[k]!r}")
+ValueError: Debes editar PATH_A con la ruta real al archivo. Valor actual: '/ruta/a/A.xlsx'

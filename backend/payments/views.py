@@ -5,8 +5,8 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from .services  import get_payments
 from .serializers import PaymentsSerializer
-from .services   import get_payments_detail
-from .serializers import PaymentsDetailSerializer
+from .services   import get_payments_detail, get_rcc_format, get_cet_format
+from .serializers import PaymentsDetailSerializer, RccFormatSerializer
 
 
 class PaymentsListView(APIView):
@@ -53,3 +53,25 @@ class PaymentsDetailView(APIView):
         dtos = get_payments_detail(tipo_docto, csc)
         data = PaymentsDetailSerializer(dtos, many=True).data
         return Response(data)
+
+class RccFormatView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        csc = request.query_params.get("csc")
+        if not csc:
+            return Response({"detail": "Debe enviar csc"}, status=400)
+        dto = get_rcc_format(None, csc)
+        serializer = RccFormatSerializer(dto)
+        return Response(serializer.data)
+
+class CetFormatView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        csc = request.query_params.get("csc")
+        if not csc:
+            return Response({"detail": "Debe enviar csc"}, status=400)
+        dto = get_cet_format(None, csc)
+        serializer = RccFormatSerializer(dto)
+        return Response(serializer.data)

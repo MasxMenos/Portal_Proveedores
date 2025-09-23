@@ -131,7 +131,7 @@ const DraggableLine = forwardRef(
                 className="text-gray-400 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleAction(line);
+                  handleAction(line, line.CO ?? line.co ?? "");
                 }}
                 title={t("detail.downloadTooltip", "Descargar documento")}
               />

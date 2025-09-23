@@ -15,7 +15,7 @@ class ConektaClient:
 
     def _safe_get(self, params):
         try:
-            resp = self.session.get(self.BASE_URL, params=params, timeout=40)
+            resp = self.session.get(self.BASE_URL, params=params, timeout=70)
             resp.raise_for_status()
             return resp.json()
         except requests.exceptions.Timeout:
@@ -69,5 +69,47 @@ class ConektaClient:
             "idCompania": self.COMPANY_ID,
             "descripcion": "get_users",
             "parametros": f"Usuario={Usuario}",
+        }
+        return self._safe_get(params)
+
+    
+    def get_nac_format(self, csc: str) -> dict:
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "get_nac_format",
+            "parametros": f"ConsecDocto={csc}|TipoDocto=NAC",
+        }
+        return self._safe_get(params)
+
+    def get_rcc_format(self, csc: str) -> dict:
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "get_rcc_format",
+            "parametros": f"ConsecDocto={csc}|TipoDocto=RCC",
+        }
+        return self._safe_get(params)
+
+    def get_cet_format(self, csc: str) -> dict:
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "get_rcc_format",
+            "parametros": f"ConsecDocto={csc}|TipoDocto=CET",
+        }
+        return self._safe_get(params)
+
+
+    def get_dpa_format(self,co:str, csc: str, tipo=None) -> dict:
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "get_dpc_format",
+            "parametros": f"CO={co}|ConsecDocto={csc}|TipoDocto=DPA",
+        }
+        return self._safe_get(params)
+
+    def get_dpc_format(self,co:str, csc: str, tipo=None) -> dict:
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "get_dpc_format",
+            "parametros": f"CO={co}|ConsecDocto={csc}|TipoDocto=DPC",
         }
         return self._safe_get(params)
