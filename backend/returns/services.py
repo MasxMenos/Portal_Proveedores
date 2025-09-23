@@ -1,6 +1,6 @@
 # returns/services.py
 from .clients import ReturnsClient
-from .dtos    import ReturnsDTO
+from .dtos    import ReturnsDTO, RetFormatDTO
 from datetime import datetime
 from typing import List
 
@@ -46,3 +46,23 @@ def get_returns(
     return results
 
 
+def get_dpa_format(co: str, csc: str) -> RetFormatDTO:
+    client = ReturnsClient()
+    raw    = client.fetch_dpa_format(co, csc)
+    row = {}
+    try:
+        row = (raw.get("detalle", {}) or {}).get("Table", [])[0] or {}
+    except Exception:
+        row = {}
+    return RetFormatDTO.from_conekta(row)
+
+
+def get_dpc_format(co: str, csc: str) -> RetFormatDTO:
+    client = ReturnsClient()
+    raw    = client.fetch_dpc_format(co, csc)
+    row = {}
+    try:
+        row = (raw.get("detalle", {}) or {}).get("Table", [])[0] or {}
+    except Exception:
+        row = {}
+    return RetFormatDTO.from_conekta(row)

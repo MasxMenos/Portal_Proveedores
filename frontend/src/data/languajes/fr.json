@@ -28,7 +28,7 @@
     "title": "Mot de passe oublié ?",
     "subtitle": "Entrez votre email pour le réinitialiser",
     "emailLabel": "Email",
-    "sendButton": "Envoyer le lien",
+    "sendButton": "Générer un mot de passe",
     "backToLogin": "Retour à la connexion"
   },
   "settings": {

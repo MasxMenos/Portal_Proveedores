@@ -17,6 +17,7 @@ import { useMasterLines } from "../hooks/useMasterLines";
 import { useChecks }     from "../hooks/useChecks";
 import { useContainerRect } from "../hooks/useContainerRect";
 import { useMeasurePositions } from "../hooks/useMeasurePositions";
+import { useRowAction } from "../hooks/useRowAction";
 import DraggableLine from "../components/detail/DraggableLine";
 import EntityMaster from "../components/detail/EntityMaster";
 import { motion, AnimatePresence } from "framer-motion";
@@ -80,6 +81,7 @@ const [tipoDocto, csc] = useMemo(() => {
     childRefs,
     setPositions
   );
+
 
   /** Re-measure cuando cambian contenedor o página **/
   useLayoutEffect(() => {

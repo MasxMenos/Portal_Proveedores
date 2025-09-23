@@ -2,6 +2,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { PlusCircle, Download as DownloadIcon } from "lucide-react";
+import { useDocumentDownload } from "../../hooks/useDocumentDownload";
 
 export default function EntidadTable({
   isDark,
@@ -26,19 +27,8 @@ export default function EntidadTable({
   const viewLabel = t("entity.view");
   const progressLabel = t("entity.progress", "Progreso");
   const showProgress = tipo === "payments"; 
+  const handleAction = useDocumentDownload(tipo, onRowClick);
 
-  const handleAction = (item) => {
-    if (tipo === "payments") {
-      onRowClick(item);
-    } else {
-      const link = document.createElement("a");
-      link.href = "/blank.pdf";
-      link.download = `${item.documento}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
 
   // Formateador de moneda (ajusta locale y currency según necesites)
   const currencyFormatter = new Intl.NumberFormat("es-CO", {
@@ -93,7 +83,7 @@ export default function EntidadTable({
                 <span
                   className="cursor-pointer inline-flex items-center justify-center"
                   title={viewLabel}
-                  onClick={() => handleAction(item)}
+                  onClick={() => handleAction(item, item.co)}
                 >
                   {tipo === "payments" ? (
                     <PlusCircle size={18} color="#203259" />

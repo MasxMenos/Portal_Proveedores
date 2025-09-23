@@ -7,3 +7,6 @@ class InvoiceClient:
 
     def fetch_invoices(self, tipo_docto: str, nit: str) -> dict:
         return self._client.get_invoices_documents(tipo_docto, nit)
+
+    def fetch_nac_format(self, csc: str) -> dict:
+        return self._client.get_nac_format(csc)
