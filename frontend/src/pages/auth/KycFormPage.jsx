@@ -12,6 +12,19 @@ import { getChecked, isTrue } from "../../hooks/booleans";
 import BoolRadio from "../../components/kyc/BoolRadio";
 import KycDocumentsUploader from "../../components/kyc/KycDocumentsUploader";
 
+
+
+
+
+const getSafeReturnPath = (loc) => {
+  const from = loc?.state?.from?.pathname;
+  // evita volver a /login o vacío
+  if (!from || from === "/login" || from.startsWith("/login")) {
+    return "/inicio"; // <-- tu dashboard
+  }
+  return from;
+};
+
 // ---- helpers dinero ----
 const nf = new Intl.NumberFormat("es-CO");
 const onlyDigits = (s) => (s || "").replace(/[^\d]/g, "");
@@ -348,10 +361,10 @@ export default function KycFormPage() {
 
         const kycStatus = await fetchStatus();
         if (!kycStatus?.must_fill) {
-          const from = location.state?.from?.pathname || "/inicio";
-          navigate(from, { replace: true });
-          return;
+        navigate(getSafeReturnPath(location), { replace: true });
+        return;
         }
+
 
         if (!kycStatus.current_submission_id) {
           await ensureSubmission();
@@ -545,7 +558,7 @@ export default function KycFormPage() {
       });
 
       const from = location.state?.from?.pathname || "/inicio";
-      navigate(from, { replace: true });
+      navigate(getSafeReturnPath(location), { replace: true });
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
   };
@@ -942,7 +955,7 @@ export default function KycFormPage() {
                   </select>
                   {errors.bank_country_id && <p className="mt-1 text-xs text-red-500">{errors.bank_country_id}</p>}
                 </div>
-                
+
                 <div>
                   <RequiredLabel>Banco</RequiredLabel>
                   <select
@@ -1114,7 +1127,7 @@ export default function KycFormPage() {
             <div className="flex items-center justify-between gap-4">
               <button
                 type="button"
-                onClick={() => navigate("/login", { replace: true })}
+                onClick={() => navigate("/inicio", { replace: true })}
                 className={`px-4 py-2 rounded border text-sm ${isDark ? "border-zinc-700 hover:bg-zinc-800" : "border-gray-300 hover:bg-gray-200"}`}
               >
                 Salir
