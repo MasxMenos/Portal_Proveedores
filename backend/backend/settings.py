@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'drf_yasg',
-    'users',           
+    'users',
+    'kyc',           
     'invoices',        
     'payments',        
     'returns',         
@@ -183,8 +184,11 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, '../frontend/dist'),
 ]
-#MEDIA_URL = '/media/'
-#MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "/documentos/"
+MEDIA_ROOT = os.path.join(BASE_DIR, '../documentos'),
+
+# opcional: para no tocar el código
+KYC_UPLOADS_FOLDER = "KYC_UPLOADS"
 
 
 # Default primary key field type

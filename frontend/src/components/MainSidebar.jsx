@@ -27,11 +27,11 @@ export default function Sidebar({ activePage, onNavClick }) {
   }
 
   const navItems = [
-    { key: "home",        icon: <Home size={22}   color="#203259" />, path: "/inicio" },
-    { key: "invoices",    icon: <FileText size={22} color="#203259" />, path: "/facturas" },
-    { key: "payments",    icon: <DollarSign size={22} color="#203259" />, path: "/pagos" },
-    { key: "returns",     icon: <RotateCcw size={22}  color="#203259" />, path: "/devoluciones" },
-    { key: "certificates",icon: <Award size={22}    color="#203259" />, path: "/certificados" },
+    { key: "home",        icon: <Home size={22}   color="#003789" />, path: "/inicio" },
+    { key: "invoices",    icon: <FileText size={22} color="#003789" />, path: "/facturas" },
+    { key: "payments",    icon: <DollarSign size={22} color="#003789" />, path: "/pagos" },
+    { key: "returns",     icon: <RotateCcw size={22}  color="#003789" />, path: "/devoluciones" },
+    { key: "certificates",icon: <Award size={22}    color="#003789" />, path: "/certificados" },
   ];
 
   // Traducir etiquetas al vuelo:

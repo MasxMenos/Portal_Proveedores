@@ -98,11 +98,11 @@ export default function useTutorial() {
     });
 
     // Métodos para generar los pasos de métricas
-    const metricKeys = ["visitas", "ventas", "productos", "crecimiento"];
+    const metricKeys = ["servicio", "ventas", "productos", "crecimiento"];
     metricKeys.forEach((key, i) => {
       tour.addStep({
         id: `inicio-metrica-${key}`,
-        text: t(`tutorial.${key === "visitas" ? "totalVisits"
+        text: t(`tutorial.${key === "servicio" ? "totalVisits"
           : key === "ventas" ? "totalSales"
           : key === "productos" ? "totalProductsSold"
           : "salesGrowth"}`),

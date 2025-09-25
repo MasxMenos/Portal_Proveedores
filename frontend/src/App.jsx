@@ -14,32 +14,35 @@ import ProfileSettingsPage from "./pages/auth/ProfileSettingsPage.jsx";
 
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage.jsx";
 import RequireAuth from "./components/auth/RequireAuth.jsx";
+import KycFormPage from "./pages/auth/KycFormPage.jsx";
+import RequireKyc from "./components/auth/RequireKyc.jsx";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Ruta raíz redirige a /login */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-
-        {/* Aquí mapeas /login a tu LoginPage */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/recuperar_contrasena" element={<ForgotPasswordPage />} />
-        
+
+        {/* Protegidas: primero auth, luego KYC */}
         <Route element={<RequireAuth />}>
-        <Route path="/configuracion_perfil" element={<ProfileSettingsPage />} />
-      
-        <Route path="/inicio" element={<InicioPage />} />
-        <Route path="/facturas" element={<FacturasPage />} />
-        <Route path="/pagos" element={<PagosPage />} />
-        <Route path="/devoluciones" element={<DevolucionesPage />} />
-        <Route path="/certificados" element={<CertificadosPage />} />
-       
-        <Route path="/payments/:documentoId" element={<PagosDetailPage />} />
-        
+          <Route element={<RequireKyc />}>
+            {/* KYC form (también protegido, pero accesible siempre que esté logueado) */}
+            <Route path="/kyc" element={<KycFormPage />} />
+
+            {/* Resto de tu app normal */}
+            <Route path="/configuracion_perfil" element={<ProfileSettingsPage />} />
+            <Route path="/inicio" element={<InicioPage />} />
+            <Route path="/facturas" element={<FacturasPage />} />
+            <Route path="/pagos" element={<PagosPage />} />
+            <Route path="/devoluciones" element={<DevolucionesPage />} />
+            <Route path="/certificados" element={<CertificadosPage />} />
+            <Route path="/payments/:documentoId" element={<PagosDetailPage />} />
+          </Route>
         </Route>
 
-      <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );

@@ -86,9 +86,9 @@ export default function EntidadTable({
                   onClick={() => handleAction(item, item.co)}
                 >
                   {tipo === "payments" ? (
-                    <PlusCircle size={18} color="#203259" />
+                    <PlusCircle size={18} color="#003789" />
                   ) : (
-                    <DownloadIcon size={18} color="#203259" />
+                    <DownloadIcon size={18} color="#003789" />
                   )}
                 </span>
               </td>
@@ -120,7 +120,7 @@ export default function EntidadTable({
             key={p}
             className={`px-3 py-1 rounded ${
               p === currentPage
-                ? "bg-[#203159] text-white"
+                ? "bg-[#0d6efd] text-white"
                 : isDark
                 ? "bg-[#222] text-gray-300"
                 : "bg-gray-300 text-gray-700"

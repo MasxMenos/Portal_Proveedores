@@ -13,10 +13,12 @@ urlpatterns = [
     path('api/returns/', include('returns.urls')),
     path('api/users/', include('users.urls')),
      path('api/documentos/<str:code>/', lookup_document),
+     path("api/kyc/", include("kyc.urls")),
     #path('api/certificates/', include('certificates.urls')),
    
     
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 
 DOCUMENTOS_ROOT = os.path.abspath(os.path.join(settings.BASE_DIR, '../', 'documentos'))
 urlpatterns += static(

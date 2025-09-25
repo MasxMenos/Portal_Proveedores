@@ -228,7 +228,7 @@
   "tutorial": {
     "sidebarIntro": "Este es el menú lateral. Desde aquí puedes navegar entre las secciones principales del portal.",
     "goToHome": "Este botón te lleva a la sección de Inicio.",
-    "totalVisits": "Aquí puedes ver el número total de visitas que has realizado a la tienda.",
+    "totalVisits": "Aquí puedes ver el número total de servicio que has realizado a la tienda.",
     "totalSales": "Aquí puedes consultar el total de ventas realizadas.",
     "totalProductsSold": "Esta tarjeta muestra el número de productos vendidos.",
     "salesGrowth": "Aquí puedes ver el crecimiento de ventas comparado con el mes anterior.",
@@ -257,10 +257,10 @@
   "homepage": {
     "welcome": "Bienvenido de nuevo",
     "metrics": {
-      "visitas": "Visitas",
-      "ventas": "Ventas",
-      "productos": "Productos",
-      "crecimiento": "Crecimiento"
+      "servicio": "Nivel de servicio",
+      "ventas": "Valor total facturado",
+      "productos": "Und totales facturadas",
+      "crecimiento": "% de Crecimiento"
     },
     "totalSales": "Ventas totales",
     "topProducts": "Productos destacados",
