@@ -131,9 +131,12 @@ class KycFormSubmissionViewSet(viewsets.GenericViewSet,
         )
 
         due_date = getattr(user, "form_next_due", None)
-        must_fill = (getattr(user, "form_last_completed", None) is None) or (
-            bool(due_date) and due_date <= now().date()
-        ) or bool(getattr(user, "require_form", False))
+        #must_fill = (getattr(user, "form_last_completed", None) is None) or (
+        #    bool(due_date) and due_date <= now().date()
+        #) 
+        
+        must_fill = due_date <= now().date() if due_date else  True
+
 
         required_codes = set(
             KycDocumentType.objects.filter(obligatorio=True).values_list("code", flat=True)
@@ -229,9 +232,9 @@ class KycFormSubmissionViewSet(viewsets.GenericViewSet,
                         created_at=now(),
                         completed_at=None,
                     )
-                    if not getattr(user, "require_form", False):
-                        user.require_form = True
-                        user.save(update_fields=["require_form"])
+                    # if not getattr(user, "require_form", False):
+                    #     user.require_form = True
+                    #     user.save(update_fields=["require_form"])
 
         # 2) resolver tipo por id o code
         try:

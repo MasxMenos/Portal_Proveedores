@@ -143,8 +143,10 @@ def create_new_submission(user, data: dict) -> KycFormSubmission:
     #    - form_next_due = hoy + 6 meses (≈ 180 días)
     user.form_last_completed = now().date()
     #user.form_next_due = (now() + timedelta(days=180)).date()
-    user.require_form = False
-    user.save(update_fields=["form_last_completed", "require_form"])
+    # user.require_form = False
+    # user.save(update_fields=["form_last_completed", "require_form"])
+    # user.require_form = False
+    user.save(update_fields=["form_last_completed"])
 
     return sub
 

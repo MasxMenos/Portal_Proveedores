@@ -17,15 +17,15 @@ class PrvUsuario(models.Model):
     nit_dv             = models.SmallIntegerField(blank=True, null=True)
     tipo_doc           = models.CharField(max_length=2, default='31')
     form_last_completed = models.DateField(blank=True, null=True)
-    require_form       = models.BooleanField(default=True)
-    form_next_due      = models.DateField(blank=True, null=True, editable=False)
+    # require_form       = models.BooleanField(default=True)
+    form_next_due      = models.DateField(blank=True, null=True, editable=False, auto_now_add=True)
 
     class Meta:
         db_table = 'prv_usuarios'
         managed  = False   # <- lo dejas como está, porque esa tabla ya existe
         # índices que ya creaste en SQL; aquí solo referencia (Django no los creará con managed=False)
         indexes = [
-            models.Index(fields=['require_form'], name='ix_prv_usuarios_require_form'),
+            # models.Index(fields=['require_form'], name='ix_prv_usuarios_require_form'),
             models.Index(fields=['form_next_due'], name='ix_prv_usuarios_form_next_due'),
         ]
 

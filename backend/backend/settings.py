@@ -185,10 +185,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, '../frontend/dist'),
 ]
 MEDIA_URL = "/documentos/"
-MEDIA_ROOT = os.path.join(BASE_DIR, '../documentos'),
-
-# opcional: para no tocar el código
+MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, "../documentos"))  # ✅ sin coma, absoluta
 KYC_UPLOADS_FOLDER = "KYC_UPLOADS"
+
 
 
 # Default primary key field type
