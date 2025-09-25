@@ -14,40 +14,32 @@ import {
 import { useTheme } from "../components/ThemeContext";
 import { useActivePage } from "../hooks/useActivePage";
 import { useMasterLines } from "../hooks/useMasterLines";
-import { useChecks }     from "../hooks/useChecks";
-import { useContainerRect } from "../hooks/useContainerRect";
-import { useMeasurePositions } from "../hooks/useMeasurePositions";
-import { useRowAction } from "../hooks/useRowAction";
+import { useChecks } from "../hooks/useChecks";
 import DraggableLine from "../components/detail/DraggableLine";
 import EntityMaster from "../components/detail/EntityMaster";
 import { motion, AnimatePresence } from "framer-motion";
-
 
 export default function EntityDetail({ tipo }) {
   const { t } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
   const { documentoId } = useParams();
-const [tipoDocto, csc] = useMemo(() => {
-  if (!documentoId) return [null, null];
 
-  const [td, ...rest] = documentoId.split('-');
-  return [
-    td ?? null,
-    rest.length ? rest.join('-') : null,
-  ];
-}, [documentoId]);
+  const [tipoDocto, csc] = useMemo(() => {
+    if (!documentoId) return [null, null];
+    const [td, ...rest] = documentoId.split("-");
+    return [td ?? null, rest.length ? rest.join("-") : null];
+  }, [documentoId]);
 
-  
   const { state } = useLocation();
   const masterFromTable = state?.master;
   const activePage = useActivePage(tipo);
   const navigate = useNavigate();
-
   const label = t(`sidebar.${tipo}`);
 
-  /** Refs y estados básicos **/
-  const containerRef = useRef(null);
+  /** Refs / estado **/
+  const scrollAreaRef = useRef(null);   // para escuchar scroll (overflow del main)
+  const containerRef = useRef(null);    // contenedor donde medimos y dibujamos
   const masterRef = useRef(null);
   const childRefs = useRef({});
 
@@ -57,78 +49,139 @@ const [tipoDocto, csc] = useMemo(() => {
 
   const [paginationStates, setPaginationStates] = useState({});
   const [cardsPage, setCardsPage] = useState(1);
-  const [positions, setPositions] = useState({ master: null, children: {} });
-  
+
   const CARDS_PER_PAGE = 5;
   const MAX_ICONS = 15;
 
-  /** Datos de maestro + líneas **/
-  const {
-  master: fetchedMaster,
-  lines,
-  loading,
-  error,
-} = useMasterLines({ tipo, documentoId: csc, tipoDocto });
+  /** Datos maestro + líneas **/
+  const { master: fetchedMaster, lines, loading, error } = useMasterLines({
+    tipo,
+    documentoId: csc,
+    tipoDocto,
+  });
   const master = masterFromTable || fetchedMaster;
-
-
-  /** Métricas del contenedor y función para medir líneas → SVG **/
-  const containerRect = useContainerRect(containerRef);
-  const measurePositions = useMeasurePositions(
-    masterRef,
-    containerRect,
-    lines,
-    childRefs,
-    setPositions
-  );
-
-
-  /** Re-measure cuando cambian contenedor o página **/
-  useLayoutEffect(() => {
-    measurePositions();
-  }, [measurePositions, containerRect, cardsPage]);
-
-  /** Pequeño scroll forzado para repaint (fix Safari) **/
-  useEffect(() => {
-    window.scrollBy({ top: 1, behavior: "smooth" });
-  }, [lines]);
-
-  useEffect(() => {
-    localStorage.setItem(CHECK_KEY, JSON.stringify(checks));
-  }, [checks]);
-
   if (!master) return null;
 
-useEffect(() => {
-  if (lines && lines.length && documentoId) {
-    const key = `checks:payments:${documentoId}`;
-    let stored = {};
-    try {
-      stored = JSON.parse(localStorage.getItem(key) || '{}');
-    } catch { /* nada */ }
-    if (stored.__total !== lines.length) {
-      stored.__total = lines.length;
-      localStorage.setItem(key, JSON.stringify(stored));
-    }
-  }
-}, [lines, documentoId]);
-
-
-
-  /** Líneas visibles paginadas (memo para evitar refs nuevas) **/
-const visibleLines = useMemo(
-  () => lines.slice(
-      (cardsPage - 1) * CARDS_PER_PAGE,
-      cardsPage * CARDS_PER_PAGE
-    ),
-  [lines, cardsPage]
-);
-
+  /** Líneas visibles paginadas **/
+  const visibleLines = useMemo(
+    () => lines.slice((cardsPage - 1) * CARDS_PER_PAGE, cardsPage * CARDS_PER_PAGE),
+    [lines, cardsPage]
+  );
 
   const totalPages = Math.ceil(lines.length / CARDS_PER_PAGE);
   const groupIndex = Math.floor((cardsPage - 1) / MAX_ICONS);
   const startPage = groupIndex * MAX_ICONS + 1;
   const endPage = Math.min(startPage + MAX_ICONS - 1, totalPages);
+
+  /** Parámetros visuales compartidos **/
+  const RAIL_X = 64;             // px desde el borde izquierdo del contenedor (mueve la LÍNEA)
+  const CONNECTOR = 28;          // px del conector horizontal hacia la card
+  const CARD_GAP = "3%";         // separación vertical entre master→1ª hija y entre hijas
+  const CARD_OFFSET = `calc(${RAIL_X}px + ${CONNECTOR}px + 8px)`; // base para todas las cards
+  const CHILD_INDENT = "56px";   // 👈 desplazamiento adicional SOLO para hijas
+
+  /** Estado de posiciones para dibujar líneas **/
+  const [geo, setGeo] = useState({
+    ready: false,
+    railXAbs: 0,
+    yStart: 0,
+    yEnd: 0,
+    children: [], // [{ id, x, y }]
+    svgW: 0,
+    svgH: 0,
+  });
+
+  /** Util: obtener rect relativo al contenedor **/
+  const getRectRelativeTo = (rect, containerRect) => {
+    const left = rect.left - containerRect.left;
+    const top = rect.top - containerRect.top;
+    return {
+      left,
+      top,
+      width: rect.width,
+      height: rect.height,
+      centerY: top + rect.height / 2,
+    };
+  };
+
+  /** Medición robusta sin hooks externos **/
+  const recompute = () => {
+    const containerEl = containerRef.current;
+    const masterEl = masterRef.current;
+    if (!containerEl || !masterEl) {
+      setGeo((g) => ({ ...g, ready: false }));
+      return;
+    }
+
+    const containerRect = containerEl.getBoundingClientRect();
+    const masterRectAbs = masterEl.getBoundingClientRect();
+    const masterRect = getRectRelativeTo(masterRectAbs, containerRect);
+
+    // Hijas visibles (el borde izquierdo cambiará si sumas --child-indent en el componente)
+    const childPoints = [];
+    for (const line of visibleLines) {
+      const r = childRefs.current[line.id]?.current;
+      if (!r) continue;
+      const rectAbs = r.getBoundingClientRect();
+      const rect = getRectRelativeTo(rectAbs, containerRect);
+      childPoints.push({
+        id: line.id,
+        x: rect.left,     // borde izquierdo exacto
+        y: rect.centerY,  // centro vertical
+      });
+    }
+
+    // Rail X en coords del SVG (posicionado sobre el contenedor)
+    const railXAbs = RAIL_X;
+
+    // Y inicio (centro del master) y Y fin (centro de la última hija visible)
+    const yStart = masterRect.centerY;
+    const yEnd = childPoints.length ? childPoints[childPoints.length - 1].y : yStart;
+
+    // Dimensiones del SVG: cubrir el scroll del contenedor
+    const svgW = Math.max(containerEl.clientWidth, containerEl.scrollWidth);
+    const svgH = Math.max(containerEl.clientHeight, containerEl.scrollHeight);
+
+    setGeo({
+      ready: true,
+      railXAbs,
+      yStart,
+      yEnd,
+      children: childPoints,
+      svgW,
+      svgH,
+    });
+  };
+
+  /** Recalcular cuando cambie layout/estado relevante **/
+  useLayoutEffect(() => {
+    recompute();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardsPage, expanded, paginationStates, visibleLines.length, isDark]);
+
+  /** Recalcular tras primer paint y cuando cambian los datos **/
+  useEffect(() => {
+    const id = requestAnimationFrame(recompute);
+    return () => cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lines]);
+
+  /** Recalcular al redimensionar y al hacer scroll **/
+  useEffect(() => {
+    const onResize = () => recompute();
+    const onScroll = () => recompute();
+    window.addEventListener("resize", onResize, { passive: true });
+    const mainEl = scrollAreaRef.current;
+    if (mainEl) mainEl.addEventListener("scroll", onScroll, { passive: true });
+    if (containerRef.current) containerRef.current.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+      if (mainEl) mainEl.removeEventListener("scroll", onScroll);
+      if (containerRef.current) containerRef.current.removeEventListener("scroll", onScroll);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div
@@ -138,7 +191,7 @@ const visibleLines = useMemo(
     >
       <Sidebar activePage={activePage} />
 
-      <main className="flex-1 p-6 md:ml-64 space-y-6 overflow-auto">
+      <main ref={scrollAreaRef} className="flex-1 p-6 md:ml-64 space-y-6 overflow-auto">
         <HeaderSuperior
           activePage={label}
           title={label}
@@ -152,53 +205,60 @@ const visibleLines = useMemo(
           <ArrowLeftCircle size={20} /> {t("buttons.back")}
         </button>
 
+        {/* CONTENEDOR DE DETALLE (relative para posicionar el SVG encima) */}
         <div
           ref={containerRef}
-          className="relative min-w-[200vw] h-[150vh] p-4 md:p-8"
+          className="relative p-4 md:p-8"
+          style={{
+            // Variables globales para posicionamiento y separación
+            "--rail-x": `${RAIL_X}px`,           // mueve la LÍNEA
+            "--connector": `${CONNECTOR}px`,
+            "--card-gap": CARD_GAP,
+            "--card-offset": CARD_OFFSET,        // base de todas las cards (master + hijas)
+            "--child-indent": CHILD_INDENT,      // 👈 desplazamiento extra SOLO para hijas
+          }}
         >
-          {/* SVG de líneas entre maestro e hijos */}
-          {containerRect && positions.master && (
+          {/* SVG: UNA SOLA LÍNEA VERTICAL + conectores horizontales */}
+          {geo.ready && (
             <svg
               className="absolute inset-0 pointer-events-none z-0"
-              width={containerRect.width}
-              height={containerRect.height}
+              width={geo.svgW}
+              height={geo.svgH}
             >
-              {visibleLines.map((line) => {
-                const childPos = positions.children[line.id];
-                if (!childPos) return null;
+              {/* Rail vertical único desde el master hasta la última hija visible */}
+              <line
+                x1={geo.railXAbs}
+                y1={geo.yStart}
+                x2={geo.railXAbs}
+                y2={geo.yEnd}
+                stroke={isDark ? "#333" : "#d1d5db"}
+                strokeWidth="2"
+              />
 
-                const { x: x1, y: y1 } = positions.master;
-                const { x: x2, y: y2 } = childPos;
-                const midX = x1 + (x2 - x1) / 2;
-
-                const sx = x1 - containerRect.x;
-                const sy = y1 - containerRect.y;
-                const ex = x2 - containerRect.x;
-                const ey = y2 - containerRect.y;
-
-                return (
-                  <polyline
-                    key={line.id}
-                    points={`${sx},${sy} ${midX - containerRect.x},${sy} ${
-                      midX - containerRect.x
-                    },${ey} ${ex},${ey}`}
-                    fill="none"
-                    stroke="#888"
-                    strokeWidth="2"
-                    strokeDasharray="4 2"
-                  />
-                );
-              })}
+              {/* Conectores horizontales: rail -> borde izquierdo de cada hija */}
+              {geo.children.map((pt) => (
+                <line
+                  key={`h-${pt.id}`}
+                  x1={geo.railXAbs}
+                  y1={pt.y}
+                  x2={pt.x}
+                  y2={pt.y}
+                  stroke={isDark ? "#4b5563" : "#94a3b8"}
+                  strokeWidth="2"
+                />
+              ))}
             </svg>
           )}
 
-          {/* Tarjeta maestra */}
-          <EntityMaster
-            isDark={isDark}
-            tipo={tipo}
-            master={master}
-            ref={masterRef}
-          />
+          {/* MASTER con el mismo gap que entre hijas (NO suma --child-indent) */}
+          <div style={{ marginBottom: "var(--card-gap)" }}>
+            <EntityMaster
+              isDark={isDark}
+              tipo={tipo}
+              master={master}
+              ref={masterRef}
+            />
+          </div>
 
           {/* Índice lateral (15 íconos máx.) */}
           <div className="absolute left-0 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
@@ -213,9 +273,7 @@ const visibleLines = useMemo(
               >
                 {groupIndex > 0 && (
                   <button
-                    onClick={() =>
-                      setCardsPage((groupIndex - 1) * MAX_ICONS + 1)
-                    }
+                    onClick={() => setCardsPage((groupIndex - 1) * MAX_ICONS + 1)}
                     className="p-1"
                   >
                     <ChevronUp size={18} />
@@ -230,11 +288,7 @@ const visibleLines = useMemo(
                     .every((l) => checks[l.id]);
                   const Icon = done ? CheckCircle2 : HelpCircle;
                   return (
-                    <button
-                      key={p}
-                      onClick={() => setCardsPage(p)}
-                      className="p-1"
-                    >
+                    <button key={p} onClick={() => setCardsPage(p)} className="p-1">
                       <Icon
                         size={18}
                         className={
@@ -251,9 +305,7 @@ const visibleLines = useMemo(
 
                 {groupIndex < Math.floor((totalPages - 1) / MAX_ICONS) && (
                   <button
-                    onClick={() =>
-                      setCardsPage((groupIndex + 1) * MAX_ICONS + 1)
-                    }
+                    onClick={() => setCardsPage((groupIndex + 1) * MAX_ICONS + 1)}
                     className="p-1"
                   >
                     <ChevronDown size={18} />
@@ -263,56 +315,51 @@ const visibleLines = useMemo(
             </AnimatePresence>
           </div>
 
-{/* Líneas hijas paginadas y arrastrables */}
-{loading && !lines.length && (
-  <div className="flex justify-center items-center h-40 text-gray-400">
-    {t("detail.loading", "Cargando...")}
-  </div>
-)}
+          {/* HIJAS (en flujo, con el mismo gap entre cards; aquí se usa --child-indent en DraggableLine) */}
+          {loading && !lines.length && (
+            <div className="flex justify-center items-center h-40 text-gray-400">
+              {t("detail.loading", "Cargando...")}
+            </div>
+          )}
 
-{/* Bloque de error visible */}
-{!loading && error && (!lines || lines.length === 0) && (
-  <div className="flex justify-center items-center h-40 text-red-500 text-lg">
-    <span>
-      {"Ocurrió un error inesperado, intente de nuevo más tarde"}
-    </span>
-  </div>
-)}
+          {!loading && error && (!lines || lines.length === 0) && (
+            <div className="flex justify-center items-center h-40 text-red-500 text-lg">
+              <span>{"Ocurrió un error inesperado, intente de nuevo más tarde"}</span>
+            </div>
+          )}
 
-{!loading && (!error || (lines && lines.length > 0)) && visibleLines.map((line, idx) => {
-  if (!childRefs.current[line.id]) {
-    childRefs.current[line.id] = React.createRef();
-  }
+          {!loading &&
+            (!error || (lines && lines.length > 0)) &&
+            visibleLines.map((line) => {
+              if (!childRefs.current[line.id]) {
+                childRefs.current[line.id] = React.createRef();
+              }
 
-  const MOVS_PER_PAGE = 5;
-  const currentPage = paginationStates[line.id] || 1;
-  const start = (currentPage - 1) * MOVS_PER_PAGE;
-  const paginatedMovs = line.movements.slice(
-    start,
-    start + MOVS_PER_PAGE
-  );
+              const MOVS_PER_PAGE = 5;
+              const currentPage = paginationStates[line.id] || 1;
+              const start = (currentPage - 1) * MOVS_PER_PAGE;
+              const paginatedMovs = line.movements.slice(start, start + MOVS_PER_PAGE);
 
-  return (
-    <DraggableLine
-      key={line.id}
-      ref={childRefs.current[line.id]}
-      line={line}
-      idx={idx}
-      expanded={expanded}
-      setExpanded={setExpanded}
-      onDrag={measurePositions}
-      onStop={measurePositions}
-      movementsPaginados={paginatedMovs}
-      totalPaginas={Math.ceil(line.movements.length / MOVS_PER_PAGE)}
-      paginaActual={currentPage}
-      setPaginaActual={(page) =>
-        setPaginationStates((prev) => ({ ...prev, [line.id]: page }))
-      }
-      isChecked={!!checks[line.id]}
-      onToggleChecked={(val) => toggleCheck(line.id, val)}
-    />
-  );
-})}
+              return (
+                <div key={line.id} style={{ marginBottom: "var(--card-gap)" }}>
+                  <DraggableLine
+                    ref={childRefs.current[line.id]}
+                    line={line}
+                    expanded={expanded}
+                    setExpanded={setExpanded}
+                    movementsPaginados={paginatedMovs}
+                    totalPaginas={Math.ceil(line.movements.length / MOVS_PER_PAGE)}
+                    paginaActual={currentPage}
+                    setPaginaActual={(page) =>
+                      setPaginationStates((prev) => ({ ...prev, [line.id]: page }))
+                    }
+                    isChecked={!!checks[line.id]}
+                    onToggleChecked={(val) => toggleCheck(line.id, val)}
+                    tipo={tipo}
+                  />
+                </div>
+              );
+            })}
         </div>
       </main>
     </div>

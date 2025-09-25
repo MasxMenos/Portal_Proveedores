@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'drf_yasg',
-    'users',           
+    'users',
+    'kyc',           
     'invoices',        
     'payments',        
     'returns',         
@@ -98,7 +99,7 @@ DATABASES = {
         'NAME': 'postgres',
         'USER': 'postgres',
         'PASSWORD': 'mxm',
-        'HOST': 'localhost',
+        'HOST': '192.168.1.8',
         'PORT': '5432',
     }
 }
@@ -183,8 +184,10 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, '../frontend/dist'),
 ]
-#MEDIA_URL = '/media/'
-#MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "/documentos/"
+MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, "../documentos"))  # ✅ sin coma, absoluta
+KYC_UPLOADS_FOLDER = "KYC_UPLOADS"
+
 
 
 # Default primary key field type

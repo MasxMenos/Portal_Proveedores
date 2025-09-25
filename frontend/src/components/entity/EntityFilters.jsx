@@ -55,7 +55,7 @@ export default function EntidadFilters({
 
       <button
         onClick={onConsultar}
-        className="ml-auto bg-[#203159] hover:bg-blue-600 text-white px-4 py-2 rounded"
+        className="ml-auto bg-[#0d6efd] hover:bg-blue-600 text-white px-4 py-2 rounded"
       >
         {t("entity.filters.consult")}
       </button>

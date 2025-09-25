@@ -1,32 +1,21 @@
 // src/components/detail/DraggableLine.jsx
 import React, { forwardRef } from "react";
-import Draggable from "react-draggable";
 import { ChevronDown, ChevronRight, Download } from "lucide-react";
 import { useTheme } from "../ThemeContext";
 import { useTranslation } from "react-i18next";
 import { useDocumentDownload } from "../../hooks/useDocumentDownload";
 
-/**
- * Tarjeta hija draggable.
- * Soporta:
- *  • Movimientos en dos formatos (legacy / nuevo)
- *  • Tabla de retenciones (opcional)
- *  • Checkbox de revisión (sincronizado y persistente)
- */
 const DraggableLine = forwardRef(
   (
     {
       line,
-      idx,
       expanded,
       setExpanded,
-      onDrag,
-      onStop,
-      movementsPaginados,
-      totalPaginas,
-      paginaActual,
+      movementsPaginados = [],
+      totalPaginas = 1,
+      paginaActual = 1,
       setPaginaActual,
-      isChecked,
+      isChecked = false,
       onToggleChecked,
       tipo,
       onRowClick,
@@ -36,19 +25,10 @@ const DraggableLine = forwardRef(
     const { theme } = useTheme();
     const { t } = useTranslation();
     const isDark = theme === "dark";
-
-    const defaultX = 360;
-    const defaultY = idx * 180 + 40;
-
-    // Hook reutilizable para descargas / navegación
     const handleAction = useDocumentDownload(tipo, onRowClick);
 
-    /* -------------------------------------------------- */
-    /* Helpers                                            */
-    /* -------------------------------------------------- */
     const renderMovementsTable = () => {
       if (!movementsPaginados.length) return null;
-
       return (
         <table className="w-full text-sm">
           <thead>
@@ -95,7 +75,7 @@ const DraggableLine = forwardRef(
                   <td className="py-1">{r.CO}</td>
                   <td className="py-1">{r.Clase}</td>
                   <td className="py-1">{r.Descripcion}</td>
-                  <td className="py-1">${r.Total_Retencion.toLocaleString()}</td>
+                  <td className="py-1">${(r.Total_Retencion ?? 0).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -104,27 +84,26 @@ const DraggableLine = forwardRef(
       );
     };
 
-    /* -------------------------------------------------- */
-    /* Render                                             */
-    /* -------------------------------------------------- */
+    // La card se alinea pegada al rail + conector; NO dibuja líneas aquí.
+// src/components/detail/DraggableLine.jsx
+    const wrapperStyle = {
+      marginLeft:
+        "calc(var(--card-offset, calc(var(--rail-x, 48px) + var(--connector, 28px) + 8px)) + var(--child-indent, 0px))",
+      maxWidth: "980px",
+    };
+
+
+
     return (
-      <Draggable
-        handle=".text-header"
-        nodeRef={ref}
-        defaultPosition={{ x: defaultX, y: defaultY }}
-        bounds="parent"
-        onDrag={onDrag}
-        onStop={onStop}
-      >
+      <div className="relative" style={wrapperStyle}>
         <div
           ref={ref}
-          className={`child-${line.documento} absolute p-4 md:p-6 rounded-lg w-[90vw] max-w-[800px] left-[5vw] md:left-[300px] cursor-move z-10 ${
-            isDark ? "bg-[#111] text-gray-200" : "bg-white text-gray-800 border border-gray-300"
+          className={`rounded-lg border shadow-sm ${
+            isDark ? "bg-[#111] border-[#2a2a2a] text-gray-200" : "bg-white border-gray-200 text-gray-800"
           }`}
         >
-          {/* Encabezado */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 child-header">
-            {/* Acciones */}
+          {/* Header */}
+          <div className="p-4 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div className="flex items-center gap-3">
               <Download
                 size={18}
@@ -144,8 +123,7 @@ const DraggableLine = forwardRef(
               />
             </div>
 
-            {/* Info básica */}
-            <div className="flex-1 overflow-x-auto text-header">
+            <div className="flex-1 overflow-x-auto">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-4 text-sm whitespace-nowrap min-w-max">
                 <div className="text-gray-400">{t("detail.master.CO", "CO")}</div>
                 <div className="text-gray-400">{t("detail.master.labelDocumento", "Documento")}</div>
@@ -156,48 +134,50 @@ const DraggableLine = forwardRef(
                 <div className="font-mono">{line.CO}</div>
                 <div>{line.documento}</div>
                 <div>{line.fecha}</div>
-                <div className="hidden md:block">${line.debitos.toLocaleString()}</div>
-                <div className="hidden md:block">${line.creditos.toLocaleString()}</div>
+                <div className="hidden md:block">${(line.debitos ?? 0).toLocaleString()}</div>
+                <div className="hidden md:block">${(line.creditos ?? 0).toLocaleString()}</div>
               </div>
             </div>
 
-            {/* Toggle expand */}
-            <div
+            <button
+              type="button"
               className="self-start md:self-center cursor-pointer"
               onClick={() => setExpanded((p) => ({ ...p, [line.id]: !p[line.id] }))}
+              aria-expanded={!!expanded[line.id]}
             >
               {expanded[line.id] ? (
                 <ChevronDown size={18} className="text-gray-400" />
               ) : (
                 <ChevronRight size={18} className="text-gray-400" />
               )}
-            </div>
+            </button>
           </div>
 
-          {/* Detalle expandible */}
+          {/* Detalle */}
           {expanded[line.id] && (
             <div
-              className={`mt-4 p-4 border-t-2 border-dashed rounded-b-lg overflow-x-hidden ${
-                isDark ? "bg-[#111] border-gray-600" : "bg-gray-100 border-gray-300"
+              className={`px-4 pb-4 md:px-6 md:pb-6 border-t-2 border-dashed rounded-b-lg overflow-x-hidden ${
+                isDark ? "bg-[#111] border-gray-600" : "bg-gray-50 border-gray-300"
               }`}
             >
-              <h3 className="text-sm font-semibold mb-2">{t("detail.movementsTitle", "Movimientos")}</h3>
+              <h3 className="text-sm font-semibold mt-2 mb-2">
+                {t("detail.movementsTitle", "Movimientos")}
+              </h3>
 
               {renderMovementsTable()}
 
-              {/* Paginación movimientos */}
               {totalPaginas > 1 && (
                 <div className="flex justify-center items-center space-x-2 py-2">
                   {Array.from({ length: totalPaginas }, (_, i) => (
                     <button
                       key={i}
                       onClick={() => setPaginaActual(i + 1)}
-                      className={`px-2 py-1 rounded text-sm ${
+                      className={`px-2 py-1 rounded text-sm transition-colors ${
                         paginaActual === i + 1
-                          ? "bg-[#203159] text-white"
+                          ? "bg-[#0d6efd] text-white"
                           : isDark
-                          ? "bg-[#222] text-gray-300"
-                          : "bg-gray-300 text-gray-700"
+                          ? "bg-[#222] text-gray-300 hover:bg-[#2a2a2a]"
+                          : "bg-gray-300 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
                       {i + 1}
@@ -206,12 +186,11 @@ const DraggableLine = forwardRef(
                 </div>
               )}
 
-              {/* Retenciones */}
               {renderRetenciones()}
             </div>
           )}
         </div>
-      </Draggable>
+      </div>
     );
   }
 );

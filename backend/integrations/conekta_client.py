@@ -92,7 +92,7 @@ class ConektaClient:
     def get_cet_format(self, csc: str) -> dict:
         params = {
             "idCompania": self.COMPANY_ID,
-            "descripcion": "get_rcc_format",
+            "descripcion": "get_cet_format",
             "parametros": f"ConsecDocto={csc}|TipoDocto=CET",
         }
         return self._safe_get(params)

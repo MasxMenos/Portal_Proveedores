@@ -112,7 +112,7 @@ export default function InicioPage() {
                       color: isDark ? "#fff" : "#000",
                     }}
                   />
-                  <Line type="monotone" dataKey="value" stroke="#203259" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="value" stroke="#36a2eb" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -135,7 +135,7 @@ export default function InicioPage() {
                       color: isDark ? "#fff" : "#000",
                     }}
                   />
-                  <Bar dataKey="value" fill="#203259" />
+                  <Bar dataKey="value" fill="#36a2eb" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

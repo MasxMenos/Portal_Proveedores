@@ -256,10 +256,10 @@
   "homepage": {
     "welcome": "Welcome back",
     "metrics": {
-      "visitas": "Visits",
-      "ventas": "Sales",
-      "productos": "Products",
-      "crecimiento": "Growth"
+  "servicio": "Service level",
+  "ventas": "Total billed amount",
+  "productos": "Total units billed",
+  "crecimiento": "% growth"
     },
     "totalSales": "Total sales",
     "topProducts": "Top Products",

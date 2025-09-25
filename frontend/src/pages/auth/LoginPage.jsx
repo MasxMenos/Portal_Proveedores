@@ -20,49 +20,50 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+ const handleLogin = async (e) => {
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    // 1) Trim del username antes de enviarlo al API
-    const trimmedUsername = username.trim();
+  const trimmedUsername = username.trim();
 
-    try {
-      const res = await fetch("/api/users/login/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: trimmedUsername, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.detail || "Error al autenticar");
-      }
+  try {
+    const res = await fetch("/api/users/login/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: trimmedUsername, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Error al autenticar");
 
+    // tokens & user
+    localStorage.setItem("accessToken", data.access);
+    localStorage.setItem("refreshToken", data.refresh);
+    const cleanUser = { ...data.user, username: data.user.username.trim() };
+    localStorage.setItem("user", JSON.stringify(cleanUser));
 
+    // --- NUEVO: validar KYC inmediatamente ---
+    const statusRes = await fetch("/api/kyc/submissions/status", {
+      headers: { Authorization: `Bearer ${data.access}` },
+    });
+    const statusData = await statusRes.json().catch(() => ({}));
+    const mustFill = statusRes.ok ? !!statusData?.must_fill : false;
 
-      // 3) Guarda siempre en localStorage
-      localStorage.setItem("accessToken", data.access);
-      localStorage.setItem("refreshToken", data.refresh);
-
-      // 4) Limpia el username que viene del API y guarda el user
-      const cleanUser = {
-        ...data.user,
-        username: data.user.username.trim(),
-      };
-      localStorage.setItem("user", JSON.stringify(cleanUser));
-      
-
-      // 5) Redirige a la ruta previa (state.from) o a /inicio
-      const from = location.state?.from?.pathname || "/inicio";
-      navigate(from, { replace: true });
-    } catch (err) {
-      console.error("Login error:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    if (mustFill) {
+      navigate("/kyc", { replace: true, state: { from: location } });
+      return;
     }
-  };
+
+    // flujo normal
+    const from = location.state?.from?.pathname || "/inicio";
+    navigate(from, { replace: true });
+  } catch (err) {
+    console.error("Login error:", err);
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleForgotPassword = () => {
     navigate("/recuperar_contrasena");

@@ -59,3 +59,37 @@ class RccFormatSerializer(serializers.Serializer):
     Footer_Total_Db       = serializers.FloatField()
     Footer_Total_Cr       = serializers.FloatField()
     Detalle               = RccDetailSerializer(many=True)
+
+
+class CetDetailSerializer(serializers.Serializer):
+    Auxiliar       = serializers.CharField()
+    CO             = serializers.CharField()
+    UN             = serializers.CharField()
+    Tercero        = serializers.CharField()
+    RazonSocial    = serializers.CharField()
+    DCruce_MPago   = serializers.CharField()
+    Debitos        = serializers.FloatField()
+    Creditos       = serializers.FloatField()
+
+
+class CetFormatSerializer(serializers.Serializer):
+    Header_Cia               = serializers.CharField()
+    Header_Nit_Cia           = serializers.CharField()
+    Header_Dir_Cia           = serializers.CharField()
+    Header_Doc               = serializers.CharField()
+    Header_Nro_Doc           = serializers.CharField()
+    Header_Fecha_Act         = serializers.CharField()
+    Header_Prov              = serializers.CharField()
+    Header_Dir_Prov          = serializers.CharField()
+    Header_Tel_Prov          = serializers.CharField()
+    Header_Nit_Prov          = serializers.CharField()
+    Header_Ciudad            = serializers.CharField()
+    Header_Fecha_Doc         = serializers.CharField()
+    Header_Docto_Referencia  = serializers.CharField()
+    Header_Cuenta            = serializers.CharField()
+    Header_Cuenta_Bancaria   = serializers.CharField()
+    Header_Valor_Consignacion= serializers.FloatField()
+    Header_Banco             = serializers.CharField()
+    Footer_SumaIgualCR     = serializers.FloatField()
+    Footer_SumaIgualDB      = serializers.FloatField()
+    Detalle                  = CetDetailSerializer(many=True)

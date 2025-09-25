@@ -51,7 +51,7 @@ export default function EntidadDownloadButton({
   return (
     <button
       className="hover:underline text-sm"
-      style={{ color: isDark ? "#FFF" : "#203159" }}
+      style={{ color: isDark ? "#FFF" : "#0d6efd" }}
       onClick={handleDownload}
     >
       {t("entity.downloadXLSX")}

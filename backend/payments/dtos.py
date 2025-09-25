@@ -121,3 +121,83 @@ class RccFormatDTO:
             Footer_Total_Cr       = float(data.get("Footer_Total_Cr", 0)),
             Detalle               = details,
         )
+
+@dataclass
+class CetDetailDTO:
+    Auxiliar: str
+    CO: str
+    UN: str
+    Tercero: str
+    RazonSocial: str
+    DCruce_MPago: str
+    Debitos: float
+    Creditos: float
+    
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "CetDetailDTO":
+        return cls(
+        Auxiliar    = d.get("Detail_Auxiliar", ""),
+        CO  = d.get("Detail_CO", ""),
+        UN= d.get("Detail_UN", ""),
+        Tercero= d.get("Detail_Tercero", ""),
+        RazonSocial= d.get("Detail_RazonSocial", ""),
+        DCruce_MPago= d.get("Detail_DCruce_MPago", ""),
+        Debitos= float(d.get("Detail_Debitos", 0)),
+        Creditos= float(d.get("Detail_Creditos", 0)),
+        )
+
+@dataclass
+class CetFormatDTO:
+    Header_Cia: str
+    Header_Nit_Cia: str
+    Header_Dir_Cia: str
+    Header_Doc: str
+    Header_Nro_Doc: str
+    Header_Fecha_Act: str
+    Header_Prov: str
+    Header_Dir_Prov: str
+    Header_Tel_Prov: str
+    Header_Nit_Prov: str
+    Header_Ciudad: str
+    Header_Fecha_Doc: str
+    Header_Docto_Referencia: str
+    Header_Cuenta: str
+    Header_Cuenta_Bancaria: str
+    Header_Valor_Consignacion: float
+    Header_Banco: str
+    Footer_SumaIgualCR: float
+    Footer_SumaIgualDB: float
+    Detalle: List[CetDetailDTO]
+
+    @classmethod
+    def from_conekta(cls, data: dict) -> "CetFormatDTO":
+        raw_det = data.get("Detalle", "[]")
+        try:
+            det_list = json.loads(raw_det)
+        except json.JSONDecodeError:
+            det_list = []
+        details = [CetDetailDTO.from_dict(d) for d in det_list]
+
+        return cls(
+            Header_Cia            = data.get("Header_Cia", ""),
+            Header_Nit_Cia       = data.get("Header_Nit_Cia", ""),
+            Header_Dir_Cia      = data.get("Header_Dir_Cia", ""),
+            Header_Doc          = data.get("Header_Doc", ""),
+            Header_Nro_Doc      = data.get("Header_Nro_Doc", ""),
+            Header_Fecha_Act        = data.get("Header_Fecha_Act", ""),
+            Header_Prov         = data.get("Header_Prov", ""),
+            Header_Dir_Prov     = data.get("Header_Dir_Prov", ""),
+            Header_Tel_Prov     = data.get("Header_Tel_Prov", ""),
+            Header_Nit_Prov     = data.get("Header_Nit_Prov", ""),
+            Header_Ciudad       = data.get("Header_Ciudad", ""),
+            Header_Fecha_Doc        = data.get("Header_Fecha_Doc", ""),
+            Header_Docto_Referencia     = data.get("Header_Docto_Referencia", ""),
+            Header_Cuenta       = data.get("Header_Cuenta", ""),
+            Header_Cuenta_Bancaria      = data.get("Header_Cuenta_Bancaria", ""),
+            Header_Valor_Consignacion      = float(data.get("Header_Valor_Consignacion", 0)),
+            Header_Banco        = data.get("Header_Banco", ""),
+            Footer_SumaIgualCR     = float(data.get("Footer_SumaIgualCR", 0)),
+            Footer_SumaIgualDB      = float(data.get("Footer_SumaIgualDB", 0)),
+            Detalle               = details,
+        )
