@@ -20,7 +20,7 @@ const getSafeReturnPath = (loc) => {
   const from = loc?.state?.from?.pathname;
   // evita volver a /login o vacío
   if (!from || from === "/login" || from.startsWith("/login")) {
-    return "/inicio"; // <-- tu dashboard
+    return "/inicio"; 
   }
   return from;
 };
@@ -92,6 +92,8 @@ export default function KycFormPage() {
   const [status, setStatus] = useState(null);
   const [creatingSubmission, setCreatingSubmission] = useState(false);
   const [ensureError, setEnsureError] = useState("");
+  const docsRef = useRef(null);
+  const [docsEnsureStarted, setDocsEnsureStarted] = useState(false); 
 
   const [errors, setErrors] = useState({});
 
@@ -183,8 +185,12 @@ export default function KycFormPage() {
     const headers = { ...(options.headers || {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) };
     const res = await fetch(url, { ...options, headers });
     let data = null;
-    try { data = await res.json(); } catch { data = null; }
-    if (!res.ok) throw new Error(data?.detail || `HTTP ${res.status}`);
+   try { data = await res.json(); } catch { data = null; }
+   if (!res.ok) {
+     // mensaje más explícito
+     const msg = (data && (data.detail || JSON.stringify(data))) || `HTTP ${res.status}`;
+     throw new Error(msg);
+   }
     return data ?? [];
   };
 
@@ -322,9 +328,8 @@ export default function KycFormPage() {
 
   const tryCreateSubmission = useCallback(async () => {
     const attempts = [
-      { url: "/api/kyc/submissions/", method: "POST", body: {} },
-      { url: "/api/kyc/submissions/start/", method: "POST", body: {} },
-      { url: "/api/kyc/submissions/ensure-current/", method: "POST", body: {} },
+   { url: "/api/kyc/submissions/ensure-current/", method: "POST", body: {} }, 
+   { url: "/api/kyc/submissions/", method: "POST", body: {} },                 
     ];
     let lastErr = null;
     for (const a of attempts) {
@@ -349,8 +354,12 @@ export default function KycFormPage() {
       const st = await fetchStatus();
       if (st?.current_submission_id) return;
       const ok = await tryCreateSubmission();
-      if (ok) await fetchStatus();
-    } finally { setCreatingSubmission(false); }
+      await fetchStatus();
+    } catch(e){ 
+        console.error("ensureSubmission error:", e);
+     setEnsureError(e?.message || "No se pudo preparar el espacio.");
+    }
+        finally { setCreatingSubmission(false); }
   }, [creatingSubmission, fetchStatus, tryCreateSubmission]);
 
   // ---------- prefill + catálogos ----------
@@ -363,11 +372,6 @@ export default function KycFormPage() {
         if (!kycStatus?.must_fill) {
         navigate(getSafeReturnPath(location), { replace: true });
         return;
-        }
-
-
-        if (!kycStatus.current_submission_id) {
-          await ensureSubmission();
         }
 
         await loadIdTypes();
@@ -444,11 +448,64 @@ export default function KycFormPage() {
             acepta_tratamiento_datos: !!sub.acepta_tratamiento_datos,
           }));
         }
-      } catch (err) { setError(err.message); }
+      } catch (err) { setError(err.message);
+   try { await fetchStatus(); } catch {} }
       finally { setInitialCheck(false); setLoading(false); }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Lazy-ensure: crea el submission automáticamente cuando la sección Documentos entra en viewport
+  useEffect(() => {
+    if (!docsRef.current) return;
+    if (docsEnsureStarted) return;                    
+    if (status?.current_submission_id) return;        
+    if (creatingSubmission) return;                   
+
+    const el = docsRef.current;
+    const obs = new IntersectionObserver(
+      async (entries) => {
+        const entry = entries[0];
+        if (entry?.isIntersecting && !docsEnsureStarted) {
+          setDocsEnsureStarted(true);
+          try {
+            await ensureSubmission(); // crea borrador current
+          } catch (e) {
+            // dejemos el ensureError que ya setea ensureSubmission si falla
+          } finally {
+            // una vez lo disparamos, ya no necesitamos seguir observando
+            obs.disconnect();
+          }
+        }
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0,
+      }
+    );
+    obs.observe(el);
+const rect = el.getBoundingClientRect();
+   const alreadyVisible = rect.top < window.innerHeight && rect.bottom >= 0;
+   if (alreadyVisible && !docsEnsureStarted) {
+     setDocsEnsureStarted(true);
+     ensureSubmission().finally(() => obs.disconnect());
+   }
+    return () => obs.disconnect();
+  }, [status?.current_submission_id, creatingSubmission, docsEnsureStarted, ensureSubmission]);
+
+  useEffect(() => {
+  if (status?.current_submission_id) return;
+  if (creatingSubmission) return;
+  if (docsEnsureStarted) return; // ya se intentó
+  const t = setTimeout(() => {
+    // intento de seguridad
+    setDocsEnsureStarted(true);
+    ensureSubmission();
+  }, 3000);
+  return () => clearTimeout(t);
+}, [status?.current_submission_id, creatingSubmission, docsEnsureStarted, ensureSubmission]);
+
 
   // ---------- docs requeridos ----------
   const submissionId = status?.current_submission_id || null;
@@ -461,6 +518,7 @@ export default function KycFormPage() {
 
     if (!submissionId) {
       setError("Aún estamos creando el espacio de documentos. Intenta de nuevo en unos segundos.");
+      document.getElementById("docs-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
     if (!canContinue) {
@@ -490,8 +548,8 @@ export default function KycFormPage() {
         otros_nombres: form.otros_nombres?.trim(),
         primer_apellido: form.primer_apellido?.trim(),
         segundo_apellido: form.segundo_apellido?.trim(),
-        nombres: nombresComp || null,
-        apellidos: apellidosComp || null,
+        //nombres: nombresComp || null,
+        //apellidos: apellidosComp || null,
         direccion_fiscal: form.direccion_fiscal?.trim(),
         country_id: form.country_id,
         region_id: form.region_id,
@@ -551,11 +609,12 @@ export default function KycFormPage() {
         acepta_tratamiento_datos: isTrue(form.acepta_tratamiento_datos),
       };
 
-      await authFetch("/api/kyc/submissions/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+     await authFetch(`/api/kyc/submissions/${submissionId}/`, {
+       method: "PATCH",
+       headers: { "Content-Type": "application/json" },
+       // finalizamos en este mismo paso
+       body: JSON.stringify({ ...payload, finalize: true }),
+     });
 
       const from = location.state?.from?.pathname || "/inicio";
       navigate(getSafeReturnPath(location), { replace: true });
@@ -1072,53 +1131,44 @@ export default function KycFormPage() {
               {errors.acepta_tratamiento_datos && <p className="mt-1 text-xs text-red-500">{errors.acepta_tratamiento_datos}</p>}
             </section>
 
-            {/* ====== DOCUMENTOS ====== */}
-            <section>
-              <h3 className="text-sm font-semibold mb-3 opacity-80">Documentos para Vinculación</h3>
+             {/* ====== DOCUMENTOS ====== */}
+             <section id="docs-section" ref={docsRef}>
+               <h3 className="text-sm font-semibold mb-3 opacity-80">Documentos para Vinculación</h3>
 
-              {creatingSubmission && (
-                <p className={`text-xs mb-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                  Creando espacio para documentos…
-                </p>
-              )}
-
-              {!submissionId ? (
-                <div className="space-y-2">
-                  <p className={`text-xs ${isDark ? "text-yellow-300" : "text-yellow-700"}`}>
-                    Preparando el espacio para cargar documentos…
-                  </p>
-                  {ensureError && (
-                    <p className={`text-xs ${isDark ? "text-red-400" : "text-red-600"}`}>
-                      {ensureError}
-                    </p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={ensureSubmission}
-                    disabled={creatingSubmission}
-                    className={`px-3 py-2 rounded text-xs ${isDark ? "bg-zinc-800 hover:bg-zinc-700 text-white" : "bg-gray-900 hover:bg-black text-white"}`}
-                  >
-                    {creatingSubmission ? "Creando…" : "Crear espacio de documentos"}
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <KycDocumentsUploader
-                    token={token}
-                    submissionId={submissionId}
-                    isDark={isDark}
-                    requiredCodes={status?.required_doc_types || []}
-                    missingCodes={status?.missing_required_docs || []}
-                    onUploaded={fetchStatus}
-                  />
-                  {(status?.missing_required_docs?.length || 0) > 0 && (
-                    <p className={`text-xs mt-2 ${isDark ? "text-red-400" : "text-red-600"}`}>
-                      Debes subir todos los documentos obligatorios antes de continuar.
-                    </p>
-                  )}
-                </>
-              )}
-            </section>
+               {!submissionId ? (
+                 <div className="space-y-2">
+                   <p className={`text-xs ${isDark ? "text-yellow-300" : "text-yellow-700"}`}>
+                     Preparando el espacio para cargar documentos…
+                   </p>
+                   {creatingSubmission && (
+                     <p className={`text-xs ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                       Creando espacio…
+                     </p>
+                   )}
+                   {ensureError && (
+                     <p className={`text-xs ${isDark ? "text-red-400" : "text-red-600"}`}>
+                       {ensureError}
+                     </p>
+                   )}
+                 </div>
+               ) : (
+                 <>
+                   <KycDocumentsUploader
+                     token={token}
+                     submissionId={submissionId}
+                     isDark={isDark}
+                     requiredCodes={status?.required_doc_types || []}
+                     missingCodes={status?.missing_required_docs || []}
+                     onUploaded={fetchStatus}
+                   />
+                   {(status?.missing_required_docs?.length || 0) > 0 && (
+                     <p className={`text-xs mt-2 ${isDark ? "text-red-400" : "text-red-600"}`}>
+                       Debes subir todos los documentos obligatorios antes de continuar.
+                     </p>
+                   )}
+                 </>
+               )}
+             </section>
 
             {/* Errores globales */}
             {error && <p className="text-sm text-red-500">{error}</p>}

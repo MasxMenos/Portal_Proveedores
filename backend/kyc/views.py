@@ -24,6 +24,11 @@ from .serializers import (
     KycDocumentTypeSerializer, KycDocumentSerializer, KycFormSubmissionSerializer
 )
 from .services import create_new_submission
+try:
+    from dateutil.relativedelta import relativedelta
+    HAS_RELATIVEDELTA = True
+except ImportError:
+    HAS_RELATIVEDELTA = False
 
 
 # ========== Permisos ==========
@@ -105,7 +110,8 @@ class IdTypesView(APIView):
 # ========== KYC Core ==========
 class KycFormSubmissionViewSet(viewsets.GenericViewSet,
                                mixins.RetrieveModelMixin,
-                               mixins.CreateModelMixin):
+                               mixins.CreateModelMixin,
+                               mixins.UpdateModelMixin):
     """
     - POST /api/kyc/submissions/                       -> crear nueva versión (current)
     - GET  /api/kyc/submissions/{id}/                  -> recuperar detalle
@@ -117,6 +123,24 @@ class KycFormSubmissionViewSet(viewsets.GenericViewSet,
     authentication_classes = [PrvUsuarioJWTAuthentication]
     permission_classes = [IsAuthenticatedSimple]
 
+    @action(detail=False, methods=["post"], url_path="ensure-current")
+    def ensure_current(self, request):
+        user = request.user
+        current = (
+            KycFormSubmission.objects
+            .filter(user=user, is_current=True)
+            .order_by("-version")
+            .first()
+        )
+        if current:
+            return Response(self.get_serializer(current).data, status=200)
+
+        # crea borrador vacío (sin completed_at)
+        sub = create_new_submission(user, {})
+        from django.utils.timezone import now
+        print(f"[{now()}] ensure_current -> created submission #{sub.id} for user {user.id}")
+        return Response(self.get_serializer(sub).data, status=201)
+    
     def get_queryset(self):
         return KycFormSubmission.objects.filter(user_id=self.request.user.id)
 
@@ -161,6 +185,7 @@ class KycFormSubmissionViewSet(viewsets.GenericViewSet,
         payload = {
             "must_fill": bool(must_fill),
             "last_completed": getattr(user, "form_last_completed", None),
+            "nit_dv":  getattr(user, "nit_dv", None),
             "next_due": due_date,
             "current_submission_id": current.id if current else None,
             "missing_required_docs": missing,
@@ -202,39 +227,14 @@ class KycFormSubmissionViewSet(viewsets.GenericViewSet,
 
         # 1) obtener/crear submission actual
         submission_id = request.data.get("submission_id")
-        with transaction.atomic():
-            if submission_id:
-                try:
-                    current = KycFormSubmission.objects.select_for_update().get(
-                        id=int(submission_id), user=user
-                    )
-                except KycFormSubmission.DoesNotExist:
-                    return Response({"detail": "Submission no encontrada."}, status=404)
-            else:
-                current = (
-                    KycFormSubmission.objects.select_for_update()
-                    .filter(user=user, is_current=True)
-                    .order_by("-version")
-                    .first()
-                )
-                if not current:
-                    last_ver = (KycFormSubmission.objects
-                                .filter(user=user)
-                                .aggregate_max('version') or 0)
-                    # aggregate_max helper no existe: reemplazamos:
-                    last_ver = (KycFormSubmission.objects.filter(user=user)
-                                .order_by('-version').values_list('version', flat=True).first() or 0)
-
-                    current = KycFormSubmission.objects.create(
-                        user=user,
-                        version=last_ver + 1,
-                        is_current=True,
-                        created_at=now(),
-                        completed_at=None,
-                    )
-                    # if not getattr(user, "require_form", False):
-                    #     user.require_form = True
-                    #     user.save(update_fields=["require_form"])
+        if not submission_id:
+            return Response({"detail": "submission_id es requerido."}, status=400)
+        try:
+            current = KycFormSubmission.objects.get(
+                id=int(submission_id), user=user
+            )
+        except KycFormSubmission.DoesNotExist:
+            return Response({"detail": "Submission no encontrada."}, status=404)
 
         # 2) resolver tipo por id o code
         try:
@@ -303,3 +303,66 @@ class KycFormSubmissionViewSet(viewsets.GenericViewSet,
             "doc_date": doc.doc_date,
             "expires_at": doc.expires_at,
         }, status=201)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()  # ya viene filtrado por el user
+        finalize = str(request.data.get("finalize", "")).lower() in ("1", "true", "yes")
+
+        # Validamos/parcheamos el submission
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        # --- Sincronizar datos del usuario SI vinieron en el PATCH ---
+        user = request.user
+        user_update_fields = []
+
+        # 1) Correo (solo si vino y no es vacío)
+        correo = serializer.validated_data.get("correo", None)
+        if correo:
+            user.correo = correo.strip().upper()
+            user_update_fields.append("correo")
+
+        # 2) (Opcional) nit_dv: solo si vino (puede ser "0")
+        if "nit_dv" in serializer.validated_data:
+            user.nit_dv = serializer.validated_data.get("nit_dv")
+            user_update_fields.append("nit_dv")
+
+        # Guardar cambios a users si hubo algo que actualizar
+        if user_update_fields:
+            user.save(update_fields=user_update_fields)
+
+        if finalize:
+            # Validar documentos obligatorios
+            required_codes = set(
+                KycDocumentType.objects.filter(obligatorio=True).values_list("code", flat=True)
+            )
+            have_codes = set(
+                KycDocument.objects.filter(submission=instance, is_valid=True)
+                .select_related("tipo").values_list("tipo__code", flat=True)
+            )
+            missing = sorted(list(required_codes - have_codes))
+            if missing:
+                return Response(
+                    {"detail": "Faltan documentos obligatorios.", "missing_required_docs": missing},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Marcar completado en el submission
+            instance.completed_at = now()
+            instance.save(update_fields=["completed_at"])
+
+            # Actualizar fechas en users
+            user.form_last_completed = now().date()
+            user.form_next_due = (now() + timedelta(days=180)).date()
+
+            # Si además en este PATCH vino correo/nit_dv, agrégalos al mismo save
+            extra = []
+            if "correo" in user_update_fields and "correo" not in extra:
+                extra.append("correo")
+            if "nit_dv" in user_update_fields and "nit_dv" not in extra:
+                extra.append("nit_dv")
+
+            user.save(update_fields=["form_last_completed", "form_next_due", *extra])
+
+        return Response(self.get_serializer(instance).data, status=status.HTTP_200_OK)
