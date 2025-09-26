@@ -13,7 +13,7 @@ class PrvUsuario(models.Model):
     fecha_modificacion = models.DateTimeField()
     descripcion        = models.CharField(max_length=255, blank=True, null=True)
     correo             = models.CharField(max_length=255, blank=True, null=True)
-    nit_base           = models.CharField(max_length=20, blank=True, null=True, unique=True)
+    # nit_base           = models.CharField(max_length=20, blank=True, null=True, unique=True)
     nit_dv             = models.SmallIntegerField(blank=True, null=True)
     tipo_doc           = models.CharField(max_length=2, default='31')
     form_last_completed = models.DateField(blank=True, null=True)

@@ -1,12 +1,13 @@
 import os
 import requests
-
+from datetime import datetime, date
 class ConektaClient:
-    BASE_URL = "https://serviciosconnekta.siesacloud.com/api/v3/ejecutarconsulta"
+    BASE_URL = "https://serviciosconnekta.siesacloud.com/api/version/ejecutarconsulta"
     COMPANY_ID = 7929
 
-    def __init__(self):
+    def __init__(self, version:str='v3'):
         self.session = requests.Session()
+        self.BASE_URL=self.BASE_URL.replace("version", version)
         self.session.headers.update({
             "conniKey":   "Connikey-maspormenos-WTHTNKQX", #os.getenv("CONN_KEY"),
             "conniToken":  "WTHTNKQXTZVWN081TDNSNLK4UZZIMLG4QJBAOEIWSJNONEEWUZZPNA", #os.getenv("CONN_TOKEN"),
@@ -21,6 +22,8 @@ class ConektaClient:
         except requests.exceptions.Timeout:
             raise Exception("El servicio externo tardó demasiado. Intente más tarde.")
         except requests.exceptions.RequestException as e:
+            if resp.json().get("detalle"):
+                return resp.json()
             raise Exception(f"Ocurrió un error al consultar el servicio externo: {str(e)}")
 
     def get_invoices_documents(self, tipo_docto: str, nit: str) -> dict:
@@ -111,5 +114,21 @@ class ConektaClient:
             "idCompania": self.COMPANY_ID,
             "descripcion": "get_dpc_format",
             "parametros": f"CO={co}|ConsecDocto={csc}|TipoDocto=DPC",
+        }
+        return self._safe_get(params)
+    
+    def get_service_level(self, nitProveedor: str, fechaInicial: str = None, fechaFinal:str= None) -> dict:
+        anio_actual = date.today().year
+
+        if fechaInicial is None:
+            fechaInicial = date(anio_actual, 1, 1).isoformat().replace('-','')
+
+        if fechaFinal is None:
+            fechaFinal = date(anio_actual, 12, 31).isoformat().replace('-','')
+
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "LOGIX_CUMPLIMIENTO_PROVEEDOR",
+            "parametros": f"numPagina=1|numRegistros=9999|nitProveedor={nitProveedor}|fechaInicial={fechaInicial}|fechaFinal={fechaFinal}"
         }
         return self._safe_get(params)

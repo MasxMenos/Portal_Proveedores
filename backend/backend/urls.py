@@ -23,6 +23,7 @@ urlpatterns = [
     path("api/returns/", include("returns.urls")),
     path("api/users/", include("users.urls")),
     path("api/kyc/", include("kyc.urls")),
+    path("api/homepage/", include("homepage.urls")),
 ]
 
 # Endpoint /api/documentos/<code>/ SOLO si la app existe

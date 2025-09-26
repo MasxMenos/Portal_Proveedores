@@ -29,6 +29,8 @@ export default function InicioPage() {
 
   // Estado descripción de usuario
   const [descripcion, setDescripcion] = useState("");
+  const [nit, setNit] = useState("");
+  const [serviceLevel, setServiceLevel] = useState("");
   const token = localStorage.getItem("accessToken")?.trim();
 
   useEffect(() => {
@@ -43,12 +45,40 @@ export default function InicioPage() {
         if (res.ok) {
           const data = await res.json();
           setDescripcion(data.descripcion || "");
+          setNit(data.usuario||"");
         }
       } catch {
         // silencio en falla
       }
     })();
   }, [token]);
+  useEffect(() => {
+      if (!nit) return; // evita llamar si aún no está cargado
+
+      (async () => {
+        try {
+          const url = new URL("/api/homepage/service_level", window.location.origin);
+          url.searchParams.set("nitProveedor", nit);
+
+          const res = await fetch(url.toString(), {
+            method: "GET"
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            console.log("service level data:", data);
+            if (data.length > 0){
+              setServiceLevel(`${data[0].f420_cumplimiento}%`);
+            }else{
+              setServiceLevel("No aplica.");
+            }
+          }
+        } catch (error) {
+          consele.log("Error trayendo service level",error);
+        }
+      })();
+    }, [nit, token]); 
+
 
   // Sidebar
   const [activePage, setActivePage] = useState(t("sidebar.home"));
@@ -84,6 +114,20 @@ export default function InicioPage() {
         )}
 
         <div id="inicio-metricas" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          
+
+          <div key="servicio" className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
+            <span className="text-lg text-gray-400 capitalize">
+              {t(`homepage.metrics.servicio`)}
+            </span>
+            {!serviceLevel && (
+            <span className="text-4xl font-semibold mt-1">Cargando...</span>
+            )}
+            {serviceLevel && (
+            <span className="text-4xl font-semibold mt-1">{serviceLevel }</span>
+            )}
+          </div>
+          
           {Object.entries(metrics).map(([key, value]) => (
             <div key={key} className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
               <span className="text-lg text-gray-400 capitalize">

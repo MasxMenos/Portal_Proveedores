@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'certificates',
     "channels",
     "channels_redis",   #  solo si usas Redis como layer
+    "homepage", 
 
 ]
 
