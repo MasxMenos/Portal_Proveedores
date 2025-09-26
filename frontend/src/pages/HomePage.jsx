@@ -31,8 +31,9 @@ export default function InicioPage() {
   const [descripcion, setDescripcion] = useState("");
   const [nit, setNit] = useState("");
   const [serviceLevel, setServiceLevel] = useState("");
+  const [totalSales, setTotalSales] = useState("");
   const token = localStorage.getItem("accessToken")?.trim();
-
+  const formatCurrency = (n) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n);
   useEffect(() => {
     // traer perfil
     (async () => {
@@ -66,7 +67,7 @@ export default function InicioPage() {
 
           if (res.ok) {
             const data = await res.json();
-            console.log("service level data:", data);
+            console.log(data);
             if (data.length > 0){
               setServiceLevel(`${data[0].f420_cumplimiento}%`);
             }else{
@@ -78,6 +79,33 @@ export default function InicioPage() {
         }
       })();
     }, [nit, token]); 
+  
+  useEffect(() => {
+      if (!nit) return; // evita llamar si aún no está cargado
+
+      (async () => {
+        try {
+          const url = new URL("/api/homepage/total_sales", window.location.origin);
+          url.searchParams.set("nit", nit);
+
+          const res = await fetch(url.toString(), {
+            method: "GET"
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.length > 0){
+              setTotalSales(`${formatCurrency(data[0].ventas)}`);
+            }else{
+              setTotalSales("No aplica.");
+            }
+          }
+        } catch (error) {
+          consele.log("Error trayendo total sales",error);
+        }
+      })();
+    }, [nit, token]); 
+  
 
 
   // Sidebar
@@ -125,6 +153,17 @@ export default function InicioPage() {
             )}
             {serviceLevel && (
             <span className="text-4xl font-semibold mt-1">{serviceLevel }</span>
+            )}
+          </div>
+          <div key="ventas" className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
+            <span className="text-lg text-gray-400 capitalize">
+              {t(`homepage.metrics.ventas`)}
+            </span>
+            {!totalSales && (
+            <span className="text-4xl font-semibold mt-1">Cargando...</span>
+            )}
+            {totalSales && (
+            <span className="text-4xl font-semibold mt-1">{totalSales}</span>
             )}
           </div>
           

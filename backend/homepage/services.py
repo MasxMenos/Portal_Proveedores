@@ -1,25 +1,31 @@
 # invoices/services.py
-from .clients import ServiceLevelClient
-from .dtos    import ServiceLevelDTO
+from .clients import HomePageClient
+from .dtos    import ServiceLevelDTO,TotalSalesDTO
 from datetime import datetime
 from typing import List
 
-def get_service_client(
+def get_records(raw: dict) -> List[dict]:
+    records = []
+    if isinstance(raw, dict):
+        detalle = raw.get("detalle") or raw.get("Detalle") 
+        print(detalle)  
+        if isinstance(detalle, dict):
+            records = detalle.get("Table",[])
+        elif isinstance(detalle, str):
+            records = []
+        else:
+            records = detalle  
+    return records
+
+def get_service_level(
     nitProveedor: str,
     fechaInicial: str = None,
     fechaFinal:  str = None,
 ) -> List[ServiceLevelDTO]:
-    client = ServiceLevelClient()
+    client = HomePageClient(version='v4')
     raw    = client.fetch_service_level(nitProveedor, fechaInicial, fechaFinal)
     # Extraemos la lista correcta:
-    records = []
-    if isinstance(raw, dict):
-        detalle = raw.get("detalle") or raw.get("Detalle") 
-        if isinstance(detalle, dict):
-            records = detalle.get("Table",[])
-        else:
-            records = []  
-            
+    records = get_records(raw)
 
     results: List[ServiceLevelDTO] = []
     for item in records:
@@ -27,6 +33,24 @@ def get_service_client(
             f420_id_proveedor         = item["f420_id_proveedor"],
             f420_proveedor        = item["f420_proveedor"],
             f420_cumplimiento             = float(item["f420_cumplimiento"]),
+        )
+        results.append(dto)
+
+    return results
+
+def get_total_sales(
+    nit: str,
+    fechaIni: str = None,
+    fechaFin:  str = None,
+) -> List[TotalSalesDTO]:
+    client = HomePageClient()
+    raw    = client.fetch_total_sales(nit, fechaIni, fechaFin)
+    records = get_records(raw)
+
+    results: List[TotalSalesDTO] = []
+    for item in records:
+        dto = TotalSalesDTO(
+            ventas         = item["Ventas"],
         )
         results.append(dto)
 

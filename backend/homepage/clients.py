@@ -1,9 +1,12 @@
 # invoices/clients.py
 from integrations.conekta_client import ConektaClient
 
-class ServiceLevelClient:
-    def __init__(self):
-        self._client = ConektaClient(version='v4')
+class HomePageClient:
+    def __init__(self, version='v3'):
+        self._client = ConektaClient(version=version)
 
     def fetch_service_level(self, nitProveedor: str, fechaInicial: str = None, fechaFinal:str= None) -> dict:
         return self._client.get_service_level(nitProveedor, fechaInicial, fechaFinal)
+
+    def fetch_total_sales(self, nit: str, fechaIni: str = None, fechaFin:str= None) -> dict:
+        return self._client.get_total_sales(nit, fechaIni, fechaFin)

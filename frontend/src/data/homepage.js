@@ -1,6 +1,6 @@
   export const metrics = {
     // servicio: "1250",
-    ventas: "$152.345",
+    // ventas: "$152.345",
     productos: "1250",
     crecimiento: "25%",
   };
