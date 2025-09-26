@@ -19,7 +19,7 @@ import {
 } from "recharts";
 
 import {totalSalesData, topProductsData, contacts } from "../data/homepage";
-import { initialMetrics, fetchAllMetrics } from"../data/homepage/metrics"; 
+import { initialMetrics, fetchAllMetrics, getGrowth } from"../data/homepage/metrics"; 
 import { fetchTotalSalesSeries } from"../data/homepage/total_sales_months"; 
 import { useTheme } from "../components/ThemeContext";
 
@@ -35,6 +35,8 @@ export default function InicioPage() {
   const token = localStorage.getItem("accessToken")?.trim();
   const [metrics, setMetrics] = useState(initialMetrics)
   const [totalSalesData, setTotalSalesMonths] = useState('')
+  const [growth, setGrowth] = useState('Cargando...')
+
   // const formatCurrency = (n) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n);
   // const formatNumber = (n) => new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(n);
   useEffect(() => {
@@ -64,7 +66,7 @@ export default function InicioPage() {
 
       (async () => {
         try {
-          const loaded = await fetchAllMetrics({ nit});
+          const loaded = await fetchAllMetrics({nit});
           if (!cancelled) setMetrics(loaded);
         } catch (e) {
           console.error("Error cargando métricas:", e);
@@ -89,6 +91,23 @@ export default function InicioPage() {
 
       return () => { cancelled = true; };
     }, [nit]);
+
+    useEffect(() => {
+      if (!totalSalesData) return;
+
+      let cancelled = false;
+
+      (() => {
+        try {
+          const loaded = getGrowth(totalSalesData);
+          if (!cancelled) setGrowth(loaded);
+        } catch (e) {
+          console.error("Error cargando crecimiento:", e);
+        }
+      })();
+
+      return () => { cancelled = true; };
+    }, [totalSalesData]);
 
   // Sidebar
   const [activePage, setActivePage] = useState(t("sidebar.home"));
@@ -133,6 +152,14 @@ export default function InicioPage() {
               <span className="text-4xl font-semibold mt-1">{value}</span>
             </div>
           ))}
+          {growth &&
+            <div key="growth" className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
+              <span className="text-lg text-gray-400 capitalize">
+                Tasa de Crecimiento
+              </span>
+              <span className="text-4xl font-semibold mt-1">{growth}</span>
+            </div>
+          }
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">

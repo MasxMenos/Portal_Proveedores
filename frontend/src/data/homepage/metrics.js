@@ -8,7 +8,6 @@ export const initialMetrics = {
   servicio: "Cargando...",
   ventas: "Cargando...",
   productos: "Cargando...",
-  crecimiento: "Cargando...",
 };
 
 const CONFIG_METRICS = {
@@ -35,15 +34,7 @@ const CONFIG_METRICS = {
       Array.isArray(data) && data.length > 0
         ? `${formatNumber(data[0].quantity)}`
         : "No aplica.",
-  },
-  // crecimiento: {
-  //   path: "/api/homepage/total_sales_products",
-  //   param: "nit",
-  //   map: (data) =>
-  //     Array.isArray(data) && data.length > 0
-  //       ? `${formatNumber(data[0].quantity)}`
-  //       : "No aplica.",
-  // },
+  }
 };
 
 export async function fetchAllMetrics({ nit, token, origin = window.location.origin }) {
@@ -61,7 +52,6 @@ export async function fetchAllMetrics({ nit, token, origin = window.location.ori
 
         const res = await fetch(url.toString(), {
           method: "GET",
-          // headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
 
         if (!res.ok) {
@@ -79,4 +69,17 @@ export async function fetchAllMetrics({ nit, token, origin = window.location.ori
   );
 
   return Object.fromEntries(results);
+}
+
+
+export function getGrowth(data) {
+    let finallyGrowth = 0
+    data.map((item, index, arr) => {
+        if (index != 0) {
+            const prev = arr[index - 1].value;
+            const growth = ((item.value / prev) - 1) * 100;
+            finallyGrowth += Number.parseFloat(growth.toFixed(2));
+        }  
+    });
+    return finallyGrowth.toFixed(2) + '%';
 }

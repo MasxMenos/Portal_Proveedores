@@ -55,10 +55,12 @@ def get_total_sales(
     return results
 
 def get_total_sales_products(
-    nit: str
+    nit: str,
+    fechaIni: str = None,
+    fechaFin:  str = None,
 ) -> List[TotalSalesProductsDTO]:
     client = HomePageClient()
-    raw    = client.fetch_total_sales_products(nit)
+    raw    = client.fetch_total_sales_products(nit, fechaIni, fechaFin)
     records = get_records(raw)
 
     results: List[TotalSalesProductsDTO] = []

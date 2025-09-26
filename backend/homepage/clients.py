@@ -11,8 +11,8 @@ class HomePageClient:
     def fetch_total_sales(self, nit: str, fechaIni: str = None, fechaFin:str= None) -> dict:
         return self._client.get_total_sales(nit, fechaIni, fechaFin)
     
-    def fetch_total_sales_products(self, nit: str) -> dict:
-        return self._client.get_total_sales_products(nit)
+    def fetch_total_sales_products(self, nit: str, fechaIni: str = None, fechaFin:str= None) -> dict:
+        return self._client.get_total_sales_products(nit,fechaIni,fechaFin)
     
     
     

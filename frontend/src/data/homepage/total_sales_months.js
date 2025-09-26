@@ -35,7 +35,6 @@ export function mapSalesSeries(apiData, { withYear = false } = {}) {
     month: formatMonthLabel(date, { withYear }),
     value,
   }))
-  console.log(data_final)
   return data_final;
 }
 

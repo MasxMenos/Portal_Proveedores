@@ -58,6 +58,8 @@ class TotalSalesProductsView(APIView):
 
     def get(self, request):
         nit = request.query_params.get("nit", None)
+        fechaIni        = request.query_params.get("fechaIni", None)
+        fechaFin  = request.query_params.get("fechaFin", None)
         if not nit:
             return Response(
                 {"detail": "Debe enviar nit proveedor"},
@@ -66,6 +68,8 @@ class TotalSalesProductsView(APIView):
 
         dtos = get_total_sales_products(
             nit = nit,
+            fechaIni = fechaIni,
+            fechaFin = fechaFin,
         )
 
         serializer = TotalSalesProductSerializer(dtos, many=True)
