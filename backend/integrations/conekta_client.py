@@ -148,3 +148,12 @@ class ConektaClient:
             "parametros": f"NIT={nit}|FechaIni={fechaIni}|FechaFin={fechaFin}"
         }
         return self._safe_get(params)
+    
+    def get_total_sales_products(self, nit: str) -> dict:
+
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "GET_TOTAL_SALES_PRODUCTS",
+            "parametros": f"NIT={nit}"
+        }
+        return self._safe_get(params)

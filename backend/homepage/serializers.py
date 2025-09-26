@@ -9,3 +9,6 @@ class ServiceLevelSerializer(serializers.Serializer):
 
 class TotalSalesSerializer(serializers.Serializer):
     ventas = serializers.CharField()
+
+class TotalSalesProductSerializer(serializers.Serializer):
+    quantity = serializers.CharField()

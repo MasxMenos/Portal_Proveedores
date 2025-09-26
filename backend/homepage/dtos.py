@@ -22,3 +22,12 @@ class TotalSalesDTO:
         return cls(
             ventas         = data["Ventas"],
         )
+
+@dataclass
+class TotalSalesProductsDTO:
+    quantity: str
+    @classmethod
+    def from_conekta(cls, data: dict) -> "TotalSalesProductsDTO":
+        return cls(
+            quantity         = data["Quantity"],
+        )

@@ -32,8 +32,10 @@ export default function InicioPage() {
   const [nit, setNit] = useState("");
   const [serviceLevel, setServiceLevel] = useState("");
   const [totalSales, setTotalSales] = useState("");
+  const [totalSalesProducts, setTotalSalesProducts] = useState("");
   const token = localStorage.getItem("accessToken")?.trim();
   const formatCurrency = (n) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n);
+  const formatNumber = (n) => new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(n);
   useEffect(() => {
     // traer perfil
     (async () => {
@@ -53,8 +55,8 @@ export default function InicioPage() {
       }
     })();
   }, [token]);
-  useEffect(() => {
-      if (!nit) return; // evita llamar si aún no está cargado
+  useEffect(() => { //service_Level
+      if (!nit) return; 
 
       (async () => {
         try {
@@ -80,8 +82,8 @@ export default function InicioPage() {
       })();
     }, [nit, token]); 
   
-  useEffect(() => {
-      if (!nit) return; // evita llamar si aún no está cargado
+  useEffect(() => { //total_Sales
+      if (!nit) return; 
 
       (async () => {
         try {
@@ -102,6 +104,32 @@ export default function InicioPage() {
           }
         } catch (error) {
           consele.log("Error trayendo total sales",error);
+        }
+      })();
+    }, [nit, token]); 
+
+  useEffect(() => { //total_Sales_Products
+      if (!nit) return; 
+
+      (async () => {
+        try {
+          const url = new URL("/api/homepage/total_sales_products", window.location.origin);
+          url.searchParams.set("nit", nit);
+
+          const res = await fetch(url.toString(), {
+            method: "GET"
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.length > 0){
+              setTotalSalesProducts(`${formatNumber(data[0].quantity)}`);
+            }else{
+              setTotalSalesProducts("No aplica.");
+            }
+          }
+        } catch (error) {
+          consele.log("Error trayendo total sales products",error);
         }
       })();
     }, [nit, token]); 
@@ -164,6 +192,17 @@ export default function InicioPage() {
             )}
             {totalSales && (
             <span className="text-4xl font-semibold mt-1">{totalSales}</span>
+            )}
+          </div>
+          <div key="productos" className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
+            <span className="text-lg text-gray-400 capitalize">
+              {t(`homepage.metrics.productos`)}
+            </span>
+            {!totalSalesProducts && (
+            <span className="text-4xl font-semibold mt-1">Cargando...</span>
+            )}
+            {totalSalesProducts && (
+            <span className="text-4xl font-semibold mt-1">{totalSalesProducts}</span>
             )}
           </div>
           

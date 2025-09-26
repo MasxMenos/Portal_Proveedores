@@ -1,7 +1,6 @@
 # invoices/services.py
 from .clients import HomePageClient
-from .dtos    import ServiceLevelDTO,TotalSalesDTO
-from datetime import datetime
+from .dtos    import ServiceLevelDTO,TotalSalesDTO, TotalSalesProductsDTO
 from typing import List
 
 def get_records(raw: dict) -> List[dict]:
@@ -51,6 +50,22 @@ def get_total_sales(
     for item in records:
         dto = TotalSalesDTO(
             ventas         = item["Ventas"],
+        )
+        results.append(dto)
+
+    return results
+
+def get_total_sales_products(
+    nit: str
+) -> List[TotalSalesProductsDTO]:
+    client = HomePageClient()
+    raw    = client.fetch_total_sales_products(nit)
+    records = get_records(raw)
+
+    results: List[TotalSalesProductsDTO] = []
+    for item in records:
+        dto = TotalSalesProductsDTO(
+            quantity         = item["Quantity"],
         )
         results.append(dto)
 

@@ -2,8 +2,8 @@
 from rest_framework.views    import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from .services  import get_service_level, get_total_sales
-from .serializers import ServiceLevelSerializer, TotalSalesSerializer
+from .services  import get_service_level, get_total_sales, get_total_sales_products
+from .serializers import ServiceLevelSerializer, TotalSalesSerializer, TotalSalesProductSerializer
 
 
 class ServerLevelView(APIView):
@@ -51,4 +51,22 @@ class TotalSalesView(APIView):
         )
 
         serializer = TotalSalesSerializer(dtos, many=True)
+        return Response(serializer.data)
+
+class TotalSalesProductsView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        nit = request.query_params.get("nit", None)
+        if not nit:
+            return Response(
+                {"detail": "Debe enviar nit proveedor"},
+                status=400
+            )
+
+        dtos = get_total_sales_products(
+            nit = nit,
+        )
+
+        serializer = TotalSalesProductSerializer(dtos, many=True)
         return Response(serializer.data)
