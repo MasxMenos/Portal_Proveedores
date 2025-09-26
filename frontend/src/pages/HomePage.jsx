@@ -18,8 +18,9 @@ import {
   Bar,
 } from "recharts";
 
-import { metrics, totalSalesData, topProductsData, contacts } from "../data/homepage";
-import { initialMetrics, fetchAllMetrics } from"../data/homepage"; // ajusta la ruta
+import {totalSalesData, topProductsData, contacts } from "../data/homepage";
+import { initialMetrics, fetchAllMetrics } from"../data/homepage/metrics"; 
+import { fetchTotalSalesSeries } from"../data/homepage/total_sales_months"; 
 import { useTheme } from "../components/ThemeContext";
 
 export default function InicioPage() {
@@ -31,11 +32,9 @@ export default function InicioPage() {
   // Estado descripción de usuario
   const [descripcion, setDescripcion] = useState("");
   const [nit, setNit] = useState("");
-  const [serviceLevel, setServiceLevel] = useState("");
-  const [totalSales, setTotalSales] = useState("");
-  const [totalSalesProducts, setTotalSalesProducts] = useState("");
   const token = localStorage.getItem("accessToken")?.trim();
   const [metrics, setMetrics] = useState(initialMetrics)
+  const [totalSalesData, setTotalSalesMonths] = useState('')
   // const formatCurrency = (n) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n);
   // const formatNumber = (n) => new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(n);
   useEffect(() => {
@@ -69,6 +68,22 @@ export default function InicioPage() {
           if (!cancelled) setMetrics(loaded);
         } catch (e) {
           console.error("Error cargando métricas:", e);
+        }
+      })();
+
+      return () => { cancelled = true; };
+    }, [nit]);
+  useEffect(() => {
+      if (!nit) return;
+
+      let cancelled = false;
+
+      (async () => {
+        try {
+          const loaded = await fetchTotalSalesSeries({nit});
+          if (!cancelled) setTotalSalesMonths(loaded);
+        } catch (e) {
+          console.error("Error cargando ventas mensuales:", e);
         }
       })();
 
@@ -125,23 +140,30 @@ export default function InicioPage() {
             <h2 className={`${sectionTitleClass} text-base sm:text-lg mb-2`}>
               {t("homepage.totalSales")}
             </h2>
+            {totalSalesData &&
             <div className={`flex-1 rounded-lg p-4 min-h-[16rem] sm:min-h-[20rem] ${cardClass}`}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={totalSalesData}>
-                  <CartesianGrid stroke={isDark ? "#333" : "#ccc"} />
-                  <XAxis dataKey="month" stroke="#888" />
-                  <YAxis stroke="#888" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: isDark ? "#000" : "#fff",
-                      border: "none",
-                      color: isDark ? "#fff" : "#000",
-                    }}
-                  />
-                  <Line type="monotone" dataKey="value" stroke="#36a2eb" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={totalSalesData}>
+                    <CartesianGrid stroke={isDark ? "#333" : "#ccc"} />
+                    <XAxis dataKey="month" stroke="#888" />
+                    <YAxis
+                      dataKey="value"
+                      type="number"
+                      width={70}
+                      stroke="#888"
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: isDark ? "#000" : "#fff",
+                        border: "none",
+                        color: isDark ? "#fff" : "#000",
+                      }}
+                    />
+                    <Line type="monotone" dataKey="value" stroke="#36a2eb" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            } 
           </div>
 
           <div className="flex flex-col" id="inicio-ventas-top">

@@ -157,3 +157,19 @@ class ConektaClient:
             "parametros": f"NIT={nit}"
         }
         return self._safe_get(params)
+    
+    def get_total_sales_months(self, nitProveedor: str, fechaInicial: str = None, fechaFinal:str= None) -> dict:
+        anio_actual = date.today().year
+
+        if fechaInicial is None:
+            fechaInicial = date(anio_actual, 1, 1).isoformat().replace('-','')
+
+        if fechaFinal is None:
+            fechaFinal = date(anio_actual, 12, 31).isoformat().replace('-','')
+
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "GET_SUPPLIER_PAYMENT_HISTORY",
+            "parametros": f"numPagina=1|numRegistros=9999|nitProveedor={nitProveedor}|fechaInicial={fechaInicial}|fechaFinal={fechaFinal}"
+        }
+        return self._safe_get(params)

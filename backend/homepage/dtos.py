@@ -10,8 +10,8 @@ class ServiceLevelDTO:
     def from_conekta(cls, data: dict) -> "ServiceLevelDTO":
         return cls(
             f420_id_proveedor         = data["f420_id_proveedor"],
-            f420_proveedor        = data["f420_id_proveedor"],
-            f420_cumplimiento             = float(data["f420_id_proveedor"]),
+            f420_proveedor        = data["f420_proveedor"],
+            f420_cumplimiento             = float(data["f420_cumplimiento"]),
         )
 
 @dataclass
@@ -31,3 +31,19 @@ class TotalSalesProductsDTO:
         return cls(
             quantity         = data["Quantity"],
         )
+
+@dataclass
+class TotalSalesMonthsDTO:
+    f420_id_proveedor: str
+    f420_proveedor: str
+    month: str
+    value: float
+    @classmethod
+    def from_conekta(cls, data: dict) -> "TotalSalesMonthsDTO":
+        return cls(
+            f420_id_proveedor         = data["f420_id_proveedor"],
+            f420_proveedor        = data["f420_proveedor"],
+            month             = data["month"],
+            value             = float(data["value"]),
+        )
+

@@ -13,3 +13,8 @@ class HomePageClient:
     
     def fetch_total_sales_products(self, nit: str) -> dict:
         return self._client.get_total_sales_products(nit)
+    
+    
+    
+    def fetch_total_sales_months(self, nitProveedor: str, fechaInicial: str = None, fechaFinal:str= None) -> dict:
+        return self._client.get_total_sales_months(nitProveedor, fechaInicial, fechaFinal)

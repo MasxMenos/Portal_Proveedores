@@ -1,13 +1,12 @@
 # invoices/services.py
 from .clients import HomePageClient
-from .dtos    import ServiceLevelDTO,TotalSalesDTO, TotalSalesProductsDTO
+from .dtos    import ServiceLevelDTO,TotalSalesDTO, TotalSalesProductsDTO,TotalSalesMonthsDTO
 from typing import List
 
 def get_records(raw: dict) -> List[dict]:
     records = []
     if isinstance(raw, dict):
         detalle = raw.get("detalle") or raw.get("Detalle") 
-        print(detalle)  
         if isinstance(detalle, dict):
             records = detalle.get("Table",[])
         elif isinstance(detalle, str):
@@ -66,6 +65,29 @@ def get_total_sales_products(
     for item in records:
         dto = TotalSalesProductsDTO(
             quantity         = item["Quantity"],
+        )
+        results.append(dto)
+
+    return results
+
+
+def get_total_sales_months(
+    nitProveedor: str,
+    fechaInicial: str = None,
+    fechaFinal:  str = None,
+) -> List[TotalSalesMonthsDTO]:
+    client = HomePageClient(version='v4')
+    raw    = client.fetch_total_sales_months(nitProveedor, fechaInicial, fechaFinal)
+    # Extraemos la lista correcta:
+    records = get_records(raw)
+
+    results: List[TotalSalesMonthsDTO] = []
+    for item in records:
+        dto = TotalSalesMonthsDTO(
+            f420_id_proveedor         = item["f420_id_proveedor"],
+            f420_proveedor        = item["f420_proveedor"],
+            month             = item["month"],
+            value             = float(item["value"]),
         )
         results.append(dto)
 
