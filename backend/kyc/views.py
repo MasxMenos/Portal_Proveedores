@@ -190,6 +190,8 @@ class KycFormSubmissionViewSet(viewsets.GenericViewSet,
             "current_submission_id": current.id if current else None,
             "missing_required_docs": missing,
             "expired_docs": expired,
+            "required_doc_types": sorted(list(required_codes)),
+            "have_doc_codes": sorted(list(have_codes)),
         }
         return Response(payload)
 
@@ -337,6 +339,9 @@ class KycFormSubmissionViewSet(viewsets.GenericViewSet,
             required_codes = set(
                 KycDocumentType.objects.filter(obligatorio=True).values_list("code", flat=True)
             )
+            if instance.obligado_fe:
+                required_codes.add("AUT_DIAN")  # mismo código que en el FE
+
             have_codes = set(
                 KycDocument.objects.filter(submission=instance, is_valid=True)
                 .select_related("tipo").values_list("tipo__code", flat=True)

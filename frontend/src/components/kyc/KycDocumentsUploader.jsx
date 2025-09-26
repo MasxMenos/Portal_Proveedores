@@ -102,12 +102,25 @@ export default function KycDocumentsUploader({
         const file = files[dt.code] || null;
         const date = dates[dt.code] || "";
         const disableUpload = !file || (needDate && !date) || !!busy;
-        const missing = (missingCodes || []).includes(dt.code);
+        const required = (requiredCodes || []).includes(dt.code);
+        const missing  = (missingCodes || []).includes(dt.code);
 
         return (
           <div key={dt.code} className={`rounded-lg p-3 ${isDark ? "bg-[#0f0f0f] border border-zinc-800" : "bg-gray-50 border border-gray-200"}`}>
             <p className="text-sm font-medium mb-2">
-              {dt.label} {missing && <span className="ml-2 text-xs px-2 py-0.5 rounded bg-red-100 text-red-700">Requerido</span>}
+             {dt.label}
+ {required && (
+   <span
+     className={
+       "ml-2 text-xs px-2 py-0.5 rounded " +
+       (missing
+         ? "bg-red-100 text-red-700"
+         : (isDark ? "bg-green-900/30 text-green-300" : "bg-green-100 text-green-700"))
+     }
+   >
+     Requerido{!missing ? " ✓" : ""}
+   </span>
+ )}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">

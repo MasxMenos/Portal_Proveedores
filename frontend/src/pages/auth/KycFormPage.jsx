@@ -25,7 +25,15 @@ const getSafeReturnPath = (loc) => {
   return from;
 };
 
+
 // ---- helpers dinero ----
+const onlyLetters = (s="") =>
+  s.normalize("NFD")
+   .replace(/[\u0300-\u036f]/g, "")
+   .replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s'-]/g, "");
+
+const DIAN_AUTH_CODE = "AUT_DIAN";
+
 const nf = new Intl.NumberFormat("es-CO");
 const onlyDigits = (s) => (s || "").replace(/[^\d]/g, "");
 const toNumberOrNull = (s) => {
@@ -509,7 +517,48 @@ const rect = el.getBoundingClientRect();
 
   // ---------- docs requeridos ----------
   const submissionId = status?.current_submission_id || null;
-  const canContinue = !!submissionId && (status?.missing_required_docs?.length || 0) === 0 && !creatingSubmission;
+ const baseRequired = Array.isArray(status?.required_doc_types)
+   ? status.required_doc_types
+   : [];
+
+ // Faltantes que ya calcula el backend
+ const serverMissing = Array.isArray(status?.missing_required_docs)
+   ? status.missing_required_docs
+   : [];
+
+ // Códigos ya subidos (fallbacks por si el backend no te da una lista directa)
+const norm = (s) => String(s || "").trim().toUpperCase();
+
+// --- dentro del componente, donde calculas haveCodes:
+const haveCodes = (() => {
+  const byKey = (arr) => Array.isArray(arr) ? arr.map(norm) : [];
+  const fromDocs = Array.isArray(status?.documents)
+    ? status.documents
+        .map(d => norm(d.tipo_code || d.tipo))
+        .filter(Boolean)
+    : [];
+
+  // Soportar todas las variantes que puede devolver el backend
+  const a = byKey(status?.uploaded_doc_codes);
+  const b = byKey(status?.have_doc_codes);
+  const all = [...a, ...b, ...fromDocs];
+
+  // quitar duplicados
+  return Array.from(new Set(all));
+})();
+
+ // Si marcó "obligado a FE", añadimos el DIAN como requerido
+ const conditionalRequired = isTrue(form.obligado_fe) ? [DIAN_AUTH_CODE] : [];
+ const mergedRequired = Array.from(new Set([...baseRequired, ...conditionalRequired]));
+
+ // Faltantes dinámicos: partimos de los del server y agregamos el DIAN si hace falta
+ const needDIAN = isTrue(form.obligado_fe) && !haveCodes.includes(DIAN_AUTH_CODE);
+ const dynamicMissing = needDIAN
+   ? Array.from(new Set([...serverMissing, DIAN_AUTH_CODE]))
+   : serverMissing;
+
+ // Habilitación del botón
+ const canContinue = !!submissionId && dynamicMissing.length === 0 && !creatingSubmission;
 
   // ---------- submit ----------
   const handleSubmit = async (e) => {
@@ -708,16 +757,38 @@ const rect = el.getBoundingClientRect();
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                 <div>
                   <RequiredLabel>Primer nombre</RequiredLabel>
-                  <InputField id="primer_nombre" label="" value={form.primer_nombre} onChange={(e)=>handleChange("primer_nombre",e.target.value)} onBlur={blurValidate("primer_nombre")} />
+                  <InputField
+  id="primer_nombre"
+  label=""
+  value={form.primer_nombre}
+  onChange={(e)=>handleChange("primer_nombre", onlyLetters(e.target.value))}
+  onBlur={blurValidate("primer_nombre")}
+/>
                   {errors.primer_nombre && <p className="mt-1 text-xs text-red-500">{errors.primer_nombre}</p>}
                 </div>
-                <InputField id="otros_nombres" label="Otros nombres (opcional)" value={form.otros_nombres} onChange={(e)=>handleChange("otros_nombres",e.target.value)} />
+                <InputField
+  id="otros_nombres"
+  label="Otros nombres (opcional)"
+  value={form.otros_nombres}
+  onChange={(e)=>handleChange("otros_nombres", onlyLetters(e.target.value))}
+/>
                 <div>
                   <RequiredLabel>Primer apellido</RequiredLabel>
-                  <InputField id="primer_apellido" label="" value={form.primer_apellido} onChange={(e)=>handleChange("primer_apellido",e.target.value)} onBlur={blurValidate("primer_apellido")} />
+                  <InputField
+  id="primer_apellido"
+  label=""
+  value={form.primer_apellido}
+  onChange={(e)=>handleChange("primer_apellido", onlyLetters(e.target.value))}
+  onBlur={blurValidate("primer_apellido")}
+/>
                   {errors.primer_apellido && <p className="mt-1 text-xs text-red-500">{errors.primer_apellido}</p>}
                 </div>
-                <InputField id="segundo_apellido" label="Segundo apellido (opcional)" value={form.segundo_apellido} onChange={(e)=>handleChange("segundo_apellido",e.target.value)} />
+                <InputField
+  id="segundo_apellido"
+  label="Segundo apellido (opcional)"
+  value={form.segundo_apellido}
+  onChange={(e)=>handleChange("segundo_apellido", onlyLetters(e.target.value))}
+/>
               </div>
 
               {/* Fila 3: dirección */}
@@ -794,7 +865,14 @@ const rect = el.getBoundingClientRect();
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
                   <RequiredLabel>Número de teléfono</RequiredLabel>
-                  <InputField id="telefono1" label="" value={form.telefono1} onChange={(e)=>handleChange("telefono1",e.target.value)} onBlur={blurValidate("telefono1")} placeholder="Ej: 6076370099" />
+                  <InputField
+  id="telefono1"
+  label=""
+  value={form.telefono1}
+  onChange={(e)=>handleChange("telefono1", onlyDigits(e.target.value))}
+  onBlur={blurValidate("telefono1")}
+  placeholder="Ej: 6076370099"
+/>
                   {errors.telefono1 && <p className="mt-1 text-xs text-red-500">{errors.telefono1}</p>}
                 </div>
                 <div>
@@ -821,10 +899,10 @@ const rect = el.getBoundingClientRect();
             <section>
               <h3 className="text-sm font-semibold mb-3 opacity-80">Información de Contacto Pedidos</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <InputField id="contacto_nombres" label="Nombres" value={form.contacto_nombres} onChange={(e)=>handleChange("contacto_nombres", e.target.value)} />
-                <InputField id="contacto_apellidos" label="Apellidos" value={form.contacto_apellidos} onChange={(e)=>handleChange("contacto_apellidos", e.target.value)} />
-                <InputField id="contacto_tel_oficina" label="Teléfono de oficina" value={form.contacto_tel_oficina} onChange={(e)=>handleChange("contacto_tel_oficina", e.target.value)} />
-                <InputField id="contacto_cel_corporativo" label="Celular corporativo" value={form.contacto_cel_corporativo} onChange={(e)=>handleChange("contacto_cel_corporativo", e.target.value)} />
+                <InputField id="contacto_nombres" label="Nombres" value={form.contacto_nombres} onChange={(e)=>handleChange("contacto_nombres", onlyLetters(e.target.value))} />
+                <InputField id="contacto_apellidos" label="Apellidos" value={form.contacto_apellidos} onChange={(e)=>handleChange("contacto_apellidos", onlyLetters(e.target.value))} />
+                <InputField id="contacto_tel_oficina" label="Teléfono de oficina" value={form.contacto_tel_oficina} onChange={(e)=>handleChange("contacto_tel_oficina", onlyDigits(e.target.value))} />
+                <InputField id="contacto_cel_corporativo" label="Celular corporativo" value={form.contacto_cel_corporativo} onChange={(e)=>handleChange("contacto_cel_corporativo", onlyDigits(e.target.value))} />
                 <div className="md:col-span-2 lg:col-span-1">
                   <InputField id="contacto_correo_pedidos" label="Correo electrónico corporativo para pedidos" value={form.contacto_correo_pedidos} onChange={(e)=>handleChange("contacto_correo_pedidos", e.target.value)} />
                 </div>
@@ -881,15 +959,18 @@ const rect = el.getBoundingClientRect();
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid grid-cols-1">
                   <RequiredLabel>Código de Actividad económica (CIIU)</RequiredLabel>
-                  <InputField id="ciiu_code" label="" value={form.ciiu_code} onChange={(e)=>handleChange("ciiu_code", e.target.value)} onBlur={blurValidate("ciiu_code")} />
+                  <InputField id="ciiu_code" label="" value={form.ciiu_code} onChange={(e)=>handleChange("ciiu_code", onlyDigits(e.target.value))} onBlur={blurValidate("ciiu_code")} />
                   {errors.ciiu_code && <p className="mt-1 text-xs text-red-500">{errors.ciiu_code}</p>}
                 </div>
                 <div />
                 {/* Conmutadores + condicionales */}
                 <div className="grid grid-cols-1">
-                  <CheckboxWithLabel id="gran_contribuyente" checked={isTrue(form.gran_contribuyente)} onChange={(v)=>{ setBool("gran_contribuyente", v); setErrors((e)=>({ ...e, gran_contribuyente_resolucion: "" })); }}>
-                    Gran Contribuyente
-                  </CheckboxWithLabel>
+<BoolRadio
+  id="gran_contribuyente"
+  label="Gran Contribuyente"
+  value={form.gran_contribuyente}
+  onChange={(v)=>{ handleChange("gran_contribuyente", v); setErrors(e=>({...e, gran_contribuyente_resolucion:""})); }}
+/>
                 </div>
                 <div className="grid grid-cols-1">
                   <label className="text-xs block mb-1">
@@ -900,9 +981,12 @@ const rect = el.getBoundingClientRect();
                 </div>
 
                 <div className="grid grid-cols-1">
-                  <CheckboxWithLabel id="autoretenedor_renta" checked={isTrue(form.autoretenedor_renta)} onChange={(v)=>{ setBool("autoretenedor_renta", v); setErrors((e)=>({ ...e, autoretenedor_renta_resolucion: "" })); }}>
-                    Autoretenedor en impuesto a la renta
-                  </CheckboxWithLabel>
+                  <BoolRadio
+  id="autoretenedor_renta"
+  label="Autoretenedor en impuesto a la renta"
+  value={form.autoretenedor_renta}
+  onChange={(v)=>{ handleChange("autoretenedor_renta", v); setErrors(e=>({...e, autoretenedor_renta_resolucion:""})); }}
+/>
                 </div>
                 <div className="grid grid-cols-1">
                   <label className="text-xs block mb-1">
@@ -913,37 +997,52 @@ const rect = el.getBoundingClientRect();
                 </div>
 
                 <div className="grid grid-cols-1">
-                  <CheckboxWithLabel id="contribuyente_renta" checked={isTrue(form.contribuyente_renta)} onChange={(v)=>setBool("contribuyente_renta", v)}>
-                    Contribuyente impuesto a la renta y complementarios
-                  </CheckboxWithLabel>
+<BoolRadio
+  id="contribuyente_renta"
+  label="Contribuyente impuesto a la renta y complementarios"
+  value={form.contribuyente_renta}
+  onChange={(v)=>handleChange("contribuyente_renta", v)}
+/>
                 </div>
                 <div />
 
                 <div className="grid grid-cols-1">
-                  <CheckboxWithLabel id="regimen_esal" checked={isTrue(form.regimen_esal)} onChange={(v)=>setBool("regimen_esal", v)}>
-                    Régimen ESAL
-                  </CheckboxWithLabel>
+<BoolRadio
+  id="regimen_esal"
+  label="Régimen ESAL"
+  value={form.regimen_esal}
+  onChange={(v)=>handleChange("regimen_esal", v)}
+/>
                 </div>
                 <div />
 
                 <div className="grid grid-cols-1">
-                  <CheckboxWithLabel id="responsable_iva" checked={isTrue(form.responsable_iva)} onChange={(v)=>setBool("responsable_iva", v)}>
-                    Responsable de IVA
-                  </CheckboxWithLabel>
+<BoolRadio
+  id="responsable_iva"
+  label="Responsable de IVA"
+  value={form.responsable_iva}
+  onChange={(v)=>handleChange("responsable_iva", v)}
+/>
                 </div>
                 <div />
 
                 <div className="grid grid-cols-1">
-                  <CheckboxWithLabel id="regimen_simple" checked={isTrue(form.regimen_simple)} onChange={(v)=>setBool("regimen_simple", v)}>
-                    Régimen simple de tributación
-                  </CheckboxWithLabel>
+<BoolRadio
+  id="regimen_simple"
+  label="Régimen simple de tributación"
+  value={form.regimen_simple}
+  onChange={(v)=>handleChange("regimen_simple", v)}
+/>
                 </div>
                 <div />
 
                 <div className="grid grid-cols-1">
-                  <CheckboxWithLabel id="responsable_ica" checked={isTrue(form.responsable_ica)} onChange={(v)=>{ setBool("responsable_ica", v); setErrors((e)=>({ ...e, ica_codigo:"", ica_tarifa_millar:"", ica_ciudad:"" })); }}>
-                    Responsable de Impuesto de Industria y Comercio
-                  </CheckboxWithLabel>
+                 <BoolRadio
+  id="responsable_ica"
+  label="Responsable de Impuesto de Industria y Comercio"
+  value={form.responsable_ica}
+  onChange={(v)=>{ handleChange("responsable_ica", v); setErrors(e=>({...e, ica_codigo:"", ica_tarifa_millar:"", ica_ciudad:""})); }}
+/>
                 </div>
                 <div />
 
@@ -971,16 +1070,22 @@ const rect = el.getBoundingClientRect();
                 <div />
 
                 <div className="grid grid-cols-1">
-                  <CheckboxWithLabel id="gran_contribuyente_ica_bogota" checked={isTrue(form.gran_contribuyente_ica_bogota)} onChange={(v)=>setBool("gran_contribuyente_ica_bogota", v)}>
-                    Gran contribuyente de ICA en Bogotá
-                  </CheckboxWithLabel>
+                  <BoolRadio
+  id="gran_contribuyente_ica_bogota"
+  label="Gran contribuyente de ICA en Bogotá"
+  value={form.gran_contribuyente_ica_bogota}
+  onChange={(v)=>handleChange("gran_contribuyente_ica_bogota", v)}
+/>
                 </div>
                 <div />
 
                 <div className="grid grid-cols-1">
-                  <CheckboxWithLabel id="obligado_fe" checked={isTrue(form.obligado_fe)} onChange={(v)=>{ setBool("obligado_fe", v); setErrors((e)=>({ ...e, correo_fe: "" })); }}>
-                    ¿Está obligado a emitir factura electrónica?
-                  </CheckboxWithLabel>
+<BoolRadio
+  id="obligado_fe"
+  label="¿Está obligado a emitir factura electrónica?"
+  value={form.obligado_fe}
+  onChange={(v)=>{ handleChange("obligado_fe", v); setErrors(e=>({...e, correo_fe: ""})); }}
+/>
                 </div>
                 <div className="grid grid-cols-1">
                   <label className="text-xs block mb-1">
@@ -1037,7 +1142,7 @@ const rect = el.getBoundingClientRect();
 
                 <div>
                   <RequiredLabel>Titular de la cuenta</RequiredLabel>
-                  <InputField id="banco_cuenta_titular" label="" value={form.banco_cuenta_titular} onChange={(e)=>handleChange("banco_cuenta_titular", e.target.value)} onBlur={blurValidate("banco_cuenta_titular")} placeholder="Nombre completo del titular" />
+                  <InputField id="banco_cuenta_titular" label="" value={form.banco_cuenta_titular} onChange={(e)=>handleChange("banco_cuenta_titular", onlyLetters(e.target.value))} onBlur={blurValidate("banco_cuenta_titular")} placeholder="Nombre completo del titular" />
                   {errors.banco_cuenta_titular && <p className="mt-1 text-xs text-red-500">{errors.banco_cuenta_titular}</p>}
                 </div>
               </div>
@@ -1046,14 +1151,31 @@ const rect = el.getBoundingClientRect();
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div>
                   <RequiredLabel>N° de cuenta bancaria</RequiredLabel>
-                  <InputField id="banco_cuenta_numero" label="" value={form.banco_cuenta_numero} onChange={(e)=>handleChange("banco_cuenta_numero", e.target.value)} onBlur={blurValidate("banco_cuenta_numero")} placeholder="0000000" />
+                  <InputField
+  id="banco_cuenta_numero"
+  label=""
+  value={form.banco_cuenta_numero}
+  onChange={(e)=>handleChange("banco_cuenta_numero", onlyDigits(e.target.value))}
+  onBlur={blurValidate("banco_cuenta_numero")}
+  placeholder="0000000"
+/>
                   {errors.banco_cuenta_numero && <p className="mt-1 text-xs text-red-500">{errors.banco_cuenta_numero}</p>}
                 </div>
-                <div>
-                  <RequiredLabel>Tipo de cuenta</RequiredLabel>
-                  <InputField id="banco_cuenta_tipo" label="" value={form.banco_cuenta_tipo} onChange={(e)=>handleChange("banco_cuenta_tipo", e.target.value)} onBlur={blurValidate("banco_cuenta_tipo")} placeholder="Ahorros / Corriente" />
-                  {errors.banco_cuenta_tipo && <p className="mt-1 text-xs text-red-500">{errors.banco_cuenta_tipo}</p>}
-                </div>
+<div>
+  <RequiredLabel>Tipo de cuenta</RequiredLabel>
+  <select
+    id="banco_cuenta_tipo"
+    className={`w-full border rounded px-3 py-2 bg-transparent ${isDark ? "border-zinc-700" : "border-gray-300"}`}
+    value={form.banco_cuenta_tipo || ""}
+    onChange={(e)=>handleChange("banco_cuenta_tipo", e.target.value)}
+    onBlur={blurValidate("banco_cuenta_tipo")}
+  >
+    <option value="">Seleccione…</option>
+    <option value="AHORROS">Ahorros</option>
+    <option value="CORRIENTE">Corriente</option>
+  </select>
+  {errors.banco_cuenta_tipo && <p className="mt-1 text-xs text-red-500">{errors.banco_cuenta_tipo}</p>}
+</div>
                 <div>
                   <RequiredLabel>Correo de tesorería</RequiredLabel>
                   <InputField id="correo_tesoreria" label="" value={form.correo_tesoreria} onChange={(e)=>handleChange("correo_tesoreria", e.target.value)} onBlur={blurValidate("correo_tesoreria")} placeholder="tesoreria@empresa.com" />
@@ -1153,19 +1275,25 @@ const rect = el.getBoundingClientRect();
                  </div>
                ) : (
                  <>
+                 {isTrue(form.obligado_fe) && (
+  <p className={`text-xs mb-2 ${isDark ? "text-yellow-300" : "text-yellow-700"}`}>
+    Marcaste que estás obligado a emitir factura electrónica: debes subir la “Autorización de facturación DIAN vigente”.
+  </p>
+)}
+
                    <KycDocumentsUploader
-                     token={token}
-                     submissionId={submissionId}
-                     isDark={isDark}
-                     requiredCodes={status?.required_doc_types || []}
-                     missingCodes={status?.missing_required_docs || []}
-                     onUploaded={fetchStatus}
-                   />
-                   {(status?.missing_required_docs?.length || 0) > 0 && (
-                     <p className={`text-xs mt-2 ${isDark ? "text-red-400" : "text-red-600"}`}>
-                       Debes subir todos los documentos obligatorios antes de continuar.
-                     </p>
-                   )}
+  token={token}
+  submissionId={submissionId}
+  isDark={isDark}
+ requiredCodes={mergedRequired}     
+ missingCodes={dynamicMissing} 
+  onUploaded={fetchStatus}
+/>
+                   {dynamicMissing.length > 0 && (
+  <p className={`text-xs mt-2 ${isDark ? "text-red-400" : "text-red-600"}`}>
+    Debes subir todos los documentos obligatorios antes de continuar.
+  </p>
+)}
                  </>
                )}
              </section>
