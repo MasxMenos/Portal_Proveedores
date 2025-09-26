@@ -19,6 +19,7 @@ import {
 } from "recharts";
 
 import { metrics, totalSalesData, topProductsData, contacts } from "../data/homepage";
+import { initialMetrics, fetchAllMetrics } from"../data/homepage"; // ajusta la ruta
 import { useTheme } from "../components/ThemeContext";
 
 export default function InicioPage() {
@@ -34,8 +35,9 @@ export default function InicioPage() {
   const [totalSales, setTotalSales] = useState("");
   const [totalSalesProducts, setTotalSalesProducts] = useState("");
   const token = localStorage.getItem("accessToken")?.trim();
-  const formatCurrency = (n) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n);
-  const formatNumber = (n) => new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(n);
+  const [metrics, setMetrics] = useState(initialMetrics)
+  // const formatCurrency = (n) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n);
+  // const formatNumber = (n) => new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(n);
   useEffect(() => {
     // traer perfil
     (async () => {
@@ -55,86 +57,23 @@ export default function InicioPage() {
       }
     })();
   }, [token]);
-  useEffect(() => { //service_Level
-      if (!nit) return; 
-
-      (async () => {
-        try {
-          const url = new URL("/api/homepage/service_level", window.location.origin);
-          url.searchParams.set("nitProveedor", nit);
-
-          const res = await fetch(url.toString(), {
-            method: "GET"
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            console.log(data);
-            if (data.length > 0){
-              setServiceLevel(`${data[0].f420_cumplimiento}%`);
-            }else{
-              setServiceLevel("No aplica.");
-            }
-          }
-        } catch (error) {
-          consele.log("Error trayendo service level",error);
-        }
-      })();
-    }, [nit, token]); 
   
-  useEffect(() => { //total_Sales
-      if (!nit) return; 
+  useEffect(() => {
+      if (!nit) return;
+
+      let cancelled = false;
 
       (async () => {
         try {
-          const url = new URL("/api/homepage/total_sales", window.location.origin);
-          url.searchParams.set("nit", nit);
-
-          const res = await fetch(url.toString(), {
-            method: "GET"
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            if (data.length > 0){
-              setTotalSales(`${formatCurrency(data[0].ventas)}`);
-            }else{
-              setTotalSales("No aplica.");
-            }
-          }
-        } catch (error) {
-          consele.log("Error trayendo total sales",error);
+          const loaded = await fetchAllMetrics({ nit});
+          if (!cancelled) setMetrics(loaded);
+        } catch (e) {
+          console.error("Error cargando métricas:", e);
         }
       })();
-    }, [nit, token]); 
 
-  useEffect(() => { //total_Sales_Products
-      if (!nit) return; 
-
-      (async () => {
-        try {
-          const url = new URL("/api/homepage/total_sales_products", window.location.origin);
-          url.searchParams.set("nit", nit);
-
-          const res = await fetch(url.toString(), {
-            method: "GET"
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            if (data.length > 0){
-              setTotalSalesProducts(`${formatNumber(data[0].quantity)}`);
-            }else{
-              setTotalSalesProducts("No aplica.");
-            }
-          }
-        } catch (error) {
-          consele.log("Error trayendo total sales products",error);
-        }
-      })();
-    }, [nit, token]); 
-  
-
+      return () => { cancelled = true; };
+    }, [nit]);
 
   // Sidebar
   const [activePage, setActivePage] = useState(t("sidebar.home"));
@@ -170,41 +109,6 @@ export default function InicioPage() {
         )}
 
         <div id="inicio-metricas" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          
-
-          <div key="servicio" className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
-            <span className="text-lg text-gray-400 capitalize">
-              {t(`homepage.metrics.servicio`)}
-            </span>
-            {!serviceLevel && (
-            <span className="text-4xl font-semibold mt-1">Cargando...</span>
-            )}
-            {serviceLevel && (
-            <span className="text-4xl font-semibold mt-1">{serviceLevel }</span>
-            )}
-          </div>
-          <div key="ventas" className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
-            <span className="text-lg text-gray-400 capitalize">
-              {t(`homepage.metrics.ventas`)}
-            </span>
-            {!totalSales && (
-            <span className="text-4xl font-semibold mt-1">Cargando...</span>
-            )}
-            {totalSales && (
-            <span className="text-4xl font-semibold mt-1">{totalSales}</span>
-            )}
-          </div>
-          <div key="productos" className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
-            <span className="text-lg text-gray-400 capitalize">
-              {t(`homepage.metrics.productos`)}
-            </span>
-            {!totalSalesProducts && (
-            <span className="text-4xl font-semibold mt-1">Cargando...</span>
-            )}
-            {totalSalesProducts && (
-            <span className="text-4xl font-semibold mt-1">{totalSalesProducts}</span>
-            )}
-          </div>
           
           {Object.entries(metrics).map(([key, value]) => (
             <div key={key} className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
