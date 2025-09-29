@@ -44,7 +44,7 @@ export default function InicioPage() {
   const [totalSalesData, setTotalSalesMonths] = useState('')
   const [growth, setGrowth] = useState('Cargando...')
   const [topProductsData, setTopProducts] = useState()
-
+    
   useEffect(() => {
     // traer perfil
     (async () => {
@@ -165,6 +165,22 @@ export default function InicioPage() {
             {descripcion}
           </div>
         )}
+        {(!totalSalesData?.length && !topProductsData?.length) && (
+            <div className="px-4 mb-4">
+              <div
+                role="alert"
+                aria-live="polite"
+                className="flex items-start gap-2 rounded-md bg-yellow-100 border border-yellow-300 p-3 text-yellow-900"
+              >
+                <span className="text-xl leading-none">⚠️</span>
+                <span className="text-sm font-medium">
+                  Se está presentando una novedad con la conexión a Siesa o no eres un proveedor activo.
+                </span>
+              </div>
+            </div>
+          )}
+
+
 
         <div id="inicio-metricas" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           
