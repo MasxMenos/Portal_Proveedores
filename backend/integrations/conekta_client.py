@@ -179,3 +179,19 @@ class ConektaClient:
             "parametros": f"numPagina=1|numRegistros=9999|nitProveedor={nitProveedor}|fechaInicial={fechaInicial}|fechaFinal={fechaFinal}"
         }
         return self._safe_get(params)
+    
+    def get_top_products(self,  nit: str, fechaIni: str = None, fechaFin:str= None) -> dict:
+        anio_actual = date.today().year
+
+        if fechaIni is None:
+            fechaIni = date(anio_actual, 1, 1).isoformat().replace('-','')
+
+        if fechaFin is None:
+            fechaFin = date(anio_actual, 12, 31).isoformat().replace('-','')
+
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "GET_TOP_PRODUCTS",
+            "parametros": f"numPagina=1|numRegistros=9999|NIT={nit}|FechaIni={fechaIni}|FechaFin={fechaFin}"
+        }
+        return self._safe_get(params)

@@ -260,10 +260,17 @@
       "servicio": "Nivel de servicio",
       "ventas": "Valor total facturado",
       "productos": "Und totales facturadas",
-      "crecimiento": "% de Crecimiento"
+      "crecimiento": "Tasa de Crecimiento"
     },
-    "totalSales": "Ventas totales",
-    "topProducts": "Productos destacados",
+    "totalSales": {
+      "title": "Ventas totales",
+      "graphiqueLabel": "Valor"
+    },
+    "topProducts": 
+    {
+      "title": "Productos destacados",
+      "graphiqueLabel": "Cantidad"
+    },
     "contacts": {
       "title": "Contactos",
       "tipo": "Tipo",

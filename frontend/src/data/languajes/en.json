@@ -259,10 +259,17 @@
   "servicio": "Service level",
   "ventas": "Total billed amount",
   "productos": "Total units billed",
-  "crecimiento": "% growth"
+  "crecimiento": "growth rate"
     },
-    "totalSales": "Total sales",
-    "topProducts": "Top Products",
+    "totalSales": {
+      "title": "Total sales",
+      "graphiqueLabel": "Value"
+    },
+    "topProducts": 
+    {
+      "title": "Top Products",
+      "graphiqueLabel": "Quantity"
+    },
     "contacts": {
       "title": "Contacts",
       "tipo": "Type",

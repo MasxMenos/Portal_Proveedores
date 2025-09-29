@@ -1,6 +1,6 @@
 # invoices/services.py
 from .clients import HomePageClient
-from .dtos    import ServiceLevelDTO,TotalSalesDTO, TotalSalesProductsDTO,TotalSalesMonthsDTO
+from .dtos    import ServiceLevelDTO,TotalSalesDTO, TotalSalesProductsDTO,TotalSalesMonthsDTO, TopProductsDTO
 from typing import List
 
 def get_records(raw: dict) -> List[dict]:
@@ -90,6 +90,27 @@ def get_total_sales_months(
             f420_proveedor        = item["f420_proveedor"],
             month             = item["month"],
             value             = float(item["value"]),
+        )
+        results.append(dto)
+
+    return results
+
+def get_top_products(
+    nit: str,
+    fechaIni: str = None,
+    fechaFin:  str = None,
+) -> List[TopProductsDTO]:
+    client = HomePageClient()
+    raw    = client.fetch_top_products(nit, fechaIni, fechaFin)
+    # Extraemos la lista correcta:
+    records = get_records(raw)
+
+    results: List[TopProductsDTO] = []
+    for item in records:
+        dto = TopProductsDTO(
+            descripcion         = item["Descripcion"],
+            reference        = item["Reference"],
+            quantity             = float(item["Quantity"]),
         )
         results.append(dto)
 

@@ -47,3 +47,16 @@ class TotalSalesMonthsDTO:
             value             = float(data["value"]),
         )
 
+@dataclass
+class TopProductsDTO:
+    descripcion: str
+    reference: str
+    quantity: float
+    @classmethod
+    def from_conekta(cls, data: dict) -> "TopProductsDTO":
+        return cls(
+            descripcion         = data["Descripcion"],
+            reference        = data["Reference"],
+            quantity             = float(data["Quantity"]),
+        )
+

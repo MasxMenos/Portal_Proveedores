@@ -2,8 +2,8 @@
 from rest_framework.views    import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from .services  import get_service_level, get_total_sales, get_total_sales_products,get_total_sales_months
-from .serializers import ServiceLevelSerializer, TotalSalesSerializer, TotalSalesProductSerializer,TotalSalesMonthsSerializer
+from .services  import get_service_level, get_total_sales, get_total_sales_products,get_total_sales_months,get_top_products
+from .serializers import ServiceLevelSerializer, TotalSalesSerializer, TotalSalesProductSerializer,TotalSalesMonthsSerializer,TopProductsSerializer
 
 
 class ServerLevelView(APIView):
@@ -99,4 +99,27 @@ class TotalSalesMonthsView(APIView):
 
         # serializa directamente las instancias de InvoiceDTO
         serializer = TotalSalesMonthsSerializer(dtos, many=True)
+        return Response(serializer.data)
+    
+class TopProductsView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        nit = request.query_params.get("nit", None)
+        fechaIni        = request.query_params.get("fechaIni", None)
+        fechaFin  = request.query_params.get("fechaFin", None)
+        if not nit:
+            return Response(
+                {"detail": "Debe enviar nit proveedor"},
+                status=400
+            )
+
+        dtos = get_top_products(
+            nit = nit,
+            fechaIni = fechaIni,
+            fechaFin = fechaFin,
+        )
+
+        serializer = TopProductsSerializer(dtos, many=True)
+        print(serializer.data)
         return Response(serializer.data)

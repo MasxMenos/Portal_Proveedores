@@ -7,13 +7,13 @@
     { month: "Jun", value: 65000 },
   ];
 
-  export const topProductsData = [
-    { name: "Leche", value: 12 },
-    { name: "Kumis", value: 11 },
-    { name: "Avena", value: 10 },
-    { name: "Queso", value: 8 },
-    { name: "Alpinito", value: 5 },
-  ];
+  // export const topProductsData = [
+  //   { name: "Leche", value: 12 },
+  //   { name: "Kumis", value: 11 },
+  //   { name: "Avena", value: 10 },
+  //   { name: "Queso", value: 8 },
+  //   { name: "Alpinito", value: 5 },
+  // ];
 
   export const contacts = [
     { tipo: "Conciliaciones", email: "conciliaciones@mxm.com.co", note: "Para conciliaciones" },
