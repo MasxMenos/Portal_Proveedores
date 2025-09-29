@@ -69,11 +69,13 @@ export default function PaymentsPage() {
         });
 
         setDatos(filtrados);
-      } catch (err) {
-        console.error("Error cargando pagos:", err);
-        setError(err.message || t("errors.generic", "Error al cargar datos"));
-        setDatos([]);
-      } finally {
+      } 
+      catch (err) {
+      //  console.error("Error cargando pagos:", err);
+      //  setError(err.message || t("errors.generic", "Error al cargar datos"));
+      //  setDatos([]);
+      } 
+      finally {
         setLoading(false);
       }
     },
