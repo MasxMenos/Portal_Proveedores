@@ -1,5 +1,5 @@
 // src/layouts/EntityDetail.jsx
-import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Sidebar from "../components/MainSidebar";
@@ -38,15 +38,12 @@ export default function EntityDetail({ tipo }) {
   const label = t(`sidebar.${tipo}`);
 
   /** Refs / estado **/
-  const scrollAreaRef = useRef(null);   // para escuchar scroll (overflow del main)
-  const containerRef = useRef(null);    // contenedor donde medimos y dibujamos
+  const scrollAreaRef = useRef(null);
+  const containerRef = useRef(null);
   const masterRef = useRef(null);
   const childRefs = useRef({});
 
   const [expanded, setExpanded] = useState({});
-  const CHECK_KEY = `checks:${tipo}:${documentoId}`;
-  const [checks, toggleCheck] = useChecks(tipo, documentoId);
-
   const [paginationStates, setPaginationStates] = useState({});
   const [cardsPage, setCardsPage] = useState(1);
 
@@ -62,7 +59,10 @@ export default function EntityDetail({ tipo }) {
   const master = masterFromTable || fetchedMaster;
   if (!master) return null;
 
-  /** Líneas visibles paginadas **/
+  /** Checks **/
+  const [checks, toggleCheck] = useChecks(tipo, documentoId);
+
+  /** Paginación visual de cards hijas **/
   const visibleLines = useMemo(
     () => lines.slice((cardsPage - 1) * CARDS_PER_PAGE, cardsPage * CARDS_PER_PAGE),
     [lines, cardsPage]
@@ -73,17 +73,24 @@ export default function EntityDetail({ tipo }) {
   const startPage = groupIndex * MAX_ICONS + 1;
   const endPage = Math.min(startPage + MAX_ICONS - 1, totalPages);
 
-  /** Parámetros visuales compartidos **/
-  const RAIL_X = 64;             // px desde el borde izquierdo del contenedor (mueve la LÍNEA)
-  const CONNECTOR = 28;          // px del conector horizontal hacia la card
-  const CARD_GAP = "3%";         // separación vertical entre master→1ª hija y entre hijas
-  const CARD_OFFSET = `calc(${RAIL_X}px + ${CONNECTOR}px + 8px)`; // base para todas las cards
-  const CHILD_INDENT = "56px";   // 👈 desplazamiento adicional SOLO para hijas
+  /** Parámetros visuales **/
+  const RAIL_X = 64;
+  const CONNECTOR = 28;
+  const CARD_GAP = "16px";
+  const CARD_OFFSET = `calc(${RAIL_X}px + ${CONNECTOR}px + 8px)`;
 
-  /** Estado de posiciones para dibujar líneas **/
+  const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
+
+  // Mantén el riel igual; solo acerca las hijas en móvil
+  const CHILD_INDENT = isMobile ? "4px" : "56px";
+
+
+  /** Geometría para el dibujo **/
   const [geo, setGeo] = useState({
     ready: false,
     railXAbs: 0,
+    masterX: 0,
+    masterY: 0,
     yStart: 0,
     yEnd: 0,
     children: [], // [{ id, x, y }]
@@ -104,8 +111,15 @@ export default function EntityDetail({ tipo }) {
     };
   };
 
-  /** Medición robusta sin hooks externos **/
-  const recompute = () => {
+  // Throttle por frame para scroll/resize
+  const rafId = useRef(null);
+  const schedule = (fn) => {
+    if (rafId.current) cancelAnimationFrame(rafId.current);
+    rafId.current = requestAnimationFrame(fn);
+  };
+
+  /** Medición (el SVG se desplaza junto al contenido, NO sticky) **/
+  const recompute = useCallback(() => {
     const containerEl = containerRef.current;
     const masterEl = masterRef.current;
     if (!containerEl || !masterEl) {
@@ -113,11 +127,15 @@ export default function EntityDetail({ tipo }) {
       return;
     }
 
+    // Dimensiones del contenedor y contenido
     const containerRect = containerEl.getBoundingClientRect();
+    
+
+    // Master
     const masterRectAbs = masterEl.getBoundingClientRect();
     const masterRect = getRectRelativeTo(masterRectAbs, containerRect);
 
-    // Hijas visibles (el borde izquierdo cambiará si sumas --child-indent en el componente)
+    // Hijas visibles
     const childPoints = [];
     for (const line of visibleLines) {
       const r = childRefs.current[line.id]?.current;
@@ -126,50 +144,50 @@ export default function EntityDetail({ tipo }) {
       const rect = getRectRelativeTo(rectAbs, containerRect);
       childPoints.push({
         id: line.id,
-        x: rect.left,     // borde izquierdo exacto
-        y: rect.centerY,  // centro vertical
+        x: rect.left,
+        y: rect.centerY,
       });
     }
 
-    // Rail X en coords del SVG (posicionado sobre el contenedor)
     const railXAbs = RAIL_X;
 
-    // Y inicio (centro del master) y Y fin (centro de la última hija visible)
+    // El riel va desde el centro del master hasta la última hija visible
     const yStart = masterRect.centerY;
     const yEnd = childPoints.length ? childPoints[childPoints.length - 1].y : yStart;
-
-    // Dimensiones del SVG: cubrir el scroll del contenedor
-    const svgW = Math.max(containerEl.clientWidth, containerEl.scrollWidth);
-    const svgH = Math.max(containerEl.clientHeight, containerEl.scrollHeight);
 
     setGeo({
       ready: true,
       railXAbs,
+      masterX: masterRect.left,
+      masterY: masterRect.centerY,
       yStart,
       yEnd,
       children: childPoints,
-      svgW,
-      svgH,
+      svgW: "100%",
+      svgH: "100%",
     });
-  };
+  }, [visibleLines]);
 
-  /** Recalcular cuando cambie layout/estado relevante **/
+  /** Recalcular ante cambios de layout/estado relevante **/
   useLayoutEffect(() => {
-    recompute();
+    schedule(recompute);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardsPage, expanded, paginationStates, visibleLines.length, isDark]);
 
   /** Recalcular tras primer paint y cuando cambian los datos **/
   useEffect(() => {
-    const id = requestAnimationFrame(recompute);
-    return () => cancelAnimationFrame(id);
+    schedule(recompute);
+    return () => {
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lines]);
 
   /** Recalcular al redimensionar y al hacer scroll **/
   useEffect(() => {
-    const onResize = () => recompute();
-    const onScroll = () => recompute();
+    const onResize = () => schedule(recompute);
+    const onScroll = () => schedule(recompute);
+
     window.addEventListener("resize", onResize, { passive: true });
     const mainEl = scrollAreaRef.current;
     if (mainEl) mainEl.addEventListener("scroll", onScroll, { passive: true });
@@ -181,7 +199,7 @@ export default function EntityDetail({ tipo }) {
       if (containerRef.current) containerRef.current.removeEventListener("scroll", onScroll);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [recompute]);
 
   return (
     <div
@@ -191,7 +209,7 @@ export default function EntityDetail({ tipo }) {
     >
       <Sidebar activePage={activePage} />
 
-      <main ref={scrollAreaRef} className="flex-1 p-6 md:ml-64 space-y-6 overflow-auto">
+      <main ref={scrollAreaRef} className="flex-1 p-6 md:ml-64 space-y-4 overflow-auto">
         <HeaderSuperior
           activePage={label}
           title={label}
@@ -208,24 +226,23 @@ export default function EntityDetail({ tipo }) {
         {/* CONTENEDOR DE DETALLE (relative para posicionar el SVG encima) */}
         <div
           ref={containerRef}
-          className="relative p-4 md:p-8"
+          className="relative p-4 md:p-8 overflow-hidden"
           style={{
-            // Variables globales para posicionamiento y separación
-            "--rail-x": `${RAIL_X}px`,           // mueve la LÍNEA
+            "--rail-x": `${RAIL_X}px`,
             "--connector": `${CONNECTOR}px`,
             "--card-gap": CARD_GAP,
-            "--card-offset": CARD_OFFSET,        // base de todas las cards (master + hijas)
-            "--child-indent": CHILD_INDENT,      // 👈 desplazamiento extra SOLO para hijas
+            "--card-offset": CARD_OFFSET,
+            "--child-indent": CHILD_INDENT,
           }}
         >
-          {/* SVG: UNA SOLA LÍNEA VERTICAL + conectores horizontales */}
+          {/* SVG: absoluto y desplazándose con el contenido */}
           {geo.ready && (
             <svg
               className="absolute inset-0 pointer-events-none z-0"
               width={geo.svgW}
               height={geo.svgH}
             >
-              {/* Rail vertical único desde el master hasta la última hija visible */}
+              {/* Rail vertical desde el MASTER hasta la última hija visible */}
               <line
                 x1={geo.railXAbs}
                 y1={geo.yStart}
@@ -235,7 +252,17 @@ export default function EntityDetail({ tipo }) {
                 strokeWidth="2"
               />
 
-              {/* Conectores horizontales: rail -> borde izquierdo de cada hija */}
+              {/* Conector horizontal MASTER -> rail */}
+              <line
+                x1={geo.railXAbs}
+                y1={geo.masterY}
+                x2={geo.masterX}
+                y2={geo.masterY}
+                stroke={isDark ? "#4b5563" : "#94a3b8"}
+                strokeWidth="2"
+              />
+
+              {/* Conectores horizontales rail -> cada hija visible */}
               {geo.children.map((pt) => (
                 <line
                   key={`h-${pt.id}`}
@@ -250,7 +277,7 @@ export default function EntityDetail({ tipo }) {
             </svg>
           )}
 
-          {/* MASTER con el mismo gap que entre hijas (NO suma --child-indent) */}
+          {/* MASTER */}
           <div style={{ marginBottom: "var(--card-gap)" }}>
             <EntityMaster
               isDark={isDark}
@@ -315,7 +342,7 @@ export default function EntityDetail({ tipo }) {
             </AnimatePresence>
           </div>
 
-          {/* HIJAS (en flujo, con el mismo gap entre cards; aquí se usa --child-indent en DraggableLine) */}
+          {/* HIJAS */}
           {loading && !lines.length && (
             <div className="flex justify-center items-center h-40 text-gray-400">
               {t("detail.loading", "Cargando...")}
@@ -324,7 +351,7 @@ export default function EntityDetail({ tipo }) {
 
           {!loading && error && (!lines || lines.length === 0) && (
             <div className="flex justify-center items-center h-40 text-red-500 text-lg">
-              <span>{"Ocurrió un error inesperado, intente de nuevo más tarde"}</span>
+              <span>{"Siesa presenta caida en este momento, intente de nuevo más tarde"}</span>
             </div>
           )}
 

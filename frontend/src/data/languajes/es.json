@@ -194,6 +194,9 @@
     }
   },
   "detail": {
+    "checkboxTooltip": "Marcar como revisado",
+    "collapse": "Contraer",
+    "expand": "expandir",
     "master": {
       "labelDocumento": "Documento",
       "CO": "CO",
