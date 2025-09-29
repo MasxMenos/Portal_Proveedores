@@ -4,7 +4,7 @@ from .dtos    import PaymentsDTO
 from datetime import datetime
 from typing import Optional, Dict, Any, List, Union
 import json
-from .dtos import PaymentsDetailDTO, MovementDTO, RetencionDTO, RccFormatDTO
+from .dtos import PaymentsDetailDTO, MovementDTO, RetencionDTO, RccFormatDTO, CetFormatDTO
 
 def get_payments(
     tipo_docto: str,
@@ -150,7 +150,7 @@ def get_payments_detail(tipo_docto: str, csc: str) -> list[PaymentsDetailDTO]:
 
 
 
-def get_rcc_format(tipo_docto: str, csc: str) -> RccFormatDTO:
+def get_rcc_format(csc: str) -> RccFormatDTO:
     """
     Llama a PaymentsClient.get_rcc_format y normaliza a RccFormatDTO.
     """
@@ -165,9 +165,9 @@ def get_rcc_format(tipo_docto: str, csc: str) -> RccFormatDTO:
     return RccFormatDTO.from_conekta(row)
 
 
-def get_cet_format(tipo_docto: str, csc: str) -> RccFormatDTO:
+def get_cet_format(csc: str) -> CetFormatDTO:
     """
-    Llama a PaymentsClient.get_rcc_format y normaliza a RccFormatDTO.
+    Llama a PaymentsClient.get_rcc_format y normaliza a CetFormatDTO.
     """
     client = PaymentsClient()
     raw    = client.fetch_cet_format(csc)
@@ -177,5 +177,5 @@ def get_cet_format(tipo_docto: str, csc: str) -> RccFormatDTO:
         row = raw.get("detalle", {}).get("Table", [])[0] or {}
     except Exception:
         row = {}
-    return RccFormatDTO.from_conekta(row)
+    return CetFormatDTO.from_conekta(row)
 

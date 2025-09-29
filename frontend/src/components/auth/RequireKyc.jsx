@@ -16,7 +16,7 @@ export default function RequireKyc() {
         setChecking(true);
         setError("");
         const token = localStorage.getItem("accessToken");
-        const res = await fetch("/api/kyc/submissions/status", {
+        const res = await fetch("/api/kyc/submissions/status/", {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         const data = await res.json().catch(() => ({}));

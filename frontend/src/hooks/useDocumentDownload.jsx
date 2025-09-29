@@ -5,6 +5,7 @@ import { pdf } from "@react-pdf/renderer";
 import { RccPdfDocument } from "../components/format/RccPdfDocument";
 import { NacPdfDocument } from "../components/format/NacPdfDocument";
 import { RetPdfDocument } from "../components/format/RetPdfDocument";
+import { CetPdfDocument } from "../components/format/CetpdfDocument";
 
 
 
@@ -73,7 +74,7 @@ export function useDocumentDownload(tipo, onRowClick) {
         return;
       } 
       else if (tipoDocumento === "CET") {
-        await generarPDF("CET", after, RccPdfDocument, "payments", "cet-format");
+        await generarPDF("CET", after, CetPdfDocument, "payments", "cet-format");
         return;
       } 
       else if (tipoDocumento === "NAC") {

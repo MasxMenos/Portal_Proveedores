@@ -26,6 +26,7 @@ SECRET_KEY = "django-insecure-crpd@9dbz*(c#&^lvo1k^olh+0&mxib@7(*ir)#nkq7c!p!xby
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+KYC_RENEWAL_MONTHS = 6
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
