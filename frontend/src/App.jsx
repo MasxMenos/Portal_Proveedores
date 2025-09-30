@@ -27,10 +27,7 @@ export default function App() {
 
         {/* Protegidas: primero auth, luego KYC */}
         <Route element={<RequireAuth />}>
-          <Route element={<RequireKyc />}>
-            {/* KYC form (también protegido, pero accesible siempre que esté logueado) */}
             <Route path="/kyc" element={<KycFormPage />} />
-        </Route>
             <Route path="/inicio" element={<InicioPage />} />
             <Route path="/configuracion_perfil" element={<ProfileSettingsPage />} />
             <Route path="/facturas" element={<FacturasPage />} />
