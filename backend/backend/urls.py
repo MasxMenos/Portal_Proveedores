@@ -4,15 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 import os
-
-# Import opcional del endpoint de documentos:
-# si la app `documentos` no existe, no rompemos el arranque.
-try:
-    from documentos.views import lookup_document as documentos_lookup
-    HAS_DOCUMENTOS_APP = True
-except Exception:
-    HAS_DOCUMENTOS_APP = False
-    documentos_lookup = None
+from documents.views import lookup_document
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -24,13 +16,8 @@ urlpatterns = [
     path("api/users/", include("users.urls")),
     path("api/kyc/", include("kyc.urls")),
     path("api/homepage/", include("homepage.urls")),
+    path("api/documentos/<str:code>/", lookup_document, name="api-documentos-lookup"),
 ]
-
-# Endpoint /api/documentos/<code>/ SOLO si la app existe
-if HAS_DOCUMENTOS_APP and documentos_lookup:
-    urlpatterns += [
-        path("api/documentos/<str:code>/", documentos_lookup, name="api-documentos-lookup"),
-    ]
 
 # --- Archivos estáticos y media en DEV ---
 # Sirve MEDIA_URL desde MEDIA_ROOT (no dupliques con otro `static()` a 'documentos/')
