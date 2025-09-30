@@ -121,5 +121,4 @@ class TopProductsView(APIView):
         )
 
         serializer = TopProductsSerializer(dtos, many=True)
-        print(serializer.data)
         return Response(serializer.data)

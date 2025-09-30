@@ -5,7 +5,6 @@ from typing import List
 
 def get_records(raw: dict) -> List[dict]:
     records = []
-    print(raw)
     if isinstance(raw, dict):
         detalle = raw.get("detalle") or raw.get("Detalle") 
         if isinstance(detalle, dict):

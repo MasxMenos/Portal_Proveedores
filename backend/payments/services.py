@@ -139,8 +139,8 @@ def get_payments_detail(tipo_docto: str, csc: str) -> list[PaymentsDetailDTO]:
             CO        = co,
             documento = item.get("Documento_Cruce_Proveedor", ""),
             fecha     = item.get("Fecha_Inicial", ""),
-            debitos   = _safe_number(item.get("Totales_Inicial_JSON"), "Debitos"),
-            creditos  = _safe_number(item.get("Totales_Inicial_JSON"), "Creditos"),
+            debitos   = _safe_number(item.get("Movimiento_Contable"), "Debitos"),
+            creditos  = _safe_number(item.get("Movimiento_Contable"), "Creditos"),
             movements = _parse_movements(item.get("Movimiento_Contable"), co),
             retencion = _parse_retenciones(item.get("Retencion_JSON")),
         )
