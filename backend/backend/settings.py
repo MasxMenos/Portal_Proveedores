@@ -58,8 +58,9 @@ INSTALLED_APPS = [
     'payments',        
     'returns',         
     'certificates',
+    "documents",
     "channels",
-    "channels_redis",   #  solo si usas Redis como layer
+    "channels_redis",
     "homepage", 
 
 ]
