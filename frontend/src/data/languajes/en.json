@@ -252,7 +252,7 @@
     "certificatesTable": "Here you can check your tax certificates.",
     "buttons": {
       "goToHome": "Go to Home",
-      "goToInvoices": "Go to Invoices",
+      "goToInvoices": "Go to payments",
       "viewDetail": "View detail"
     }
   },
