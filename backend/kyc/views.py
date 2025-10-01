@@ -42,12 +42,14 @@ class CountryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = GeoCountrySerializer
     authentication_classes = [PrvUsuarioJWTAuthentication]
     permission_classes = [IsAuthenticatedSimple]
+    pagination_class = None
 
 
 class RegionViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = GeoRegionSerializer
     authentication_classes = [PrvUsuarioJWTAuthentication]
     permission_classes = [IsAuthenticatedSimple]
+    pagination_class = None
 
     def get_queryset(self):
         qs = GeoRegion.objects.all().order_by("name")
@@ -61,6 +63,7 @@ class CityViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = GeoCitySerializer
     authentication_classes = [PrvUsuarioJWTAuthentication]
     permission_classes = [IsAuthenticatedSimple]
+    pagination_class = None
 
     def get_queryset(self):
         qs = GeoCity.objects.all().order_by("name")
@@ -74,6 +77,7 @@ class BankViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = BankSerializer
     authentication_classes = [PrvUsuarioJWTAuthentication]
     permission_classes = [IsAuthenticatedSimple]
+    pagination_class = None
 
     def get_queryset(self):
         qs = Bank.objects.all().order_by("name")
@@ -281,6 +285,12 @@ class KycFormSubmissionViewSet(viewsets.GenericViewSet,
         if getattr(tipo_inst, "expires_in_days", None):
             base = doc_date or now().date()
             expires_at = base + timedelta(days=int(tipo_inst.expires_in_days))
+        
+        # después de resolver tipo_inst
+        if getattr(tipo_inst, "expires_in_days", None):
+            if not fecha_str:
+                return Response({"detail": "Este tipo requiere fecha (yyyy-mm-dd)."}, status=400)
+
 
         # 7) persistir documento (modelo alíneado a tu tabla)
         doc = KycDocument.objects.create(

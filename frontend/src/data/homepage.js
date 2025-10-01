@@ -1,10 +1,3 @@
-  export const metrics = {
-    servicio: "1250",
-    ventas: "$152.345",
-    productos: "1250",
-    crecimiento: "25%",
-  };
-
   export const totalSalesData = [
     { month: "Ene", value: 50000 },
     { month: "Feb", value: 52000 },
@@ -14,13 +7,13 @@
     { month: "Jun", value: 65000 },
   ];
 
-  export const topProductsData = [
-    { name: "Leche", value: 12 },
-    { name: "Kumis", value: 11 },
-    { name: "Avena", value: 10 },
-    { name: "Queso", value: 8 },
-    { name: "Alpinito", value: 5 },
-  ];
+  // export const topProductsData = [
+  //   { name: "Leche", value: 12 },
+  //   { name: "Kumis", value: 11 },
+  //   { name: "Avena", value: 10 },
+  //   { name: "Queso", value: 8 },
+  //   { name: "Alpinito", value: 5 },
+  // ];
 
   export const contacts = [
     { tipo: "Conciliaciones", email: "conciliaciones@mxm.com.co", note: "Para conciliaciones" },
@@ -29,3 +22,5 @@
     { tipo: "Director de abastecimiento", email: "dir.abastecimiento@mxm.com.co", note: "Escribir si no hay orden de compra" },
     { tipo: "Líder de abastecimiento", email: "lider.abastecimiento@mxm.com.co", note: "Escribir si no hay orden de compra" },
   ];
+
+

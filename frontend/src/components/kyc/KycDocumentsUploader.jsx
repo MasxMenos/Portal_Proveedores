@@ -12,13 +12,15 @@ const DOC_TYPES = [
 
 export default function KycDocumentsUploader({
   token,
-  submissionId,          // puede venir null: el backend creará una submission "current" al primer upload
-  requiredCodes = [],     // del status
-  missingCodes = [],      // del status
+  // submissionId  // <- NO se usa en modo diferido
+  requiredCodes = [],
+  missingCodes = [],
   isDark,
-  onUploaded,             // callback tras subir exitosamente
+  onUploaded,          // se usa solo en modo immediate (opcional)
+  mode = "immediate",  // NEW: "immediate" | "deferred"
+  queue,               // NEW: { [code]: { file, date } }
+  onQueueChange,       // NEW
 }) {
-
   // Mostrar SOLO los tipos requeridos si te interesa. Si quieres mostrar todos, usa DOC_TYPES sin filtrar.
   const typesToShow = useMemo(() => {
     if (!requiredCodes || requiredCodes.length === 0) return DOC_TYPES;
@@ -26,9 +28,9 @@ export default function KycDocumentsUploader({
     return DOC_TYPES.filter(dt => requiredSet.has(dt.code));
   }, [requiredCodes]);
 
-  const [files, setFiles] = useState({});   // code -> File
+  const [files, setFiles] = useState({});   // code -> File (selección local)
   const [dates, setDates] = useState({});   // code -> 'YYYY-MM-DD'
-  const [busy, setBusy] = useState(null);   // code en subida
+  const [busy, setBusy] = useState(null);   // code en acción
   const [msg, setMsg] = useState({});       // code -> mensaje
 
   // refs a inputs ocultos por código
@@ -49,7 +51,20 @@ export default function KycDocumentsUploader({
     setMsg(m => ({ ...m, [code]: "" }));
   };
 
-  const uploadOne = async (code) => {
+    const addToQueue = (code) => {
+    const cfg = typesToShow.find(t => t.code === code);
+    const needDate = !!cfg?.dateLabel;
+    const file = files[code] || null;
+    const date = dates[code] || "";
+    if (!file) { setMsg(m => ({ ...m, [code]: "Selecciona un archivo." })); return; }
+    if (needDate && !date) { setMsg(m => ({ ...m, [code]: "Debes indicar la fecha." })); return; }
+    const current = queue || {};
+    const next = { ...current, [code]: { file, date: needDate ? date : undefined } };
+    onQueueChange && onQueueChange(next);
+    setMsg(m => ({ ...m, [code]: "Agregado a la cola. Se subirá al guardar." }));
+  };
+
+  const uploadOneImmediate = async (code) => {
     setMsg(m => ({ ...m, [code]: "" }));
     const cfg = typesToShow.find(t => t.code === code);
     const needDate = !!cfg?.dateLabel;
@@ -67,7 +82,6 @@ export default function KycDocumentsUploader({
     }
 
     const formData = new FormData();
-    if (submissionId) formData.append("submission_id", submissionId); // opcional
     formData.append("tipo", code);
     formData.append("file", file);
     if (needDate) formData.append("fecha", date);
@@ -157,21 +171,31 @@ export default function KycDocumentsUploader({
                   <span className="text-xs truncate max-w-[240px]">{file ? file.name : "Ningún archivo seleccionado"}</span>
                 </div>
               </div>
-
               <div className="flex items-center md:justify-end">
-                <button
-                  type="button"
-                  onClick={() => uploadOne(dt.code)}
-                  disabled={disableUpload}
-                  className={`px-4 py-2 rounded text-sm ${disableUpload ? "opacity-50 cursor-not-allowed" : (isDark ? "bg-zinc-800 hover:bg-zinc-700 text-white" : "bg-gray-900 hover:bg-black text-white")}`}
-                >
-                  {busy === dt.code ? "Subiendo…" : "Subir"}
-                </button>
+                {mode === "deferred" ? (
+                  <button
+                    type="button"
+                    onClick={() => addToQueue(dt.code)}
+                    disabled={disableUpload}
+                    className={`px-4 py-2 rounded text-sm ${disableUpload ? "opacity-50 cursor-not-allowed" : (isDark ? "bg-zinc-800 hover:bg-zinc-700 text-white" : "bg-gray-900 hover:bg-black text-white")}`}
+                  >
+                    Agregar
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => uploadOneImmediate(dt.code)}
+                    disabled={disableUpload}
+                    className={`px-4 py-2 rounded text-sm ${disableUpload ? "opacity-50 cursor-not-allowed" : (isDark ? "bg-zinc-800 hover:bg-zinc-700 text-white" : "bg-gray-900 hover:bg-black text-white")}`}
+                  >
+                    {busy === dt.code ? "Subiendo…" : "Subir"}
+                  </button>
+                )}
               </div>
             </div>
 
             {!!(msg[dt.code]) && (
-              <p className={`text-xs mt-2 ${/correctamente/i.test(msg[dt.code]) ? (isDark ? "text-green-400" : "text-green-600") : (isDark ? "text-red-400" : "text-red-600")}`}>
+              <p className={`text-xs mt-2 ${/correctamente|cola/i.test(msg[dt.code]) ? (isDark ? "text-green-400" : "text-green-600") : (isDark ? "text-red-400" : "text-red-600")}`}>
                 {msg[dt.code]}
               </p>
             )}

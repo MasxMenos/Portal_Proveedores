@@ -262,10 +262,17 @@
   "servicio": "Niveau de service",
   "ventas": "Montant total facturé",
   "productos": "Unités totales facturées",
-  "crecimiento": "% de croissance"
+  "crecimiento": "taux de croissance"
     },
-    "totalSales": "Total des ventes",
-    "topProducts": "Meilleurs produits",
+    "totalSales": {
+      "title": "Total des ventes",
+      "graphiqueLabel": "Valeur"
+    },
+    "topProducts": 
+    {
+      "title": "Meilleurs produits",
+      "graphiqueLabel": "Quantité"
+    },
     "contacts": {
       "title": "Contacts",
       "tipo": "Type",
