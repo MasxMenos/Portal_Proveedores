@@ -194,6 +194,9 @@
     }
   },
   "detail": {
+    "checkboxTooltip": "Marcar como revisado",
+    "collapse": "Contraer",
+    "expand": "expandir",
     "master": {
       "labelDocumento": "Documento",
       "CO": "CO",
@@ -250,7 +253,7 @@
     "certificatesTable": "Aquí puedes consultar tus certificados tributarios.",
     "buttons": {
       "goToHome": "Ir a Inicio",
-      "goToInvoices": "Ir a Facturas",
+      "goToInvoices": "Ir a Pagos",
       "viewDetail": "Ver detalle"
     }
   },
@@ -260,10 +263,17 @@
       "servicio": "Nivel de servicio",
       "ventas": "Valor total facturado",
       "productos": "Und totales facturadas",
-      "crecimiento": "% de Crecimiento"
+      "crecimiento": "Tasa de Crecimiento"
     },
-    "totalSales": "Ventas totales",
-    "topProducts": "Productos destacados",
+    "totalSales": {
+      "title": "Ventas totales",
+      "graphiqueLabel": "Valor"
+    },
+    "topProducts": 
+    {
+      "title": "Productos destacados",
+      "graphiqueLabel": "Cantidad"
+    },
     "contacts": {
       "title": "Contactos",
       "tipo": "Tipo",

@@ -13,14 +13,11 @@ class GeoCountrySerializer(serializers.ModelSerializer):
 
 
 class GeoRegionSerializer(serializers.ModelSerializer):
-    # OJO: NO usar source='country_id'. DRF accede al atributo country_id del modelo.
     class Meta:
         model = GeoRegion
         fields = ("id", "country_id", "code", "name")
 
-
 class GeoCitySerializer(serializers.ModelSerializer):
-    # Igual aquí: nada de source.
     class Meta:
         model = GeoCity
         fields = ("id", "region_id", "name")
@@ -50,7 +47,12 @@ class KycDocumentSerializer(serializers.ModelSerializer):
 
 # --------- KYC Submission ----------
 class KycFormSubmissionSerializer(serializers.ModelSerializer):
-    # Exponemos los *_id directamente (sin source).
+    country_id       = serializers.IntegerField(required=False, allow_null=True)
+    region_id        = serializers.IntegerField(required=False, allow_null=True)
+    city_id          = serializers.IntegerField(required=False, allow_null=True)
+    bank_country_id  = serializers.IntegerField(required=False, allow_null=True)
+    bank_id          = serializers.IntegerField(required=False, allow_null=True)
+
     class Meta:
         model = KycFormSubmission
         fields = (
@@ -58,7 +60,6 @@ class KycFormSubmissionSerializer(serializers.ModelSerializer):
 
             "tipo_doc", "nit_base", "nit_dv",
             "primer_nombre", "otros_nombres", "primer_apellido", "segundo_apellido",
-            #"nombres", "apellidos",
             "direccion_fiscal",
 
             "country_id", "region_id", "city_id",

@@ -2,6 +2,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+
 export default function EntidadFilters({
   isDark,
   fechaInicio,
@@ -59,6 +60,8 @@ export default function EntidadFilters({
       >
         {t("entity.filters.consult")}
       </button>
+
+    
     </div>
   );
 }

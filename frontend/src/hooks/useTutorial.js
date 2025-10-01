@@ -69,7 +69,7 @@ export default function useTutorial() {
       id: "sidebar-intro",
       text: t("tutorial.sidebarIntro"),
       attachTo: { element: "aside", on: "right" },
-      buttons: [skipTo(tour, "nav-facturas"), nextBtn(tour)],
+      buttons: [skipTo(tour, "nav-pagos"), nextBtn(tour)],
     });
 
     // Paso 2: ir a Inicio
@@ -79,7 +79,7 @@ export default function useTutorial() {
       attachTo: { element: "a[href='/inicio']", on: "right" },
       buttons: [
         backBtn(tour, "sidebar-intro"),
-        skipTo(tour, "nav-facturas"),
+        skipTo(tour, "nav-pagos"),
         {
           text: t("tutorial.buttons.goToHome"),
           classes: btnStyle,
@@ -112,7 +112,7 @@ export default function useTutorial() {
             tour,
             i === 0 ? "nav-inicio" : `inicio-metrica-${metricKeys[i - 1]}`
           ),
-          skipTo(tour, "nav-facturas"),
+          skipTo(tour, "nav-pagos"),
           nextBtn(tour),
         ],
       });
@@ -125,7 +125,7 @@ export default function useTutorial() {
       attachTo: { element: "#inicio-ventas-chart", on: "top" },
       buttons: [
         backBtn(tour, "inicio-metrica-crecimiento"),
-        skipTo(tour, "nav-facturas"),
+        skipTo(tour, "nav-pagos"),
         nextBtn(tour),
       ],
     });
@@ -137,7 +137,7 @@ export default function useTutorial() {
       attachTo: { element: "#inicio-ventas-top", on: "top" },
       buttons: [
         backBtn(tour, "inicio-ventas-chart"),
-        skipTo(tour, "nav-facturas"),
+        skipTo(tour, "nav-pagos"),
         nextBtn(tour),
       ],
     });
@@ -152,9 +152,9 @@ export default function useTutorial() {
 
     // ===== Sección Facturas =====
     tour.addStep({
-      id: "nav-facturas",
+      id: "nav-pagos",
       text: t("tutorial.goToInvoices"),
-      attachTo: { element: "a[href='/facturas']", on: "right" },
+      attachTo: { element: "a[href='/pagos']", on: "right" },
       buttons: [
         backBtn(tour, "inicio-contactos", "/inicio"),
         skipBtn(tour),
@@ -163,7 +163,7 @@ export default function useTutorial() {
           classes: btnStyle,
           action: () => {
             tour.hide();
-            navigate("/facturas");
+            navigate("/pagos");
             const waiter = setInterval(() => {
               if (document.querySelector(".entity-table")) {
                 clearInterval(waiter);
@@ -180,7 +180,7 @@ export default function useTutorial() {
       text: t("tutorial.selectDocType"),
       attachTo: { element: "#botones_consulta", on: "bottom-start" },
       buttons: [
-        backBtn(tour, "nav-facturas", "/facturas"),
+        backBtn(tour, "nav-pagos", "/pagos"),
         skipBtn(tour),
         nextBtn(tour),
       ],

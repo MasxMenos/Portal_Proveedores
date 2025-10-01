@@ -73,8 +73,6 @@ def create_new_submission(user, data: dict) -> KycFormSubmission:
         otros_nombres=data.get("otros_nombres"),
         primer_apellido=data.get("primer_apellido"),
         segundo_apellido=data.get("segundo_apellido"),
-        #nombres=data.get("nombres"),
-        #apellidos=data.get("apellidos"),
 
         direccion_fiscal=data.get("direccion_fiscal"),
 
@@ -135,18 +133,15 @@ def create_new_submission(user, data: dict) -> KycFormSubmission:
         acepta_otras_declaraciones=bool(data.get("acepta_otras_declaraciones")),
         acepta_veracidad_info=bool(data.get("acepta_veracidad_info")),
         acepta_tratamiento_datos=bool(data.get("acepta_tratamiento_datos")),
-        completed_at=now(),  # lo marcas completado al guardar
+        completed_at=None,
     )
 
     # 4) Actualizar prv_usuarios (no toco el resto de columnas)
     #    - form_last_completed = hoy
     #    - form_next_due = hoy + 6 meses (≈ 180 días)
-    user.form_last_completed = now().date()
-    #user.form_next_due = (now() + timedelta(days=180)).date()
-    # user.require_form = False
-    # user.save(update_fields=["form_last_completed", "require_form"])
-    # user.require_form = False
-    user.save(update_fields=["form_last_completed"])
+    user.nit_dv = data.get("nit_dv")
+    user.correo = (data.get("correo") or "").upper()
+    user.save(update_fields=["nit_dv", "correo"])
 
     return sub
 

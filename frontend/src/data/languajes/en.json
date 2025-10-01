@@ -193,6 +193,9 @@
     }
   },
   "detail": {
+    "checkboxTooltip": "Mark as reviewed",
+    "collapse": "collapse",
+    "expand": "expand",
     "master": {
       "labelDocumento": "Document",
       "CO": "CO",
@@ -249,7 +252,7 @@
     "certificatesTable": "Here you can check your tax certificates.",
     "buttons": {
       "goToHome": "Go to Home",
-      "goToInvoices": "Go to Invoices",
+      "goToInvoices": "Go to payments",
       "viewDetail": "View detail"
     }
   },
@@ -259,10 +262,17 @@
   "servicio": "Service level",
   "ventas": "Total billed amount",
   "productos": "Total units billed",
-  "crecimiento": "% growth"
+  "crecimiento": "growth rate"
     },
-    "totalSales": "Total sales",
-    "topProducts": "Top Products",
+    "totalSales": {
+      "title": "Total sales",
+      "graphiqueLabel": "Value"
+    },
+    "topProducts": 
+    {
+      "title": "Top Products",
+      "graphiqueLabel": "Quantity"
+    },
     "contacts": {
       "title": "Contacts",
       "tipo": "Type",

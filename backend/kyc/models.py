@@ -134,9 +134,6 @@ class KycFormSubmission(models.Model):
     otros_nombres    = models.CharField(max_length=100, null=True, blank=True)
     primer_apellido  = models.CharField(max_length=100, null=True, blank=True)
     segundo_apellido = models.CharField(max_length=100, null=True, blank=True)
-
-    # nombres/apellidos compuestos: NO existen en tu tabla -> omitidos
-
     direccion_fiscal = models.CharField(max_length=255, null=True, blank=True)
 
     # Ubicación normalizada

@@ -13,6 +13,7 @@ export function useMeasurePositions(masterRef, containerRect, lines, childRefs, 
         const headerEl = ref.current.querySelector(".child-header");
         if (!headerEl) return;
         const rc = headerEl.getBoundingClientRect();
+        
         childPos[line.id] = { x: rc.left - 30, y: rc.top + rc.height / 2 };
       }
     });

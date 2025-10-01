@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Moon, Sun, HelpCircle, LanguagesIcon } from "lucide-react";
 import { useTheme } from "./ThemeContext";
-import SearchBar from "./header/SearchBar";
+//import SearchBar from "./header/SearchBar";
 import ProfileMenu from "./header/ProfileMenu";
 import Shepherd from "shepherd.js";
 import "shepherd.js/dist/css/shepherd.css";
@@ -22,7 +22,9 @@ export default function HeaderSuperior({
   const { startTutorial } = useTutorial();
   const { t, i18n } = useTranslation();
   const location = useLocation();
-
+  const pathname = location.pathname || "/";
+  //const isHome =pathname === "/" || pathname === "/inicio" || pathname.startsWith("/inicio/"); // por si hay subrutas
+  
   // Para el breadcrumb, extraemos el posible detalle tras la primera ruta:
   const segments = location.pathname.split("/").filter(Boolean);
   const detailSlug = segments.length > 1 ? segments[1] : null;
@@ -80,7 +82,9 @@ export default function HeaderSuperior({
           </span>
 
           <div className="flex items-center space-x-3">
-            <SearchBar isDark={isDark} onSearch={onSearch} />
+            {/*{!isHome && ( 
+             <SearchBar isDark={isDark} onSearch={onSearch} />
+            )}*/}
 
             {/* Selector de idioma */}
             <div className="relative">

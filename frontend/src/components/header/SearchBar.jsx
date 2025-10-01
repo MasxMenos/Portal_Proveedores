@@ -14,7 +14,7 @@ export default function SearchBar({ isDark, onSearch }) {
   };
 
   return (
-    <div className="relative hidden sm:block">
+    <div className="relative">
       <Search
         size={22}
         className={`absolute left-2 top-1/2 -translate-y-1/2 ${

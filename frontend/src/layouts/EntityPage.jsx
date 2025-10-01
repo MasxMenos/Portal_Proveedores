@@ -6,6 +6,7 @@ import HeaderSuperior from "../components/MainHeader";
 import EntidadFilters from "../components/entity/EntityFilters";
 import EntidadDownloadButton from "../components/entity/EntityDownloadButton";
 import EntidadTable from "../components/entity/EntityTable";
+import SearchBar from "../components/header/SearchBar";
 
 import { useTheme } from "../components/ThemeContext";
 import { usePagination } from "../hooks/usePagination";
@@ -166,8 +167,11 @@ export default function EntidadPage({
                 {label}
               </button>
             ))}
+            
           </div>
         )}
+
+      <SearchBar isDark={isDark} onSearch={setSearchTerm} />
 
         {/* ─── Filtros de fecha ─────────────────── */}
         <EntidadFilters
@@ -178,6 +182,8 @@ export default function EntidadPage({
           onEndChange={onEndChange}
           onConsultar={onConsultar}
         />
+
+        
 
         {/* ─── Exportar XLSX ─────────────────── */}
         <EntidadDownloadButton
