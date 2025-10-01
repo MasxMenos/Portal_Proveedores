@@ -253,7 +253,7 @@
     "certificatesTable": "Aquí puedes consultar tus certificados tributarios.",
     "buttons": {
       "goToHome": "Ir a Inicio",
-      "goToInvoices": "Ir a Facturas",
+      "goToInvoices": "Ir a Pagos",
       "viewDetail": "Ver detalle"
     }
   },

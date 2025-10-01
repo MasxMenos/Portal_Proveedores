@@ -73,13 +73,7 @@ export async function fetchAllMetrics({ nit, token, origin = window.location.ori
 
 
 export function getGrowth(data) {
-    let finallyGrowth = 0
-    data.map((item, index, arr) => {
-        if (index != 0) {
-            const prev = arr[index - 1].value;
-            const growth = ((item.value / prev) - 1) * 100;
-            finallyGrowth += Number.parseFloat(growth.toFixed(2));
-        }  
-    });
+    
+    let finallyGrowth =  Number.parseFloat(((data[data.length-1].value/data[0].value)-1)*100) ;
     return finallyGrowth.toFixed(2) + '%';
 }

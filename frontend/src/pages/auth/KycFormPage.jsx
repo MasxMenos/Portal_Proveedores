@@ -2096,12 +2096,8 @@ const handleSubmit = async (e) => {
             <div className="flex items-center justify-between gap-4">
               <button
                 type="button"
-                onClick={() => navigate("/inicio", { replace: true })}
-                className={`px-4 py-2 rounded border text-sm ${
-                  isDark
-                    ? "border-zinc-700 hover:bg-zinc-800"
-                    : "border-gray-300 hover:bg-gray-200"
-                }`}
+                onClick={() => navigate("/login", { replace: true })}
+                className={`px-4 py-2 rounded border text-sm ${isDark ? "border-zinc-700 hover:bg-zinc-800" : "border-gray-300 hover:bg-gray-200"}`}
               >
                 Salir
               </button>
