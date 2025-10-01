@@ -5,7 +5,7 @@ import { pdf } from "@react-pdf/renderer";
 import { RccPdfDocument } from "../components/format/RccPdfDocument";
 import { NacPdfDocument } from "../components/format/NacPdfDocument";
 import { RetPdfDocument } from "../components/format/RetPdfDocument";
-import { CetPdfDocument } from "../components/format/CetpdfDocument";
+import { CetPdfDocument } from "../components/format/CetPdfDocument";
 
 
 
