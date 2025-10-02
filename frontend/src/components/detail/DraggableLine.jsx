@@ -3,6 +3,7 @@ import React, { forwardRef, useMemo } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useTheme } from "../ThemeContext";
 import { useTranslation } from "react-i18next";
+import Paginator from "../detail/Paginator";
 
 const DraggableLine = forwardRef(
   (
@@ -14,8 +15,6 @@ const DraggableLine = forwardRef(
       totalPaginas = 1,
       paginaActual = 1,
       setPaginaActual,
-      isChecked = false,
-      onToggleChecked,
     },
     ref
   ) => {
@@ -23,6 +22,7 @@ const DraggableLine = forwardRef(
     const { t } = useTranslation();
     const isDark = theme === "dark";
 
+    // ---- tablas auxiliares ----
     const renderMovementsTable = () => {
       if (!movementsPaginados.length) return null;
       return (
@@ -93,6 +93,18 @@ const DraggableLine = forwardRef(
       []
     );
 
+    // === Calcular datos para Paginator (movimientos) ===
+    const blockSize = 4;
+    const blockIndex = Math.floor((paginaActual - 1) / blockSize);
+    const start = blockIndex * blockSize + 1;
+    const end = Math.min(start + blockSize - 1, totalPaginas);
+
+    const pageNumbers = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+    const hasPrevGroup = blockIndex > 0;
+    const hasNextGroup = (blockIndex + 1) * blockSize < totalPaginas;
+    const prevGroupPage = hasPrevGroup ? (blockIndex - 1) * blockSize + 1 : null;
+    const nextGroupPage = hasNextGroup ? (blockIndex + 1) * blockSize + 1 : null;
+
     const labelClass = isDark ? "text-gray-400" : "text-gray-500";
 
     return (
@@ -106,131 +118,97 @@ const DraggableLine = forwardRef(
             isDark ? "bg-[#111] border-[#2a2a2a] text-gray-200" : "bg-white border-gray-200 text-gray-800",
           ].join(" ")}
         >
-{/* ===== Header (checkbox en su propia COLUMNA + contenido) ===== */}
-<div className="relative">
+          {/* ===== Header (solo contenido, sin checkbox) ===== */}
+          <div className="relative">
+            {/* Botón expandir: fijo a la derecha y centrado vertical en desktop */}
+            <button
+              type="button"
+              onClick={() => setExpanded((p) => ({ ...p, [line.id]: !p[line.id] }))}
+              aria-expanded={!!expanded[line.id]}
+              className="hidden lg:flex items-center justify-center absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10"
+              title={expanded[line.id] ? t("detail.collapse", "Contraer") : t("detail.expand", "Expandir")}
+            >
+              {expanded[line.id] ? (
+                <ChevronDown size={18} className="text-gray-400" />
+              ) : (
+                <ChevronRight size={18} className="text-gray-400" />
+              )}
+            </button>
 
-  {/* Botón expandir: fijo a la derecha y centrado vertical en desktop */}
-  <button
-    type="button"
-    onClick={() => setExpanded((p) => ({ ...p, [line.id]: !p[line.id] }))}
-    aria-expanded={!!expanded[line.id]}
-    className="hidden lg:flex items-center justify-center absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded hover:bg-black/5 dark:hover:bg-white/10"
-    title={expanded[line.id] ? t('detail.collapse','Contraer') : t('detail.expand','Expandir')}
-  >
-    {expanded[line.id] ? (
-      <ChevronDown size={18} className="text-gray-400" />
-    ) : (
-      <ChevronRight size={18} className="text-gray-400" />
-    )}
-  </button>
+            {/* Contenido (sin columna de checkbox) */}
+            <div
+              className={[
+                "py-4 md:py-5",
+                "max-h-[62vh] md:max-h-[68vh] overflow-y-auto",
+                "lg:overflow-visible lg:max-h-none",
+              ].join(" ")}
+            >
+              {/* xs/sm/md: label + value con scroll-x si se desborda */}
+              <div className="lg:hidden overflow-x-auto">
+                <div className="grid grid-cols-1 gap-y-2 min-w-[420px]">
+                  {[
+                    { label: t("detail.master.CO", "CO"), value: line.CO, mono: true },
+                    { label: t("detail.master.labelDocumento", "Documento"), value: line.documento },
+                    { label: t("detail.master.providerDate", "Fecha proveedor"), value: line.fecha },
+                    { label: t("detail.movements.debits", "Débitos"), value: (line.debitos ?? 0).toLocaleString() },
+                    { label: t("detail.movements.credits", "Créditos"), value: (line.creditos ?? 0).toLocaleString() },
+                  ].map(({ label, value, mono }, i) => (
+                    <div key={i} className="flex items-baseline gap-2 min-w-0">
+                      <span className={`shrink-0 ${labelClass}`}>{label}</span>
+                      <span
+                        className={["min-w-0", mono ? "font-mono" : "", "truncate break-words"].join(" ")}
+                        title={value ?? ""}
+                      >
+                        {value ?? "-"}
+                      </span>
+                    </div>
+                  ))}
 
-  {/* Grid con COLUMNA para checkbox (izq) y COLUMNA para contenido (der) */}
-  <div
-    className={[
-      // 2 columnas: [checkbox | contenido]
-      "grid grid-cols-[28px_1fr] md:grid-cols-[32px_1fr] lg:grid-cols-[40px_1fr] gap-x-3",
-      // alturas/scroll: sm/md scrolleable; en lg+ sin límite
-      "py-4 md:py-5",
-      "max-h-[62vh] md:max-h-[68vh] overflow-y-auto",
-      "lg:overflow-visible lg:max-h-none",
-    ].join(" ")}
-  >
-
-    {/* Columna 1: checkbox (alineado cerca de 'CO' en sm/md, centrado vertical en lg+) */}
-    <div className="flex">
-      <input
-        type="checkbox"
-        checked={isChecked}
-        onChange={(e) => onToggleChecked(e.target.checked)}
-        title={t('detail.checkboxTooltip','Marcar como revisado')}
-        className={[
-          "w-4 h-4 accent-brand-500 cursor-pointer",
-          // en móvil/tablet, un poco más abajo para quedar a la altura de CO
-          "mt-1 md:mt-1.5",
-          // en desktop centrado vertical respecto al bloque derecho
-          "lg:mt-0 lg:self-center",
-        ].join(" ")}
-      />
-    </div>
-
-    {/* Columna 2: contenido */}
-    <div className="min-w-0">
-      {(() => {
-        const labelClass = isDark ? "text-gray-400" : "text-gray-500";
-        const fields = [
-          { label: t("detail.master.CO", "CO"), value: line.CO, mono: true },
-          { label: t("detail.master.labelDocumento", "Documento"), value: line.documento },
-          { label: t("detail.master.providerDate", "Fecha proveedor"), value: line.fecha },
-          { label: t("detail.movements.debits", "Débitos"), value: (line.debitos ?? 0).toLocaleString() },
-          { label: t("detail.movements.credits", "Créditos"), value: (line.creditos ?? 0).toLocaleString() },
-        ];
-
-        return (
-          <>
-            {/* xs/sm/md: label + value en una línea; habilita scroll-x si se desborda */}
-            <div className="lg:hidden overflow-x-auto">
-              <div className="grid grid-cols-1 gap-y-2 min-w-[420px]">
-                {fields.map(({ label, value, mono }, i) => (
-                  <div key={i} className="flex items-baseline gap-2 min-w-0">
-                    <span className={`shrink-0 ${labelClass}`}>{label}</span>
-                    <span
-                      className={[
-                        "min-w-0",
-                        mono ? "font-mono" : "",
-                        "truncate break-words",
-                      ].join(" ")}
-                      title={value ?? ""}
+                  {/* Botón expandir debajo en sm/md */}
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded hover:bg-black/5 dark:hover:bg-white/10"
+                      onClick={() => setExpanded((p) => ({ ...p, [line.id]: !p[line.id] }))}
+                      aria-expanded={!!expanded[line.id]}
                     >
-                      {value ?? "-"}
-                    </span>
+                      {expanded[line.id] ? (
+                        <>
+                          <ChevronDown size={18} className="text-gray-500" />
+                          <span className="text-sm">{t("detail.collapse", "Contraer")}</span>
+                        </>
+                      ) : (
+                        <>
+                          <ChevronRight size={18} className="text-gray-500" />
+                          <span className="text-sm">{t("detail.expand", "Expandir")}</span>
+                        </>
+                      )}
+                    </button>
                   </div>
-                ))}
+                </div>
+              </div>
 
-                {/* Botón expandir debajo en sm/md */}
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded hover:bg-black/5 dark:hover:bg-white/10"
-                    onClick={() => setExpanded((p) => ({ ...p, [line.id]: !p[line.id] }))}
-                    aria-expanded={!!expanded[line.id]}
-                  >
-                    {expanded[line.id] ? (
-                      <>
-                        <ChevronDown size={18} className="text-gray-500" />
-                        <span className="text-sm">{t("detail.collapse","Contraer")}</span>
-                      </>
-                    ) : (
-                      <>
-                        <ChevronRight size={18} className="text-gray-500" />
-                        <span className="text-sm">{t("detail.expand","Expandir")}</span>
-                      </>
-                    )}
-                  </button>
+              {/* lg+: grid 5 columnas */}
+              <div className="hidden lg:grid w-full grid-cols-5 gap-x-8 gap-y-1 items-center text-sm">
+                {/* labels */}
+                <div className={labelClass}>{t("detail.master.CO", "CO")}</div>
+                <div className={labelClass}>{t("detail.master.labelDocumento", "Documento")}</div>
+                <div className={labelClass}>{t("detail.master.providerDate", "Fecha proveedor")}</div>
+                <div className={labelClass}>{t("detail.movements.debits", "Débitos")}</div>
+                <div className={labelClass}>{t("detail.movements.credits", "Créditos")}</div>
+                {/* valores */}
+                <div className="min-w-0 font-mono truncate break-words">{line.CO}</div>
+                <div className="min-w-0 truncate break-words">{line.documento}</div>
+                <div className="min-w-0 truncate break-words">{line.fecha}</div>
+                <div className="min-w-0 truncate break-words">
+                  ${ (line.debitos ?? 0).toLocaleString() }
+                </div>
+                <div className="min-w-0 truncate break-words">
+                  ${ (line.creditos ?? 0).toLocaleString() }
                 </div>
               </div>
             </div>
-
-            {/* lg+: grid 5 columnas x 2 filas, a lo ancho de la card (uniforme) */}
-            <div className="hidden lg:grid w-full grid-cols-5 gap-x-8 gap-y-1 items-center text-sm">
-              {/* labels */}
-              <div className={labelClass}>{t("detail.master.CO","CO")}</div>
-              <div className={labelClass}>{t("detail.master.labelDocumento","Documento")}</div>
-              <div className={labelClass}>{t("detail.master.providerDate","Fecha proveedor")}</div>
-              <div className={labelClass}>{t("detail.movements.debits","Débitos")}</div>
-              <div className={labelClass}>{t("detail.movements.credits","Créditos")}</div>
-              {/* valores */}
-              <div className="min-w-0 font-mono truncate break-words">{line.CO}</div>
-              <div className="min-w-0 truncate break-words">{line.documento}</div>
-              <div className="min-w-0 truncate break-words">{line.fecha}</div>
-              <div className="min-w-0 truncate break-words">${(line.debitos ?? 0).toLocaleString()}</div>
-              <div className="min-w-0 truncate break-words">${(line.creditos ?? 0).toLocaleString()}</div>
-            </div>
-          </>
-        );
-      })()}
-    </div>
-  </div>
-</div>
+          </div>
 
           {/* ===== Detalle expandible ===== */}
           {expanded[line.id] && (
@@ -247,17 +225,22 @@ const DraggableLine = forwardRef(
               {renderMovementsTable()}
 
               {totalPaginas > 1 && (
-                <div className="flex flex-wrap justify-center items-center gap-2 py-3">
-                  {Array.from({ length: totalPaginas }, (_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setPaginaActual(i + 1)}
-                      className="px-3 py-1.5 rounded text-sm md:text-[15px] transition-colors bg-gray-300 text-gray-700 hover:bg-gray-200"
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                </div>
+                <Paginator
+                  currentPage={paginaActual}
+                  totalPages={totalPaginas}
+                  pageNumbers={pageNumbers}
+                  hasPrevGroup={hasPrevGroup}
+                  hasNextGroup={hasNextGroup}
+                  prevGroupPage={prevGroupPage}
+                  nextGroupPage={nextGroupPage}
+                  onSetPage={setPaginaActual}
+                  isDark={isDark}
+                  className="mb-3"  // ligera separación inferior
+                  labels={{
+                    prevGroup: t("pagination.prevGroup", "Grupo anterior"),
+                    nextGroup: t("pagination.nextGroup", "Grupo siguiente"),
+                  }}
+                />
               )}
 
               {renderRetenciones()}
