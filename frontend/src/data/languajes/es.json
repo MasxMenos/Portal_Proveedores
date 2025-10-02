@@ -257,6 +257,13 @@
       "viewDetail": "Ver detalle"
     }
   },
+  "construction":{
+    "title":"Zona en construcción",
+    "subtitle": "Estamos trabajando para habilitar esta sección. Vuelve más tarde.",
+    "goHome":"Ir al incio",
+    "retry": "Reintentar"
+  },
+
   "homepage": {
     "welcome": "Bienvenido de nuevo",
     "metrics": {

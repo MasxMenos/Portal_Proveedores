@@ -256,6 +256,14 @@
       "viewDetail": "Voir le détail"
     }
   },
+
+  "construction":{
+    "title":"Zone en construction",
+    "subtitle": "Nous travaillons à activer cette section. Revenez plus tard, s’il vous plaît.",
+    "goHome":"Revenir à l’accueil",
+    "retry": "Réessayer"
+  },
+
   "homepage": {
     "welcome": "Bon retour",
     "metrics": {

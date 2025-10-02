@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import EntidadPage from "../../layouts/EntityPage";
 import { useDateRange } from "../../hooks/useDateRange";
 import { useTheme } from "../../components/ThemeContext";
+import UnderConstructionPage from "../../components/UnderConstructionPage"
 
 export default function CertificatesPage() {
   const { t } = useTranslation();
@@ -87,23 +88,30 @@ export default function CertificatesPage() {
   };
 
   return (
-    <EntidadPage
-      tipo="certificates"
-      titulo={t("sidebar.certificates")}
-      encabezado={t("sidebar.certificates")}
-      datos={datos}
-      onNavigateBase="certificates"
-      botonesExtra={botones.map(b => b.label)}
-      extraFilters={{
-        fechaInicio,
-        fechaFin,
-        onStartChange,
-        onEndChange,
-        onConsultar: () => fetchCertificates(botones[selectedIndex].tipo),
-      }}
-      loading={loading}
-      selectedButtonIndex={selectedIndex}
-      onSelectButton={handleButtonClick}
+    //<EntidadPage
+    //  tipo="certificates"
+    //  titulo={t("sidebar.certificates")}
+    //  encabezado={t("sidebar.certificates")}
+    //  datos={datos}
+    //  onNavigateBase="certificates"
+    //  botonesExtra={botones.map(b => b.label)}
+    //  extraFilters={{
+    //    fechaInicio,
+    //    fechaFin,
+    //    onStartChange,
+    //    onEndChange,
+    //    onConsultar: () => fetchCertificates(botones[selectedIndex].tipo),
+    //  }}
+    //  loading={loading}
+    //  selectedButtonIndex={selectedIndex}
+    //  onSelectButton={handleButtonClick}
+    ///>
+    <UnderConstructionPage
+      activePageKey="sidebar.certificates"
+       titleKey="construction.title"
+       subtitleKey="construction.subtitle"
+       goHomeKey="construction.goHome"
+       retryKey="construction.retry"
     />
   );
 }
