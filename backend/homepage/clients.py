@@ -19,3 +19,9 @@ class HomePageClient:
     
     def fetch_top_products(self, nit: str, fechaIni: str = None, fechaFin:str= None) -> dict:
         return self._client.get_top_products(nit, fechaIni, fechaFin)
+    
+    def fetch_growth_porcent(self,  nit: str, pastDateStart: str = None, pastDateEnd:str= None, currDateStart:str = None, currDateEnd:str = None) -> dict:
+        return self._client.get_growth_porcent(nit, pastDateStart, pastDateEnd, currDateStart, currDateEnd)
+    
+    def fetch_category_supplier(self,  nit: str) -> dict:
+        return self._client.get_category_supplier(nit)

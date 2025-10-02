@@ -2,9 +2,8 @@
 from rest_framework.views    import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from .services  import get_service_level, get_total_sales, get_total_sales_products,get_total_sales_months,get_top_products
-from .serializers import ServiceLevelSerializer, TotalSalesSerializer, TotalSalesProductSerializer,TotalSalesMonthsSerializer,TopProductsSerializer
-
+from .services  import get_service_level, get_total_sales, get_total_sales_products,get_total_sales_months,get_top_products,get_growth_porcent, get_category_supplier
+from .serializers import ServiceLevelSerializer, TotalSalesSerializer, TotalSalesProductSerializer,TotalSalesMonthsSerializer,TopProductsSerializer,GrowthPorcentSerializer,CategorySupplierSerializer
 
 class ServerLevelView(APIView):
     permission_classes = [AllowAny]
@@ -121,4 +120,48 @@ class TopProductsView(APIView):
         )
 
         serializer = TopProductsSerializer(dtos, many=True)
+        return Response(serializer.data)
+
+class GrowthPorcenView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        nit = request.query_params.get("nit", None)
+        pastDateStart = request.query_params.get("pastDateStart", None)
+        pastDateEnd = request.query_params.get("pastDateEnd", None)
+        currDateStart = request.query_params.get("currDateStart", None)
+        currDateEnd = request.query_params.get("currDateEnd", None)
+        if not nit:
+            return Response(
+                {"detail": "Debe enviar nit proveedor"},
+                status=400
+            )
+
+        dtos = get_growth_porcent(
+            nit = nit
+            ,pastDateStart = pastDateStart
+            ,pastDateEnd = pastDateEnd
+            ,currDateStart = currDateStart
+            ,currDateEnd = currDateEnd
+        )
+
+        serializer = GrowthPorcentSerializer(dtos, many=True)
+        return Response(serializer.data)
+
+class CategorySupplierView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        nit = request.query_params.get("nit", None)
+        if not nit:
+            return Response(
+                {"detail": "Debe enviar nit proveedor"},
+                status=400
+            )
+
+        dtos = get_category_supplier(
+            nit = nit
+        )
+
+        serializer = CategorySupplierSerializer(dtos, many=True)
         return Response(serializer.data)

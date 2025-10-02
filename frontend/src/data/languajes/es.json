@@ -262,7 +262,7 @@
       "servicio": "Nivel de servicio",
       "ventas": "Valor total facturado",
       "productos": "Und totales facturadas",
-      "crecimiento": "Tasa de Crecimiento"
+      "crecimiento": "Tasa de Crecimiento (Año actual/Año anterior)"
     },
     "totalSales": {
       "title": "Ventas totales",

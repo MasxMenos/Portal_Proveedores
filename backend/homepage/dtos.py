@@ -60,3 +60,20 @@ class TopProductsDTO:
             quantity             = float(data["Quantity"]),
         )
 
+@dataclass
+class GrowthPorcentDTO:
+    porcent: str
+    @classmethod
+    def from_conekta(cls, data: dict) -> "GrowthPorcentDTO":
+        return cls(
+            porcent         = data["Porcent"],
+        )
+@dataclass
+class CategorySupplierDTO:
+    lineaCompra: str
+    @classmethod
+    def from_conekta(cls, data: dict) -> "CategorySupplierDTO":
+        return cls(
+            lineaCompra         = data["LineaCompra"],
+        )
+
