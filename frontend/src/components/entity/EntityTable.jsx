@@ -3,6 +3,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { PlusCircle, Download as DownloadIcon } from "lucide-react";
 import { useDocumentDownload } from "../../hooks/useDocumentDownload";
+import Paginator from "../detail/Paginator";
 
 export default function EntidadTable({
   isDark,
@@ -10,8 +11,6 @@ export default function EntidadTable({
   paginatedData,
   onRowClick,
   currencyFields = [],
-  progressData = {},
-  /* paginación */
   currentPage,
   totalPages,
   pageNumbers,
@@ -25,10 +24,7 @@ export default function EntidadTable({
   const headers   = t(`entity.table.${tipo}.headers`, { returnObjects: true });
   const fields    = t(`entity.table.${tipo}.fields`,  { returnObjects: true });
   const viewLabel = t("entity.view");
-  const progressLabel = t("entity.progress", "Progreso");
-  const showProgress = tipo === "payments"; 
   const handleAction = useDocumentDownload(tipo, onRowClick);
-
 
   // Formateador de moneda (ajusta locale y currency según necesites)
   const currencyFormatter = new Intl.NumberFormat("es-CO", {
@@ -73,12 +69,7 @@ export default function EntidadTable({
                 );
               })}
 
-              {/* ────── NUEVA CELDA PROGRESO ────── */}
-              {showProgress && (
-                <td className="px-4 py-3 text-center">
-                  {`${Math.round((progressData[item.documento]||0)*100)}%`}
-                </td>
-              )}
+              {/* Acción (ver/descargar) */}
               <td className="px-4 py-3 text-center">
                 <span
                   className="cursor-pointer inline-flex items-center justify-center"
@@ -97,56 +88,25 @@ export default function EntidadTable({
         </tbody>
       </table>
 
-      {/* Paginación */}
-      <div className="flex justify-center items-center space-x-2 py-4">
-        {hasPrevGroup && (
-          <button
-            className={`px-2 py-1 rounded ${isDark ? "bg-[#222] text-gray-300" : "bg-gray-300 text-gray-700"}`}
-            onClick={() => setCurrentPage(prevGroupPage)}
-          >
-            «
-          </button>
-        )}
-        {currentPage > 1 && (
-          <button
-            className={`px-2 py-1 rounded ${isDark ? "bg-[#222] text-gray-300" : "bg-gray-300 text-gray-700"}`}
-            onClick={() => setCurrentPage(currentPage - 1)}
-          >
-            ‹
-          </button>
-        )}
-        {pageNumbers.map((p) => (
-          <button
-            key={p}
-            className={`px-3 py-1 rounded ${
-              p === currentPage
-                ? "bg-[#0d6efd] text-white"
-                : isDark
-                ? "bg-[#222] text-gray-300"
-                : "bg-gray-300 text-gray-700"
-            }`}
-            onClick={() => setCurrentPage(p)}
-          >
-            {p}
-          </button>
-        ))}
-        {currentPage < totalPages && (
-          <button
-            className={`px-2 py-1 rounded ${isDark ? "bg-[#222] text-gray-300" : "bg-gray-300 text-gray-700"}`}
-            onClick={() => setCurrentPage(currentPage + 1)}
-          >
-            ›
-          </button>
-        )}
-        {hasNextGroup && (
-          <button
-            className={`px-2 py-1 rounded ${isDark ? "bg-[#222] text-gray-300" : "bg-gray-300 text-gray-700"}`}
-            onClick={() => setCurrentPage(nextGroupPage)}
-          >
-            »
-          </button>
-        )}
-      </div>
+      {/* Paginación (componente reutilizable) */}
+      <Paginator
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageNumbers={pageNumbers}
+        hasPrevGroup={hasPrevGroup}
+        hasNextGroup={hasNextGroup}
+        prevGroupPage={prevGroupPage}
+        nextGroupPage={nextGroupPage}
+        onSetPage={setCurrentPage}
+        isDark={isDark}
+        labels={{
+          prev: t("pagination.prev", "Anterior"),
+          next: t("pagination.next", "Siguiente"),
+          prevGroup: t("pagination.prevGroup", "Grupo anterior"),
+          nextGroup: t("pagination.nextGroup", "Grupo siguiente"),
+        }}
+        className="mb-4"
+      />
     </div>
   );
 }
