@@ -8,6 +8,7 @@ export const initialMetrics = {
   servicio: "Cargando...",
   ventas: "Cargando...",
   productos: "Cargando...",
+  crecimiento: "Cargando..."
 };
 
 const CONFIG_METRICS = {
@@ -34,10 +35,18 @@ const CONFIG_METRICS = {
       Array.isArray(data) && data.length > 0
         ? `${formatNumber(data[0].quantity)}`
         : "No aplica.",
+  },
+  crecimiento: {
+    path: "/api/homepage/growth_porcent",
+    param: [],
+    map: (data) =>
+      Array.isArray(data) && data.length > 0
+        ? `${data[0].porcent}`
+        : "No aplica.",
   }
 };
 
-export async function fetchAllMetrics({ nit, token, origin = window.location.origin }) {
+export async function fetchAllMetrics({ nit,pastDateStart=undefined,pastDateEnd=undefined,currDateStart=undefined,currDateEnd=undefined, origin = window.location.origin }) {
   if (!nit) return initialMetrics;
 
   const keys = Object.keys(CONFIG_METRICS);
@@ -48,7 +57,16 @@ export async function fetchAllMetrics({ nit, token, origin = window.location.ori
 
       try {
         const url = new URL(path, origin);
-        url.searchParams.set(param, nit);
+        if (param instanceof Array){
+          url.searchParams.set('pastDateStart', pastDateStart);
+          url.searchParams.set('pastDateEnd', pastDateEnd);
+          url.searchParams.set('currDateStart', currDateStart);
+          url.searchParams.set('currDateEnd', currDateEnd);
+          url.searchParams.set('nit', nit);
+        }else{
+
+          url.searchParams.set(param, nit);
+        }
 
         const res = await fetch(url.toString(), {
           method: "GET",

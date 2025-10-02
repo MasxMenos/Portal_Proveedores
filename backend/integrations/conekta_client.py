@@ -195,3 +195,35 @@ class ConektaClient:
             "parametros": f"numPagina=1|numRegistros=9999|NIT={nit}|FechaIni={fechaIni}|FechaFin={fechaFin}"
         }
         return self._safe_get(params)
+    
+    def get_growth_porcent(self,  nit: str, pastDateStart: str = None, pastDateEnd:str= None, currDateStart:str = None, currDateEnd:str = None) -> dict:
+        anio_actual = date.today().year
+
+        if pastDateStart is None or pastDateStart  == "undefined":
+            pastDateStart = date(anio_actual-1, 1, 1).isoformat().replace('-','')
+
+        if pastDateEnd is None or pastDateEnd  == "undefined":
+            pastDateEnd = date(anio_actual-1, 12, 31).isoformat().replace('-','')
+
+        if currDateStart is None or currDateStart  == "undefined":
+            currDateStart = date(anio_actual, 1, 1).isoformat().replace('-','')
+
+        if currDateEnd is None or currDateEnd  == "undefined":
+            currDateEnd = date(anio_actual, 12, 31).isoformat().replace('-','')
+
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "GET_GROWTH_PORCENT",
+            "parametros": f"NIT={nit}|PastDateStart={pastDateStart}|PastDateEnd={pastDateEnd}|CurrDateStart={currDateStart}|CurrDateEnd={currDateEnd}"
+        }
+        print("parmakldnfbiosbfsi ",params)
+        return self._safe_get(params)
+    
+    def get_category_supplier(self,  nit: str) -> dict:
+
+        params = {
+            "idCompania": self.COMPANY_ID,
+            "descripcion": "GET_CATEGORY_SUPPLIER",
+            "parametros": f"NIT={nit}"
+        }
+        return self._safe_get(params)

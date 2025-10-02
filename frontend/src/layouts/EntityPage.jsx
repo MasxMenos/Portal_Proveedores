@@ -32,7 +32,6 @@ export default function EntidadPage({
   const isDark = theme === "dark";
   const navigate = useNavigate();
   const onRowClick = useRowAction(tipo, onNavigateBase);
-  const [progressRefresh, setProgressRefresh] = useState(0);
   const { t } = useTranslation();
   const activePage = useActivePage(titulo);
 
@@ -111,29 +110,7 @@ export default function EntidadPage({
   // reset página al cambiar filtro, búsqueda o tipo
   useEffect(() => setCurrentPage(1), [selected, searchTerm, setCurrentPage]);
 
-  // ────────────────────────────── progreso ──────────────────────────────
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.key && e.key.startsWith(`checks:${tipo}:`)) {
-        setProgressRefresh(v => v + 1);
-      }
-    };
-    window.addEventListener("storage", handler);
-    return () => window.removeEventListener("storage", handler);
-  }, [tipo]);
 
-  const progressData = useMemo(() => {
-    const prog = {};
-    filteredDatos.forEach(item => {
-      const key = `checks:${tipo}:${item.documento}`;
-      const checksObj = JSON.parse(localStorage.getItem(key) || "{}");
-      const total      = checksObj.__total || item.totalLineas || 0;
-      const checkedCnt = Object.entries(checksObj)
-        .filter(([k,v]) => !k.startsWith("__") && v === true).length;
-      prog[item.documento] = total > 0 ? (checkedCnt / total) : 0;
-    });
-    return prog;
-  }, [filteredDatos, progressRefresh, tipo]);
 
   return (
     <div className={`flex flex-col md:flex-row min-h-screen ${
@@ -213,7 +190,6 @@ export default function EntidadPage({
             tipo={tipo}
             paginatedData={paginatedData}
             onRowClick={onRowClick}
-            progressData={progressData}
             filterTerm={searchTerm}
             currentPage={currentPage}
             totalPages={totalPages}

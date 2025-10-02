@@ -4,20 +4,15 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Sidebar from "../components/MainSidebar";
 import HeaderSuperior from "../components/MainHeader";
-import {
-  ArrowLeftCircle,
-  CheckCircle2,
-  HelpCircle,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { ArrowLeftCircle } from "lucide-react";
 import { useTheme } from "../components/ThemeContext";
 import { useActivePage } from "../hooks/useActivePage";
 import { useMasterLines } from "../hooks/useMasterLines";
 import { useChecks } from "../hooks/useChecks";
 import DraggableLine from "../components/detail/DraggableLine";
 import EntityMaster from "../components/detail/EntityMaster";
-import { motion, AnimatePresence } from "framer-motion";
+import { usePagination } from "../hooks/usePagination";
+import Paginator from "../components/detail/Paginator";
 
 export default function EntityDetail({ tipo }) {
   const { t } = useTranslation();
@@ -45,10 +40,8 @@ export default function EntityDetail({ tipo }) {
 
   const [expanded, setExpanded] = useState({});
   const [paginationStates, setPaginationStates] = useState({});
-  const [cardsPage, setCardsPage] = useState(1);
 
-  const CARDS_PER_PAGE = 5;
-  const MAX_ICONS = 15;
+  const CARDS_PER_PAGE = 10;
 
   /** Datos maestro + líneas **/
   const { master: fetchedMaster, lines, loading, error } = useMasterLines({
@@ -62,16 +55,18 @@ export default function EntityDetail({ tipo }) {
   /** Checks **/
   const [checks, toggleCheck] = useChecks(tipo, documentoId);
 
-  /** Paginación visual de cards hijas **/
-  const visibleLines = useMemo(
-    () => lines.slice((cardsPage - 1) * CARDS_PER_PAGE, cardsPage * CARDS_PER_PAGE),
-    [lines, cardsPage]
-  );
-
-  const totalPages = Math.ceil(lines.length / CARDS_PER_PAGE);
-  const groupIndex = Math.floor((cardsPage - 1) / MAX_ICONS);
-  const startPage = groupIndex * MAX_ICONS + 1;
-  const endPage = Math.min(startPage + MAX_ICONS - 1, totalPages);
+  /** Paginación visual de cards hijas (hook global) **/
+  const {
+    currentPage,
+    totalPages,
+    paginatedData: visibleLines,
+    pageNumbers,
+    hasPrevGroup,
+    hasNextGroup,
+    prevGroupPage,
+    nextGroupPage,
+    setCurrentPage,
+  } = usePagination(lines, CARDS_PER_PAGE);
 
   /** Parámetros visuales **/
   const RAIL_X = 64;
@@ -79,11 +74,11 @@ export default function EntityDetail({ tipo }) {
   const CARD_GAP = "16px";
   const CARD_OFFSET = `calc(${RAIL_X}px + ${CONNECTOR}px + 8px)`;
 
-  const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
+  const isMobile =
+    typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
 
   // Mantén el riel igual; solo acerca las hijas en móvil
   const CHILD_INDENT = isMobile ? "4px" : "56px";
-
 
   /** Geometría para el dibujo **/
   const [geo, setGeo] = useState({
@@ -127,9 +122,7 @@ export default function EntityDetail({ tipo }) {
       return;
     }
 
-    // Dimensiones del contenedor y contenido
     const containerRect = containerEl.getBoundingClientRect();
-    
 
     // Master
     const masterRectAbs = masterEl.getBoundingClientRect();
@@ -171,8 +164,7 @@ export default function EntityDetail({ tipo }) {
   /** Recalcular ante cambios de layout/estado relevante **/
   useLayoutEffect(() => {
     schedule(recompute);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cardsPage, expanded, paginationStates, visibleLines.length, isDark]);
+  }, [currentPage, expanded, paginationStates, visibleLines.length, isDark]); // eslint-disable-line
 
   /** Recalcular tras primer paint y cuando cambian los datos **/
   useEffect(() => {
@@ -180,8 +172,7 @@ export default function EntityDetail({ tipo }) {
     return () => {
       if (rafId.current) cancelAnimationFrame(rafId.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lines]);
+  }, [lines]); // eslint-disable-line
 
   /** Recalcular al redimensionar y al hacer scroll **/
   useEffect(() => {
@@ -191,15 +182,16 @@ export default function EntityDetail({ tipo }) {
     window.addEventListener("resize", onResize, { passive: true });
     const mainEl = scrollAreaRef.current;
     if (mainEl) mainEl.addEventListener("scroll", onScroll, { passive: true });
-    if (containerRef.current) containerRef.current.addEventListener("scroll", onScroll, { passive: true });
+    if (containerRef.current) containerRef.current.addEventListener("scroll", onScroll, {
+      passive: true,
+    });
 
     return () => {
       window.removeEventListener("resize", onResize);
       if (mainEl) mainEl.removeEventListener("scroll", onScroll);
       if (containerRef.current) containerRef.current.removeEventListener("scroll", onScroll);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recompute]);
+  }, [recompute]); // eslint-disable-line
 
   return (
     <div
@@ -210,11 +202,7 @@ export default function EntityDetail({ tipo }) {
       <Sidebar activePage={activePage} />
 
       <main ref={scrollAreaRef} className="flex-1 p-6 md:ml-64 space-y-4 overflow-auto">
-        <HeaderSuperior
-          activePage={label}
-          title={label}
-          onToggleTheme={toggleTheme}
-        />
+        <HeaderSuperior activePage={label} title={label} onToggleTheme={toggleTheme} />
 
         <button
           className="flex items-center gap-2 text-gray-400 hover:underline cursor-pointer"
@@ -237,11 +225,7 @@ export default function EntityDetail({ tipo }) {
         >
           {/* SVG: absoluto y desplazándose con el contenido */}
           {geo.ready && (
-            <svg
-              className="absolute inset-0 pointer-events-none z-0"
-              width={geo.svgW}
-              height={geo.svgH}
-            >
+            <svg className="absolute inset-0 pointer-events-none z-0" width={geo.svgW} height={geo.svgH}>
               {/* Rail vertical desde el MASTER hasta la última hija visible */}
               <line
                 x1={geo.railXAbs}
@@ -279,67 +263,7 @@ export default function EntityDetail({ tipo }) {
 
           {/* MASTER */}
           <div style={{ marginBottom: "var(--card-gap)" }}>
-            <EntityMaster
-              isDark={isDark}
-              tipo={tipo}
-              master={master}
-              ref={masterRef}
-            />
-          </div>
-
-          {/* Índice lateral (15 íconos máx.) */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={groupIndex}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="flex flex-col items-center space-y-1"
-              >
-                {groupIndex > 0 && (
-                  <button
-                    onClick={() => setCardsPage((groupIndex - 1) * MAX_ICONS + 1)}
-                    className="p-1"
-                  >
-                    <ChevronUp size={18} />
-                  </button>
-                )}
-
-                {Array.from({ length: endPage - startPage + 1 }, (_, i) => {
-                  const p = startPage + i;
-                  const first = (p - 1) * CARDS_PER_PAGE;
-                  const done = lines
-                    .slice(first, first + CARDS_PER_PAGE)
-                    .every((l) => checks[l.id]);
-                  const Icon = done ? CheckCircle2 : HelpCircle;
-                  return (
-                    <button key={p} onClick={() => setCardsPage(p)} className="p-1">
-                      <Icon
-                        size={18}
-                        className={
-                          p === cardsPage
-                            ? "text-brand-500"
-                            : done
-                            ? "text-green-500"
-                            : "text-gray-400"
-                        }
-                      />
-                    </button>
-                  );
-                })}
-
-                {groupIndex < Math.floor((totalPages - 1) / MAX_ICONS) && (
-                  <button
-                    onClick={() => setCardsPage((groupIndex + 1) * MAX_ICONS + 1)}
-                    className="p-1"
-                  >
-                    <ChevronDown size={18} />
-                  </button>
-                )}
-              </motion.div>
-            </AnimatePresence>
+            <EntityMaster isDark={isDark} tipo={tipo} master={master} ref={masterRef} />
           </div>
 
           {/* HIJAS */}
@@ -363,8 +287,8 @@ export default function EntityDetail({ tipo }) {
               }
 
               const MOVS_PER_PAGE = 5;
-              const currentPage = paginationStates[line.id] || 1;
-              const start = (currentPage - 1) * MOVS_PER_PAGE;
+              const currentLinePage = paginationStates[line.id] || 1;
+              const start = (currentLinePage - 1) * MOVS_PER_PAGE;
               const paginatedMovs = line.movements.slice(start, start + MOVS_PER_PAGE);
 
               return (
@@ -376,17 +300,34 @@ export default function EntityDetail({ tipo }) {
                     setExpanded={setExpanded}
                     movementsPaginados={paginatedMovs}
                     totalPaginas={Math.ceil(line.movements.length / MOVS_PER_PAGE)}
-                    paginaActual={currentPage}
+                    paginaActual={currentLinePage}
                     setPaginaActual={(page) =>
                       setPaginationStates((prev) => ({ ...prev, [line.id]: page }))
                     }
-                    isChecked={!!checks[line.id]}
-                    onToggleChecked={(val) => toggleCheck(line.id, val)}
                     tipo={tipo}
                   />
                 </div>
               );
             })}
+
+          {/* PAGINACIÓN INFERIOR: componente reutilizable */}
+          <Paginator
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageNumbers={pageNumbers}
+            hasPrevGroup={hasPrevGroup}
+            hasNextGroup={hasNextGroup}
+            prevGroupPage={prevGroupPage}
+            nextGroupPage={nextGroupPage}
+            onSetPage={setCurrentPage}
+            isDark={isDark}
+            labels={{
+              prev: t("pagination.prev", "Anterior"),
+              next: t("pagination.next", "Siguiente"),
+              prevGroup: t("pagination.prevGroup", "Grupo anterior"),
+              nextGroup: t("pagination.nextGroup", "Grupo siguiente"),
+            }}
+          />
         </div>
       </main>
     </div>

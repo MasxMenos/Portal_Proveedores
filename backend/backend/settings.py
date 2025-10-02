@@ -28,14 +28,12 @@ SECRET_KEY = "django-insecure-crpd@9dbz*(c#&^lvo1k^olh+0&mxib@7(*ir)#nkq7c!p!xby
 DEBUG = True
 KYC_RENEWAL_MONTHS = 6
 
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-    "x11psp8r-8000.use2.devtunnels.ms",   # tu dominio devtunnel
-]
+ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1"]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://x11psp8r-8000.use2.devtunnels.ms",
+    "http://192.168.1.178:3000",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
 
 # Application definition
@@ -97,13 +95,13 @@ TEMPLATES = [
 
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'mxm',
-        'HOST': '192.168.1.8',
-        'PORT': '5432',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB", "postgres"),
+        "USER": os.getenv("POSTGRES_USER", "postgres"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "mxm"),
+        "HOST": os.getenv("POSTGRES_HOST", "192.168.1.8"),   # <--- antes 192.168.1.8
+        "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
 
@@ -135,21 +133,20 @@ SIMPLE_JWT = {
 #WSGI_APPLICATION = "backend.wsgi.application"
 
 ASGI_APPLICATION = "backend.asgi.application"
-
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",    
-    "http://127.0.0.1:5173",
-   
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://192.168.1.178:8000",
 ]
 
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [("localhost", 6379)]},
+        "CONFIG": {"hosts": [("redis", 6379)]},     # <--- antes localhost
     }
 }
 
-REDIS_URL = "redis://localhost:6379/0"
+REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

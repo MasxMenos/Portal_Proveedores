@@ -114,7 +114,6 @@
           "Date document",
           "Débit",
           "Crédit",
-          "Progrès",
           "Voir"
         ],
         "fields": [
@@ -270,7 +269,7 @@
   "servicio": "Niveau de service",
   "ventas": "Montant total facturé",
   "productos": "Unités totales facturées",
-  "crecimiento": "taux de croissance"
+  "crecimiento": "taux de croissance (année en cours/année précédente)"
     },
     "totalSales": {
       "title": "Total des ventes",
