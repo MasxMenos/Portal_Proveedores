@@ -12,12 +12,17 @@ const data_contact_category = {
     'ASEO' : {
         'name': 'Frank Uribe'
         ,'email': 'frank.uribe@mxm.com.co'
-        ,'note': 'Linea de compra de ASEO'
+        ,'note': 'Línea de compra de ASEO'
     }
     ,'LICORES Y HOGAR'  : {
         'name': 'Reynel Forero'
         ,'email': 'david.forero@mxm.com.co'
-        ,'note': 'Linea de compra de bebidas y licores'
+        ,'note': 'Línea de compra de LICORES Y HOGAR'
+    }
+    ,'COMPRAS DIARIAS'  : {
+        'name': 'Camilo Rangel'
+        ,'email': 'camilo.rangel@mxm.com.co'
+        ,'note': 'Línea de COMPRAS DIARIAS'
     }
 }
 
