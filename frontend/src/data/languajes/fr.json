@@ -255,13 +255,21 @@
       "viewDetail": "Voir le détail"
     }
   },
+
+  "construction":{
+    "title":"Zone en construction",
+    "subtitle": "Nous travaillons à activer cette section. Revenez plus tard, s’il vous plaît.",
+    "goHome":"Revenir à l’accueil",
+    "retry": "Réessayer"
+  },
+
   "homepage": {
     "welcome": "Bon retour",
     "metrics": {
   "servicio": "Niveau de service",
   "ventas": "Montant total facturé",
   "productos": "Unités totales facturées",
-  "crecimiento": "taux de croissance"
+  "crecimiento": "taux de croissance (année en cours/année précédente)"
     },
     "totalSales": {
       "title": "Total des ventes",

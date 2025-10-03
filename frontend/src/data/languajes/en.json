@@ -255,13 +255,20 @@
       "viewDetail": "View detail"
     }
   },
+  
+  "construction":{
+    "title":"Under construction",
+    "subtitle": "We’re working to enable this section. Please check back later.",
+    "goHome":"Back to home",
+    "retry": "Try again"
+  },
   "homepage": {
     "welcome": "Welcome back",
     "metrics": {
   "servicio": "Service level",
   "ventas": "Total billed amount",
   "productos": "Total units billed",
-  "crecimiento": "growth rate"
+  "crecimiento": "growth rate (current year/previous year)"
     },
     "totalSales": {
       "title": "Total sales",

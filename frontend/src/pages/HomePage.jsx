@@ -22,6 +22,7 @@ import {contacts } from "../data/homepage";
 import { initialMetrics, fetchAllMetrics, getGrowth } from"../data/homepage/metrics"; 
 import { fetchTotalSalesSeries } from"../data/homepage/total_sales_months"; 
 import { fetchTopProducts } from"../data/homepage/top_products"; 
+import { fetchCategorySupplier } from"../data/homepage/contacts"; 
 import { useTheme } from "../components/ThemeContext";
 
 export default function InicioPage() {
@@ -42,7 +43,7 @@ export default function InicioPage() {
   const token = localStorage.getItem("accessToken")?.trim();
   const [metrics, setMetrics] = useState(initialMetrics)
   const [totalSalesData, setTotalSalesMonths] = useState('')
-  const [growth, setGrowth] = useState('Cargando...')
+  const [categorySupplier, setCategorySupplier] = useState('')
   const [topProductsData, setTopProducts] = useState()
     
   useEffect(() => {
@@ -115,21 +116,20 @@ export default function InicioPage() {
     }, [nit]);
 
     useEffect(() => {
-      if (!totalSalesData) return;
-
+      if (!nit) return;
       let cancelled = false;
 
-      (() => {
+      (async () => {
         try {
-          const loaded = getGrowth(totalSalesData);
-          if (!cancelled) setGrowth(loaded);
+          const loaded = await fetchCategorySupplier({nit});
+          if (!cancelled) setCategorySupplier(loaded);
         } catch (e) {
-          console.error("Error cargando crecimiento:", e);
+          console.error("Error cargando la categoria del proveedor:", e);
         }
       })();
 
       return () => { cancelled = true; };
-    }, [totalSalesData]);
+    }, [nit]);
     
     
 
@@ -192,14 +192,14 @@ export default function InicioPage() {
               <span className="text-4xl font-semibold mt-1">{value}</span>
             </div>
           ))}
-          {growth &&
+          {/* {growth &&
             <div key="crecimiento" className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
               <span className="text-lg text-gray-400 capitalize">
                 {t("homepage.metrics.crecimiento")}
               </span>
               <span className="text-4xl font-semibold mt-1">{growth}</span>
             </div>
-          }
+          } */}
         </div>
 
         <div className="grid lg:grid-cols-3 md:grid-cols-1 gap-4 mb-6">
@@ -343,6 +343,14 @@ export default function InicioPage() {
               {contacts.map((c) => (
                 <tr key={c.email} className={`border-t ${tableRowClass}`}>
                   <td className="py-2">{c.tipo}</td>
+                  <td className="py-2">{c.email}</td>
+                  <td className="py-2">{c.note}</td>
+                </tr>
+              ))}
+
+              {categorySupplier?.length && categorySupplier.map((c) => (
+                <tr key={c.email} className={`border-t ${tableRowClass}`}>
+                  <td className="py-2">{c.name}</td>
                   <td className="py-2">{c.email}</td>
                   <td className="py-2">{c.note}</td>
                 </tr>

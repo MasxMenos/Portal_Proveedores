@@ -3,7 +3,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * Paginador reutilizable con estética consistente a EntidadPage.
+ * Paginador reutilizable con estÃ©tica consistente a EntidadPage.
  *
  * Props esperadas (compatibles con usePagination):
  * - currentPage, totalPages
@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
  *
  * Comportamiento extra:
  * - Sin botones "Anterior/Siguiente".
- * - Click en el último número del bloque → va a la siguiente página si existe (primer click).
+ * - Click en el Ãºltimo nÃºmero del bloque â†’ va a la siguiente pÃ¡gina si existe (primer click).
  */
 export default function Paginator({
   currentPage,
@@ -43,8 +43,8 @@ export default function Paginator({
   const L = {
     prevGroup: labels.prevGroup || "Grupo anterior",
     nextGroup: labels.nextGroup || "Grupo siguiente",
-    first: labels.first || "Primera página",
-    last: labels.last || "Última página",
+    first: labels.first || "Primera pÃ¡gina",
+    last: labels.last || "Ãšltima pÃ¡gina",
   };
 
   const pad = size === "sm" ? "px-3 py-1.5" : "px-4 py-2";
@@ -64,7 +64,7 @@ export default function Paginator({
   const shouldShowEdges = typeof showEdges === "boolean" ? showEdges : totalPages > edgesThreshold;
 
   const handleNumberClick = (p) => {
-    // Click en el último número del bloque → avanza a la siguiente página si existe
+    // Click en el Ãºltimo nÃºmero del bloque â†’ avanza a la siguiente pÃ¡gina si existe
     if (p === lastInBlock && p < totalPages) {
       onSetPage(p + 1);
       return;
@@ -79,7 +79,7 @@ export default function Paginator({
 
   return (
     <div className={`mt-6 mb-4 flex items-center justify-center gap-2 ${className}`}>
-      {/* ⏮ Ir al inicio (opcional) */}
+      {/* â® Ir al inicio (opcional) */}
       {shouldShowEdges && (
         <button
           disabled={currentPage === 1}
@@ -88,11 +88,11 @@ export default function Paginator({
           aria-label={L.first}
           title={L.first}
         >
-          ««
+          Â«Â«
         </button>
       )}
 
-      {/* « Grupo anterior */}
+      {/* Â« Grupo anterior */}
       <button
         disabled={!hasPrevGroup}
         onClick={goPrevGroup}
@@ -100,10 +100,10 @@ export default function Paginator({
         aria-label={L.prevGroup}
         title={L.prevGroup}
       >
-        «
+        Â«
       </button>
 
-      {/* Números del bloque visible */}
+      {/* NÃºmeros del bloque visible */}
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={`block-${pageNumbers[0]}-${lastInBlock}`}
@@ -126,7 +126,7 @@ export default function Paginator({
         </motion.div>
       </AnimatePresence>
 
-      {/* » Grupo siguiente */}
+      {/* Â» Grupo siguiente */}
       <button
         disabled={!hasNextGroup}
         onClick={goNextGroup}
@@ -134,10 +134,10 @@ export default function Paginator({
         aria-label={L.nextGroup}
         title={L.nextGroup}
       >
-        »
+        Â»
       </button>
 
-      {/* ⏭ Ir al final (opcional) */}
+      {/* â­ Ir al final (opcional) */}
       {shouldShowEdges && (
         <button
           disabled={currentPage === totalPages}
@@ -146,7 +146,7 @@ export default function Paginator({
           aria-label={L.last}
           title={L.last}
         >
-          »»
+          Â»Â»
         </button>
       )}
     </div>

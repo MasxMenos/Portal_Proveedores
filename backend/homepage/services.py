@@ -1,6 +1,6 @@
 # invoices/services.py
 from .clients import HomePageClient
-from .dtos    import ServiceLevelDTO,TotalSalesDTO, TotalSalesProductsDTO,TotalSalesMonthsDTO, TopProductsDTO
+from .dtos    import ServiceLevelDTO,TotalSalesDTO, TotalSalesProductsDTO,TotalSalesMonthsDTO, TopProductsDTO, GrowthPorcentDTO,CategorySupplierDTO
 from typing import List
 
 def get_records(raw: dict) -> List[dict]:
@@ -111,6 +111,44 @@ def get_top_products(
             descripcion         = item["Descripcion"],
             reference        = item["Reference"],
             quantity             = float(item["Quantity"]),
+        )
+        results.append(dto)
+
+    return results
+
+def get_growth_porcent(
+    nit: str
+    , pastDateStart: str = None
+    , pastDateEnd:str= None
+    , currDateStart:str = None
+    , currDateEnd:str = None
+) -> List[GrowthPorcentDTO]:
+    client = HomePageClient()
+    raw    = client.fetch_growth_porcent(nit, pastDateStart, pastDateEnd, currDateStart, currDateEnd)
+    # Extraemos la lista correcta:
+    records = get_records(raw)
+
+    results: List[GrowthPorcentDTO] = []
+    for item in records:
+        dto = GrowthPorcentDTO(
+            porcent         = item["Porcent"],
+        )
+        results.append(dto)
+
+    return results
+
+def get_category_supplier(
+    nit: str
+) -> List[CategorySupplierDTO]:
+    client = HomePageClient()
+    raw    = client.fetch_category_supplier(nit)
+    # Extraemos la lista correcta:
+    records = get_records(raw)
+
+    results: List[CategorySupplierDTO] = []
+    for item in records:
+        dto = CategorySupplierDTO(
+            lineaCompra         = item["LineaCompra"],
         )
         results.append(dto)
 

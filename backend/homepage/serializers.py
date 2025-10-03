@@ -23,3 +23,9 @@ class TopProductsSerializer(serializers.Serializer):
     descripcion = serializers.CharField()
     reference = serializers.CharField()
     quantity = serializers.FloatField()
+
+class GrowthPorcentSerializer(serializers.Serializer):
+    porcent = serializers.CharField()
+
+class CategorySupplierSerializer(serializers.Serializer):
+    lineaCompra = serializers.CharField()

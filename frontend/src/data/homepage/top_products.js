@@ -8,7 +8,6 @@ export async function fetchTopProducts({ nit, fechaIni=null, fechaFin=null, orig
     url.searchParams.set("fechaIni", fechaIni) 
     url.searchParams.set("fechaFin", fechaFin);
   } 
-  console.log("Fetching top products from URL:", url.toString());
   const res = await fetch(url.toString(), {
     method: "GET",
   });

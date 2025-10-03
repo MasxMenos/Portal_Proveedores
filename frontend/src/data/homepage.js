@@ -19,7 +19,7 @@
     { tipo: "Conciliaciones", email: "conciliaciones@mxm.com.co", note: "Para conciliaciones" },
     { tipo: "Comercial", email: "comercial@mxm.com.co", note: "Problemas de precios" },
     { tipo: "Facturación Comercial", email: "facturacion@mxm.com.co", note: "Error en factura electrónica" },
-    { tipo: "Director de abastecimiento", email: "dir.abastecimiento@mxm.com.co", note: "Escribir si no hay orden de compra" },
+    // { tipo: "Director de abastecimiento", email: "dir.abastecimiento@mxm.com.co", note: "Escribir si no hay orden de compra" },
     { tipo: "Líder de abastecimiento", email: "lider.abastecimiento@mxm.com.co", note: "Escribir si no hay orden de compra" },
   ];
 
