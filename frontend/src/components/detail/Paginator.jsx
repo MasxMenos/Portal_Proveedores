@@ -11,15 +11,16 @@ import { motion, AnimatePresence } from "framer-motion";
  * - hasPrevGroup, hasNextGroup
  * - prevGroupPage, nextGroupPage
  * - onSetPage: (num) => void
- * - labels?: { prevGroup?: string, nextGroup?: string }
+ * - labels?: { prevGroup?: string, nextGroup?: string, first?: string, last?: string }
  * - isDark?: boolean
  * - className?: string
  * - size?: "md" | "sm"
+ * - showEdges?: boolean            // fuerza mostrar botones ir al inicio/fin
+ * - edgesThreshold?: number        // si no se pasa showEdges, los muestra si totalPages > edgesThreshold (default 10)
  *
  * Comportamiento extra:
  * - Sin botones "Anterior/Siguiente".
- * - Si el usuario hace click en el último número del bloque y existe una página siguiente,
- *   se avanza directamente a la siguiente página (primer click).
+ * - Click en el último número del bloque → va a la siguiente página si existe (primer click).
  */
 export default function Paginator({
   currentPage,
@@ -34,12 +35,16 @@ export default function Paginator({
   isDark = false,
   className = "",
   size = "md",
+  showEdges,
+  edgesThreshold = 10,
 }) {
   if (!totalPages || totalPages <= 1) return null;
 
   const L = {
     prevGroup: labels.prevGroup || "Grupo anterior",
     nextGroup: labels.nextGroup || "Grupo siguiente",
+    first: labels.first || "Primera página",
+    last: labels.last || "Última página",
   };
 
   const pad = size === "sm" ? "px-3 py-1.5" : "px-4 py-2";
@@ -56,8 +61,10 @@ export default function Paginator({
   };
 
   const lastInBlock = pageNumbers[pageNumbers.length - 1];
+  const shouldShowEdges = typeof showEdges === "boolean" ? showEdges : totalPages > edgesThreshold;
 
   const handleNumberClick = (p) => {
+    // Click en el último número del bloque → avanza a la siguiente página si existe
     if (p === lastInBlock && p < totalPages) {
       onSetPage(p + 1);
       return;
@@ -67,9 +74,24 @@ export default function Paginator({
 
   const goPrevGroup = () => hasPrevGroup && onSetPage(prevGroupPage);
   const goNextGroup = () => hasNextGroup && onSetPage(nextGroupPage);
+  const goFirst = () => currentPage !== 1 && onSetPage(1);
+  const goLast = () => currentPage !== totalPages && onSetPage(totalPages);
 
   return (
-    <div className={`mt-6 flex items-center justify-center gap-2 ${className}`}>
+    <div className={`mt-6 mb-4 flex items-center justify-center gap-2 ${className}`}>
+      {/* ⏮ Ir al inicio (opcional) */}
+      {shouldShowEdges && (
+        <button
+          disabled={currentPage === 1}
+          onClick={goFirst}
+          className={btnClasses({ disabled: currentPage === 1 })}
+          aria-label={L.first}
+          title={L.first}
+        >
+          ««
+        </button>
+      )}
+
       {/* « Grupo anterior */}
       <button
         disabled={!hasPrevGroup}
@@ -114,6 +136,19 @@ export default function Paginator({
       >
         »
       </button>
+
+      {/* ⏭ Ir al final (opcional) */}
+      {shouldShowEdges && (
+        <button
+          disabled={currentPage === totalPages}
+          onClick={goLast}
+          className={btnClasses({ disabled: currentPage === totalPages })}
+          aria-label={L.last}
+          title={L.last}
+        >
+          »»
+        </button>
+      )}
     </div>
   );
 }
