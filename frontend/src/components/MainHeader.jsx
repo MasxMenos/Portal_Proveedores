@@ -150,9 +150,10 @@ export default function HeaderSuperior({
             {/* Tutorial */}
             <button
               onClick={startTutorial}
-              className={`p-2 rounded transition-colors duration-200 ${
+              className={`hidden md:inline-flex p-2 rounded transition-colors duration-200 ${
                 isDark ? "hover:bg-zinc-800" : "hover:bg-gray-300"
               }`}
+              aria-label="Ayuda"
             >
               <HelpCircle
                 size={22}

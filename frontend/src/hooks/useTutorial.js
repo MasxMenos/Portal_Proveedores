@@ -219,7 +219,7 @@ export default function useTutorial() {
         backBtn(tour, "facturas-table", "/facturas"),
         skipBtn(tour),
         {
-          text: t("tutorial.buttons.viewDetail"),
+          text: t("tutorial.buttons.goToHome"),
           classes: btnStyle,
           action: () => {
             tour.hide();
@@ -227,39 +227,58 @@ export default function useTutorial() {
               ".entity-table tbody tr:first-child td:nth-child(2)"
             );
             if (!firstDoc) return console.error("Documento no hallado");
-            const docId = firstDoc.textContent.trim();
-            navigate(`/invoices/${docId}`);
-            const waiter = setInterval(() => {
-              if (document.querySelector(".master")) {
-                clearInterval(waiter);
-                tour.show("facturas-detalle-master");
-              }
-            }, 100);
+            // const docId = firstDoc.textContent.trim();
+            navigate(`/inicio`);
+            
           },
         },
       ],
     });
 
-    tour.addStep({
-      id: "facturas-detalle-master",
-      text: t("tutorial.masterDetail"),
-      attachTo: { element: ".master", on: "bottom" },
-      buttons: [
-        backBtn(tour, "facturas-detalle", "/facturas"),
-        skipBtn(tour),
-        nextBtn(tour),
-      ],
-    });
+    // tour.addStep({
+    //   id: "a-card-payments-detail",
+    //   text: t("tutorial.paymentsDetail"),
+    //   attachTo: { element: "#card-payments-detail", on: "top" },
+    //   buttons: [
+    //     backBtn(tour, "facturas-detalle", "/payments"),
+    //     skipBtn(tour),
+    //     {
+    //       text: t("tutorial.buttons.viewDetail"),
+    //       classes: btnStyle,
+    //       action: () => {
+    //         tour.hide();
+    //         navigate("/inicio");
+    //         const waiter = setInterval(() => {
+    //           if (document.querySelector("#card-payments-detail")) {
+    //             clearInterval(waiter);
+    //             tour.next();
+    //           }
+    //         }, 5000);
+    //       },
+    //     },
+    //   ],
+    // });
 
-    tour.addStep({
-      id: "facturas-detalle-child",
-      text: t("tutorial.childDetail"),
-      attachTo: { element: ".child", on: "bottom" },
-      buttons: [
-        backBtn(tour, "facturas-detalle-master", "/facturas"),
-        endBtn(tour),
-      ],
-    });
+    // tour.addStep({
+    //   id: "facturas-detalle-master",
+    //   text: t("tutorial.masterDetail"),
+    //   attachTo: { element: ".master", on: "bottom" },
+    //   buttons: [
+    //     backBtn(tour, "facturas-detalle", "/facturas"),
+    //     skipBtn(tour),
+    //     nextBtn(tour),
+    //   ],
+    // });
+
+    // tour.addStep({
+    //   id: "facturas-detalle-child",
+    //   text: t("tutorial.childDetail"),
+    //   attachTo: { element: ".child", on: "bottom" },
+    //   buttons: [
+    //     backBtn(tour, "facturas-detalle-master", "/facturas"),
+    //     endBtn(tour),
+    //   ],
+    // });
 
     return tour;
   }, [isDark, navigate, t]);
