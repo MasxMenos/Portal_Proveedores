@@ -88,7 +88,7 @@ export default function Paginator({
           aria-label={L.first}
           title={L.first}
         >
-          Â«Â«
+          ««
         </button>
       )}
 
@@ -100,7 +100,7 @@ export default function Paginator({
         aria-label={L.prevGroup}
         title={L.prevGroup}
       >
-        Â«
+        «
       </button>
 
       {/* NÃºmeros del bloque visible */}
@@ -126,7 +126,7 @@ export default function Paginator({
         </motion.div>
       </AnimatePresence>
 
-      {/* Â» Grupo siguiente */}
+      {/* » Grupo siguiente */}
       <button
         disabled={!hasNextGroup}
         onClick={goNextGroup}
@@ -134,7 +134,7 @@ export default function Paginator({
         aria-label={L.nextGroup}
         title={L.nextGroup}
       >
-        Â»
+        »
       </button>
 
       {/* â­ Ir al final (opcional) */}
@@ -146,7 +146,7 @@ export default function Paginator({
           aria-label={L.last}
           title={L.last}
         >
-          Â»Â»
+          »»
         </button>
       )}
     </div>
