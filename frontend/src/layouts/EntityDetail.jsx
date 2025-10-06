@@ -262,7 +262,7 @@ export default function EntityDetail({ tipo }) {
           )}
 
           {/* MASTER */}
-          <div style={{ marginBottom: "var(--card-gap)" }}>
+          <div id="card-payments-detail" style={{ marginBottom: "var(--card-gap)" }}>
             <EntityMaster isDark={isDark} tipo={tipo} master={master} ref={masterRef} />
           </div>
 

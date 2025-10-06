@@ -3,7 +3,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * Paginador reutilizable con estÃ©tica consistente a EntidadPage.
+ * Paginador reutilizable con estética consistente a EntidadPage.
  *
  * Props esperadas (compatibles con usePagination):
  * - currentPage, totalPages

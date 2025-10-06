@@ -185,13 +185,22 @@ export default function InicioPage() {
         <div id="inicio-metricas" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           
           {Object.entries(metrics).map(([key, value]) => (
-            <div key={key} className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
-              <span className="text-lg text-gray-400 capitalize">
-                {t(`homepage.metrics.${key}`)}
-              </span>
-              <span className="text-4xl font-semibold mt-1">{value}</span>
-            </div>
-          ))}
+  <div
+    id={key}
+    key={key}
+    className={`rounded-lg p-4 flex flex-col min-w-0 ${cardClass}`}
+  >
+    <span className="text-lg text-gray-400 capitalize">
+      {t(`homepage.metrics.${key}`)}
+    </span>
+
+    <span className="mt-1 font-semibold leading-tight break-all text-[clamp(1.25rem,4vw,2.25rem)]">
+      {value}
+    </span>
+
+  </div>
+))}
+
           {/* {growth &&
             <div key="crecimiento" className={`rounded-lg p-4 flex flex-col ${cardClass}`}>
               <span className="text-lg text-gray-400 capitalize">
