@@ -19,11 +19,43 @@ import {
 } from "recharts";
 
 import {contacts } from "../data/homepage";
-import { initialMetrics, fetchAllMetrics, getGrowth } from"../data/homepage/metrics"; 
-import { fetchTotalSalesSeries } from"../data/homepage/total_sales_months"; 
-import { fetchTopProducts } from"../data/homepage/top_products"; 
-import { fetchCategorySupplier } from"../data/homepage/contacts"; 
+import { initialMetrics, fetchAllMetrics, getGrowth } from"../data/homepage/metrics";
+import { fetchTotalSalesSeries } from"../data/homepage/total_sales_months";
+import { fetchTopProducts } from"../data/homepage/top_products";
+import { fetchCategorySupplier } from"../data/homepage/contacts";
 import { useTheme } from "../components/ThemeContext";
+
+function mergeByMonth(currYear, lastYear) {
+  const map = new Map();
+
+  for (const { month, value } of currYear) {
+    map.set(month, { month, valueCurrent: value, valueLastYear: 0 });
+  }
+
+  for (const { month, value } of lastYear) {
+    const prev = map.get(month) ?? { month, valueCurrent: 0, valueLastYear: 0 };
+    prev.valueLastYear = value;
+    map.set(month, prev);
+  }
+
+  const MONTH_INDEX = new Map(
+    ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sept","Oct","Nov","Dic"]
+    .map((m, i) => [m, i + 1])
+  );
+  const ALIAS = { Sep: "Sept" };
+
+  const monthIndex = (m) => MONTH_INDEX.get(ALIAS[m] ?? m) ?? 99;
+
+  const ordered = Array.from(map.values())
+    .sort((a, b) => monthIndex(a.month) - monthIndex(b.month));
+  return ordered;
+}
+
+const now = new Date();
+const lastYear = now.getFullYear() - 1;
+
+const startLastDate = new Date(lastYear, 0, 1);
+const endLastDate   = new Date(lastYear, 11, 31);
 
 export default function InicioPage() {
   const { t } = useTranslation();
@@ -43,9 +75,10 @@ export default function InicioPage() {
   const token = localStorage.getItem("accessToken")?.trim();
   const [metrics, setMetrics] = useState(initialMetrics)
   const [totalSalesData, setTotalSalesMonths] = useState('')
+  const [totalSalesLastYearData, setTotalSalesLastMonths] = useState('')
   const [categorySupplier, setCategorySupplier] = useState('')
   const [topProductsData, setTopProducts] = useState()
-    
+
   useEffect(() => {
     // traer perfil
     (async () => {
@@ -65,7 +98,7 @@ export default function InicioPage() {
       }
     })();
   }, [token]);
-  
+
   useEffect(() => {
       if (!nit) return;
 
@@ -89,8 +122,11 @@ export default function InicioPage() {
 
       (async () => {
         try {
-          const loaded = await fetchTotalSalesSeries({nit});
-          if (!cancelled) setTotalSalesMonths(loaded);
+          const currentLoaded = await fetchTotalSalesSeries({nit});
+          if (!cancelled) setTotalSalesMonths(currentLoaded);
+
+          const lastLoaded = await fetchTotalSalesSeries({nit, startDate: startLastDate, endDate: endLastDate});
+          if (!cancelled) setTotalSalesLastMonths(lastLoaded);
         } catch (e) {
           console.error("Error cargando ventas mensuales:", e);
         }
@@ -130,8 +166,8 @@ export default function InicioPage() {
 
       return () => { cancelled = true; };
     }, [nit]);
-    
-    
+
+
 
   // Sidebar
   const [activePage, setActivePage] = useState(t("sidebar.home"));
@@ -147,6 +183,8 @@ export default function InicioPage() {
   const sectionTitleClass = isDark ? "text-gray-400" : "text-gray-600";
   const tableHeaderClass = isDark ? "text-[#CCD0D5]" : "text-gray-700";
   const tableRowClass = isDark ? "text-[#999B9E] border-[#222]" : "text-gray-600 border-gray-300";
+
+  const mergedData = mergeByMonth(totalSalesData ?? [], totalSalesLastYearData ?? []);
 
   return (
     <div className={`flex flex-col md:flex-row min-h-screen ${bgClass}`}>
@@ -183,7 +221,7 @@ export default function InicioPage() {
 
 
         <div id="inicio-metricas" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          
+
           {Object.entries(metrics).map(([key, value]) => (
   <div
     id={key}
@@ -217,40 +255,59 @@ export default function InicioPage() {
               {t("homepage.totalSales.title")}
             </h2>
             {totalSalesData &&
-            <div className={`flex-1 rounded-lg p-4 min-h-[16rem] sm:min-h-[20rem] ${cardClass}`}>
+              <div className={`flex-1 rounded-lg p-4 min-h-[16rem] sm:min-h-[20rem] ${cardClass}`}>
                 <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={totalSalesData}
-                margin={{  left: 30 }}
-              >
-                <CartesianGrid stroke={isDark ? "#333" : "#ccc"} />
-                <XAxis dataKey="month" stroke="#888" />
+                  <LineChart data={mergedData} margin={{ left: 30 }}>
+                    <CartesianGrid stroke={isDark ? "#333" : "#ccc"} />
+                    <XAxis dataKey="month" stroke="#888" />
 
-                <YAxis
-                  type="number"
-                  stroke="#888"
-                  width={100}
-                  tick={{ fontSize: 15 }}
-                  tickFormatter={formatCOP}   // ← mismo formateador
-                  allowDecimals={false}
-                />
+                    <YAxis
+                      type="number"
+                      stroke="#888"
+                      width={100}
+                      tick={{ fontSize: 15 }}
+                      tickFormatter={formatCOP}
+                      allowDecimals={false}
+                    />
 
-                <Tooltip
-                  formatter={(value) => [formatCOP(value), t("homepage.totalSales.graphiqueLabel")]}
-                  contentStyle={{
-                    backgroundColor: isDark ? "#000" : "#fff",
-                    border: "none",
-                    color: isDark ? "#fff" : "#000",
-                  }}
-                />
+                    <Tooltip
+                      formatter={(value, name) => [
+                        formatCOP(value),
+                        name === "valueCurrent"
+                          ? t("homepage.totalSales.currentYear")
+                          : t("homepage.totalSales.lastYear"),
+                      ]}
+                      contentStyle={{
+                        backgroundColor: isDark ? "#000" : "#fff",
+                        border: "none",
+                        color: isDark ? "#fff" : "#000",
+                      }}
+                    />
 
-                <Line type="monotone" dataKey="value" stroke="#36a2eb" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+                    {/* Línea año actual */}
+                    <Line
+                      type="monotone"
+                      dataKey="valueCurrent"
+                      stroke="#36a2eb"
+                      strokeWidth={2}
+                      dot={false}
+                      name="valueCurrent"
+                    />
 
-
+                    {/* Línea año anterior */}
+                    <Line
+                      type="monotone"
+                      dataKey="valueLastYear"
+                      stroke="#be0811"
+                      strokeWidth={2}
+                      // strokeDasharray="4 4"
+                      dot={false}
+                      name="valueLastYear"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
-            } 
+            }
           </div>
 
           <div className="flex flex-col" id="inicio-ventas-top">
@@ -258,7 +315,7 @@ export default function InicioPage() {
               {t("homepage.topProducts.title")}
             </h2>
             <div className={`flex-1 rounded-lg p-4 min-h-[16rem] sm:min-h-[20rem] ${cardClass}`}>
-              {topProductsData && 
+              {topProductsData &&
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={topProductsData}

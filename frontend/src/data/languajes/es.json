@@ -273,9 +273,11 @@
     },
     "totalSales": {
       "title": "Compras totales",
-      "graphiqueLabel": "Valor"
+      "graphiqueLabel": "Valor",
+      "currentYear": "Año actual",
+      "lastYear": "Año anterior"
     },
-    "topProducts": 
+    "topProducts":
     {
       "title": "Productos destacados",
       "graphiqueLabel": "Cantidad"

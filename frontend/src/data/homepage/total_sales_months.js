@@ -38,11 +38,25 @@ export function mapSalesSeries(apiData, { withYear = false } = {}) {
   return data_final;
 }
 
-export async function fetchTotalSalesSeries({ nit, origin = window.location.origin, path = "/api/homepage/total_sales/months" }) {
+const year = new Date().getFullYear();
+
+const currentStartDate = new Date(year, 0, 1);
+const currentEndDate = new Date(year, 11, 31);
+
+function toLocalDateStr(date) {
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  const localISO = new Date(date - tzOffset).toISOString().split("T")[0];
+  return localISO;
+}
+
+export async function fetchTotalSalesSeries({ nit, startDate = currentStartDate, endDate = currentEndDate, origin = window.location.origin, path = "/api/homepage/total_sales/months" }) {
   if (!nit) return [];
 
   const url = new URL(path, origin);
   url.searchParams.set("nitProveedor", nit);
+  url.searchParams.set("fechaInicial", toLocalDateStr(startDate));
+  url.searchParams.set("fechaFinal", toLocalDateStr(endDate));
+  console.log("Fetching sales months from", url.toString());
 
   const res = await fetch(url.toString(), {
     method: "GET",
@@ -55,7 +69,7 @@ export async function fetchTotalSalesSeries({ nit, origin = window.location.orig
 
   try {
     const data = await res.json();
-    return mapSalesSeries(data, { withYear: false }); 
+    return mapSalesSeries(data, { withYear: false });
   } catch (err) {
     console.error("[sales-months] Error parseando JSON", err);
     return [];

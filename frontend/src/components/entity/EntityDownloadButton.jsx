@@ -15,13 +15,14 @@ export default function EntidadDownloadButton({
     // 1) headers traducidos y keys
     const headers = t(`entity.table.${tipo}.headers`, { returnObjects: true });
     const fields  = t(`entity.table.${tipo}.fields`,  { returnObjects: true });
-
+    
     // 2) crea workbook + worksheet
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet(tipo);
 
     // 3) añade fila de encabezados
-    ws.addRow(headers);
+    const headersTrim = Array.isArray(headers) ? headers.slice(0, -1) : headers;
+ws.addRow(headersTrim);
 
     // 4) añade cada registro (sin la columna de acción)
     data.forEach(item => {

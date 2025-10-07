@@ -1,5 +1,5 @@
 // src/pages/auth/LoginPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "../../components/ThemeContext";
@@ -7,6 +7,7 @@ import { AuthCard } from "../../components/auth/AuthCard";
 import { InputField } from "../../components/auth/InputField";
 import { CheckboxWithLabel } from "../../components/auth/CheckboxWithLabel";
 import { PrimaryButton } from "../../components/auth/PrimaryButton";
+import PdfModal from "../../components/common/PdfModal";
 
 export default function LoginPage() {
   const { theme, toggleTheme } = useTheme();
@@ -20,50 +21,66 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
- const handleLogin = async (e) => {
-  e.preventDefault();
-  setError("");
-  setLoading(true);
+  // Modal del manual
+  const [showManual, setShowManual] = useState(false);
 
-  const trimmedUsername = username.trim();
+  // Abrir modal automáticamente al cargar
+  useEffect(() => {
+    setShowManual(true);
+  }, []);
 
-  try {
-    const res = await fetch("/api/users/login/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: trimmedUsername, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "Error al autenticar");
+  // (Opcional) bloquear scroll de fondo cuando el modal esté abierto
+  useEffect(() => {
+    if (showManual) document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showManual]);
 
-    // tokens & user
-    localStorage.setItem("accessToken", data.access);
-    localStorage.setItem("refreshToken", data.refresh);
-    const cleanUser = { ...data.user, username: data.user.username.trim() };
-    localStorage.setItem("user", JSON.stringify(cleanUser));
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    // --- NUEVO: validar KYC inmediatamente ---
-    const statusRes = await fetch("/api/kyc/submissions/status", {
-      headers: { Authorization: `Bearer ${data.access}` },
-    });
-    const statusData = await statusRes.json().catch(() => ({}));
-    const mustFill = statusRes.ok ? !!statusData?.must_fill : false;
+    const trimmedUsername = username.trim();
 
-    if (mustFill) {
-      navigate("/kyc", { replace: true, state: { from: location } });
-      return;
+    try {
+      const res = await fetch("/api/users/login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: trimmedUsername, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Error al autenticar");
+
+      // tokens & user
+      localStorage.setItem("accessToken", data.access);
+      localStorage.setItem("refreshToken", data.refresh);
+      const cleanUser = { ...data.user, username: data.user.username.trim() };
+      localStorage.setItem("user", JSON.stringify(cleanUser));
+
+      // validar KYC inmediatamente
+      const statusRes = await fetch("/api/kyc/submissions/status", {
+        headers: { Authorization: `Bearer ${data.access}` },
+      });
+      const statusData = await statusRes.json().catch(() => ({}));
+      const mustFill = statusRes.ok ? !!statusData?.must_fill : false;
+
+      if (mustFill) {
+        navigate("/kyc", { replace: true, state: { from: location } });
+        return;
+      }
+
+      // flujo normal
+      const from = location.state?.from?.pathname || "/inicio";
+      navigate(from, { replace: true });
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    // flujo normal
-    const from = location.state?.from?.pathname || "/inicio";
-    navigate(from, { replace: true });
-  } catch (err) {
-    console.error("Login error:", err);
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleForgotPassword = () => {
     navigate("/recuperar_contrasena");
@@ -128,6 +145,15 @@ export default function LoginPage() {
           </PrimaryButton>
         </form>
       </AuthCard>
+
+      {/* Modal del PDF: se abre automáticamente al cargar */}
+      <PdfModal
+        open={showManual}
+        onClose={() => setShowManual(false)}
+        title="Manual del Portal de Proveedores"
+        // Ruta estática que sirve Django/Nginx (MEDIA_URL = /documentos/)
+        src="/documentos/MANUAL/Portal_de_proveedores.pdf"
+      />
     </div>
   );
 }

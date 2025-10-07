@@ -28,6 +28,15 @@ const getSafeReturnPath = (loc) => {
 };
 
 // ---- helpers dinero ----
+
+ const eqTrimLower = (a = "", b = "") =>
+   String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+ const toNum0 = (v) => {
+   const n = toNumberOrNull(v);
+   return Number.isFinite(n) ? n : 0;
+ };
+
+
 const onlyLetters = (s = "") =>
   s
     .normalize("NFD")
@@ -131,6 +140,7 @@ export default function KycFormPage() {
   const [initialCheck, setInitialCheck] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [financialError, setFinancialError] = useState("");
 
 
   const [errors, setErrors] = useState({});
@@ -159,6 +169,7 @@ export default function KycFormPage() {
     city_id: undefined,
     telefono1: "",
     correo: "",
+    correo_confirm: "",
     activos_virtuales: null,
     // Contacto pedidos (opcionales)
     contacto_nombres: "",
@@ -166,6 +177,7 @@ export default function KycFormPage() {
     contacto_tel_oficina: "",
     contacto_cel_corporativo: "",
     contacto_correo_pedidos: "",
+    contacto_correo_pedidos_confirm: "",
     // PEP
     pep_actual: null,
     pep_ult2anios: null,
@@ -194,22 +206,26 @@ export default function KycFormPage() {
     ica_codigo: "",
     ica_tarifa_millar: "",
     ica_ciudad: "",
-    gran_contribuyente_ica_bogota: null,
+    gran_contribuyente_ica_bucaramanga: null,
     obligado_fe: null,
     correo_fe: "",
+    correo_fe_confirm: "",
     // Bancaria
     bank_country_id: undefined,
     bank_id: undefined,
     banco_cuenta_numero: "",
+    banco_cuenta_numero_confirm: "",
     banco_cuenta_titular: "",
     banco_cuenta_tipo: "",
     correo_tesoreria: "",
+    correo_tesoreria_confirm: "",
     // Origen y aceptaciones
     origen_recursos_desc: "",
     acepta_politicas: false,
     acepta_otras_declaraciones: false,
     acepta_veracidad_info: false,
     acepta_tratamiento_datos: false,
+    acepta_envio: false,
   });
 
   // ====== Documentos (modo diferido en memoria) ======
@@ -228,14 +244,24 @@ export default function KycFormPage() {
   }, [queuedDocs, requiredDocCodes]);
 
   const validateDocsBeforeSave = () => {
-    const dateRequired = new Set(["RUT", "CERT_CUENTA", "REF_COMERCIAL"]);
-    const missing = [];
-    for (const code of requiredDocCodes) {
-      const item = queuedDocs[code];
-      if (!item?.file) { missing.push(code); continue; }
-      if (dateRequired.has(code) && !item?.date) { missing.push(code); continue; }
+  const dateRequired = new Set(["RUT", "CERT_CUENTA", "REF_COMERCIAL"]);
+  const missing = [];
+  for (const code of requiredDocCodes) {
+    const item = queuedDocs[code];
+    if (code === "REF_COMERCIAL") {
+      const list = item?.files || [];
+      if (list.length < 2) { missing.push(code); continue; }
+      // todas deben tener fecha
+      const bad = list.some(it => !it?.file || !it?.date);
+      if (bad) { missing.push(code); continue; }
+      continue; // ok
     }
-    return missing;
+    // resto: 1 archivo
+    if (!item?.file) { missing.push(code); continue; }
+    if (dateRequired.has(code) && !item?.date) { missing.push(code); continue; }
+  }
+  return missing;
+
   };
 
 
@@ -329,9 +355,15 @@ export default function KycFormPage() {
           return "Dígito de verificación es obligatorio para NIT";
         return "";
       case "primer_nombre":
-        if (!value?.trim()) return "Primer nombre es obligatorio";
+        if (!value?.trim()) {
+    return (f.tipo_doc === "31")
+      ? "Razón social es obligatoria"
+      : "Primer nombre es obligatorio";
+  }
         return "";
       case "primer_apellido":
+          // Para NIT NO exigimos apellidos
+        if (f.tipo_doc === "31") return "";
         if (!value?.trim()) return "Primer apellido es obligatorio";
         return "";
       case "direccion_fiscal":
@@ -352,6 +384,10 @@ export default function KycFormPage() {
       case "correo":
         if (!value?.trim()) return "Correo electrónico es obligatorio";
         if (!emailRe.test(value)) return "Correo inválido";
+        return "";
+      case "correo_confirm":
+        if (!value?.trim()) return "Confirma tu correo";
+        if (!eqTrimLower(value, (full?.correo || ""))) return "El correo no coincide";
         return "";
       case "activos_virtuales":
         if (value === null)
@@ -394,6 +430,13 @@ export default function KycFormPage() {
           if (!emailRe.test(value)) return "Correo inválido";
         }
         return "";
+      case "correo_fe_confirm":
+  if (isTrue(full?.obligado_fe)) {
+    if (!value?.trim()) return "Confirma el correo FE";
+    if (!eqTrimLower(value, (full?.correo_fe || ""))) return "El correo FE no coincide";
+  }
+  return "";
+
       case "ica_codigo":
       case "ica_tarifa_millar":
       case "ica_ciudad":
@@ -410,6 +453,13 @@ export default function KycFormPage() {
       case "banco_cuenta_numero":
         if (!value?.trim()) return "Número de cuenta obligatorio";
         return "";
+
+      case "banco_cuenta_numero_confirm":
+  if (!value?.trim()) return "Confirma el número de cuenta";
+  if (String(value || "").trim() !== String(full?.banco_cuenta_numero || "").trim()) {
+    return "El número de cuenta no coincide";
+  }
+  return "";
       case "banco_cuenta_titular":
         if (!value?.trim()) return "Titular obligatorio";
         return "";
@@ -419,6 +469,10 @@ export default function KycFormPage() {
       case "correo_tesoreria":
         if (!value?.trim()) return "Correo de tesorería obligatorio";
         if (!emailRe.test(value)) return "Correo inválido";
+        return "";
+      case "correo_tesoreria_confirm":
+        if (!value?.trim()) return "Confirma el correo de tesorería";
+        if (!eqTrimLower(value, (full?.correo_tesoreria || ""))) return "El correo de tesorería no coincide";
         return "";
       // Origen y aceptaciones
       case "origen_recursos_desc": {
@@ -441,6 +495,9 @@ export default function KycFormPage() {
         return "";
       default:
         return "";
+      case "acepta_envio":
+          if (!isTrue(value)) return "Debes confirmar que aceptas todo para poder enviar.";
+          return "";
     }
   };
 
@@ -464,6 +521,7 @@ export default function KycFormPage() {
       "city_id",
       "telefono1",
       "correo",
+      "correo_confirm",
       "activos_virtuales",
       // Financiera
       "ingresos_anuales",
@@ -477,6 +535,7 @@ export default function KycFormPage() {
       "gran_contribuyente_resolucion",
       "autoretenedor_renta_resolucion",
       "correo_fe",
+      "correo_fe_confirm",
       "ica_codigo",
       "ica_tarifa_millar",
       "ica_ciudad",
@@ -484,15 +543,18 @@ export default function KycFormPage() {
       "bank_country_id",
       "bank_id",
       "banco_cuenta_numero",
+      "banco_cuenta_numero_confirm",
       "banco_cuenta_titular",
       "banco_cuenta_tipo",
       "correo_tesoreria",
+      "correo_tesoreria_confirm",
       // Origen + aceptaciones
       "origen_recursos_desc",
       "acepta_politicas",
       "acepta_otras_declaraciones",
       "acepta_veracidad_info",
       "acepta_tratamiento_datos",
+      "acepta_envio",
     ];
     const newErrors = {};
     fields.forEach((k) => {
@@ -533,6 +595,27 @@ useEffect(() => {
 const handleSubmit = async (e) => {
   e.preventDefault();
   setError("");
+
+
+ if (!isTrue(form.acepta_envio)) {
+   setErrors((old) => ({ ...old, acepta_envio: "Debes confirmar que aceptas todo para poder enviar." }));
+   document.getElementById("acepta_envio")?.scrollIntoView({ behavior: "smooth", block: "center" });
+   return;
+ }
+
+ 
+   // UI: verificación financiera (según tu regla solicitada)
+   const activosN = toNum0(form.activos);
+   const pasivosN = toNum0(form.pasivos);
+   const patrimonioN = toNum0(form.patrimonio);
+   if (patrimonioN !== (activosN - pasivosN)) {
+     setError("Confirme su información financiera");
+     // opcional: alert visual inmediato
+      alert("Confirme su información financiera");
+     // llevar scroll a la sección financiera:
+     document.getElementById("patrimonio")?.scrollIntoView({ behavior: "smooth", block: "center" });
+     return;
+   }
   // 1) Validar formulario
   const msg = validateAll(form);
   if (msg) {
@@ -602,7 +685,7 @@ const handleSubmit = async (e) => {
       ica_codigo: isTrue(form.responsable_ica) ? form.ica_codigo?.trim() || null : null,
       ica_tarifa_millar: isTrue(form.responsable_ica) ? toNumberOrNull(form.ica_tarifa_millar) : null,
       ica_ciudad: isTrue(form.responsable_ica) ? form.ica_ciudad?.trim() || null : null,
-      gran_contribuyente_ica_bogota: isTrue(form.gran_contribuyente_ica_bogota),
+      gran_contribuyente_ica_bucaramanga: isTrue(form.gran_contribuyente_ica_bucaramanga),
       obligado_fe: isTrue(form.obligado_fe),
       correo_fe: isTrue(form.obligado_fe) ? form.correo_fe?.trim() || null : null,
       // Bancaria
@@ -628,20 +711,40 @@ const handleSubmit = async (e) => {
     const newSubmissionId = createRes?.id || createRes?.submission_id;
     if (!newSubmissionId) throw new Error("No se recibió el id de la nueva submission.");
     // 4) Subir documentos de la cola
-    for (const [code, { file, date }] of Object.entries(queuedDocs)) {
-      const formData = new FormData();
-      formData.append("submission_id", newSubmissionId);
-      formData.append("tipo", code);
-      formData.append("file", file);
-      if (date) formData.append("fecha", date);
-      const res = await fetch("/api/kyc/submissions/documents/upload/", {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData,
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.detail || `Error subiendo ${code}`);
-    }
+ for (const [code, value] of Object.entries(queuedDocs)) {
+   // Caso especial: referencias comerciales múltiples
+   if (code === "REF_COMERCIAL" && Array.isArray(value?.files)) {
+     for (const { file, date } of value.files) {
+       const formData = new FormData();
+       formData.append("submission_id", newSubmissionId);
+       formData.append("tipo", "REF_COMERCIAL");
+       formData.append("file", file);
+       if (date) formData.append("fecha", date);
+       const res = await fetch("/api/kyc/submissions/documents/upload/", {
+         method: "POST",
+         headers: token ? { Authorization: `Bearer ${token}` } : {},
+         body: formData,
+       });
+       const data = await res.json().catch(() => ({}));
+       if (!res.ok) throw new Error(data?.detail || `Error subiendo REF_COMERCIAL`);
+     }
+     continue;
+   }
+   // Resto de documentos (uno a uno)
+   const { file, date } = value || {};
+   const formData = new FormData();
+   formData.append("submission_id", newSubmissionId);
+   formData.append("tipo", code);
+   formData.append("file", file);
+   if (date) formData.append("fecha", date);
+   const res = await fetch("/api/kyc/submissions/documents/upload/", {
+     method: "POST",
+     headers: token ? { Authorization: `Bearer ${token}` } : {},
+     body: formData,
+   });
+   const data = await res.json().catch(() => ({}));
+   if (!res.ok) throw new Error(data?.detail || `Error subiendo ${code}`);
+ }
     // 5) Finalizar
     await authFetch(`/api/kyc/submissions/${newSubmissionId}/`, {
       method: "PATCH",
@@ -699,8 +802,11 @@ const handleSubmit = async (e) => {
           size="2xl"
           className="mx-auto"
           contentClassName="px-4 md:px-8"
-          title="Vinculación de Proveedor"
-          subtitle="Completa tu información para continuar"
+          title="FORMATO DE CREACIÓN Y/O ACTUALIZACIÓN - 
+CONOCIMIENTO DE CONTRAPARTES"
+          subtitle="Este formato se diligencia conforme a los documentos M-COM
+FO02, M-COM-FO06, la Política de Tratamiento de Datos Personales y el Programa de 
+Transparencia y Ética Empresarial (PTEE) de Supermercados Mas por Menos S.A.S."
 
         >
           <form className="space-y-10" onSubmit={handleSubmit}>
@@ -773,65 +879,75 @@ const handleSubmit = async (e) => {
                 </div>
               </div>
 
-              {/* Fila 2: nombres/apellidos */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-                <div>
-                  <RequiredLabel>Primer nombre</RequiredLabel>
-                  <InputField
-                    id="primer_nombre"
-                    label=""
-                    value={form.primer_nombre}
-                    onChange={(e) =>
-                      handleChange("primer_nombre", onlyLetters(e.target.value))
-                    }
-                    onBlur={blurValidate("primer_nombre")}
-                  />
-                  {errors.primer_nombre && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.primer_nombre}
-                    </p>
-                  )}
-                </div>
-                <InputField
-                  id="otros_nombres"
-                  label="Otros nombres (opcional)"
-                  value={form.otros_nombres}
-                  onChange={(e) =>
-                    handleChange("otros_nombres", onlyLetters(e.target.value))
-                  }
-                />
-                <div>
-                  <RequiredLabel>Primer apellido</RequiredLabel>
-                  <InputField
-                    id="primer_apellido"
-                    label=""
-                    value={form.primer_apellido}
-                    onChange={(e) =>
-                      handleChange(
-                        "primer_apellido",
-                        onlyLetters(e.target.value)
-                      )
-                    }
-                    onBlur={blurValidate("primer_apellido")}
-                  />
-                  {errors.primer_apellido && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.primer_apellido}
-                    </p>
-                  )}
-                </div>
-                <InputField
-                  id="segundo_apellido"
-                  label="Segundo apellido (opcional)"
-                  value={form.segundo_apellido}
-                  onChange={(e) =>
-                    handleChange(
-                      "segundo_apellido",
-                      onlyLetters(e.target.value)
-                    )
-                  }
-                />
-              </div>
+ {/* Fila 2: Razón social (si NIT) o nombres/apellidos (si no NIT) */}
+ {isNIT ? (
+   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+     <div className="md:col-span-4">
+       <RequiredLabel>Razón social</RequiredLabel>
+       <InputField
+         id="primer_nombre"   // seguimos usando el mismo campo para no tocar la DB
+         label=""
+         value={form.primer_nombre || ""}
+         // Para razón social NO uses onlyLetters; permite números y símbolos comunes
+         onChange={(e) => handleChange("primer_nombre", e.target.value)}
+         onBlur={blurValidate("primer_nombre")}
+         placeholder="Ej: Supermercados Mas por Menos S.A.S."
+       />
+       {errors.primer_nombre && (
+         <p className="mt-1 text-xs text-red-500">{errors.primer_nombre}</p>
+       )}
+     </div>
+   </div>
+ ) : (
+   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+     <div>
+       <RequiredLabel>Primer nombre</RequiredLabel>
+       <InputField
+         id="primer_nombre"
+         label=""
+         value={form.primer_nombre}
+         onChange={(e) =>
+           handleChange("primer_nombre", onlyLetters(e.target.value))
+         }
+         onBlur={blurValidate("primer_nombre")}
+       />
+       {errors.primer_nombre && (
+         <p className="mt-1 text-xs text-red-500">{errors.primer_nombre}</p>
+       )}
+     </div>
+     <InputField
+       id="otros_nombres"
+       label="Otros nombres (opcional)"
+       value={form.otros_nombres}
+       onChange={(e) =>
+         handleChange("otros_nombres", onlyLetters(e.target.value))
+       }
+     />
+     <div>
+       <RequiredLabel>Primer apellido</RequiredLabel>
+       <InputField
+         id="primer_apellido"
+         label=""
+         value={form.primer_apellido}
+         onChange={(e) =>
+           handleChange("primer_apellido", onlyLetters(e.target.value))
+         }
+         onBlur={blurValidate("primer_apellido")}
+       />
+       {errors.primer_apellido && (
+         <p className="mt-1 text-xs text-red-500">{errors.primer_apellido}</p>
+       )}
+     </div>
+     <InputField
+       id="segundo_apellido"
+       label="Segundo apellido (opcional)"
+       value={form.segundo_apellido}
+       onChange={(e) =>
+         handleChange("segundo_apellido", onlyLetters(e.target.value))
+       }
+     />
+   </div>
+ )}
 
               {/* Fila 3: dirección */}
               <div className="mt-4">
@@ -982,12 +1098,26 @@ const handleSubmit = async (e) => {
                     <p className="mt-1 text-xs text-red-500">{errors.correo}</p>
                   )}
                 </div>
+
+                 <div className="mt-2">
+                    <label className="text-xs block mb-1">Confirmar correo electrónico</label>
+                    <InputField
+                      id="correo_confirm"
+                      label=""
+                      value={form.correo_confirm}
+                      onChange={(e) => handleChange("correo_confirm", e.target.value)}
+                      onBlur={blurValidate("correo_confirm")}
+                      placeholder="Repite tu correo"
+                    />
+                    {errors.correo_confirm && <p className="mt-1 text-xs text-red-500">{errors.correo_confirm}</p>}
+                  </div>
               </div>
 
               {/* Fila 6: Criptoactivos */}
               <div className="mt-4">
                 <RequiredLabel>
-                  ¿Realiza actividades con activos virtuales (criptoactivos)?
+                  De conformidad con el SARLAFT y el PTEE, indique si realiza 
+                  operaciones con activos virtuales
                 </RequiredLabel>
                 <BoolRadio
                   id="activos_virtuales"
@@ -998,6 +1128,14 @@ const handleSubmit = async (e) => {
                     setErrors((e) => ({ ...e, activos_virtuales: "" }));
                   }}
                 />
+                <p
+                className={`text-xs leading-snug mb-4 ${
+                  isDark ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Esta información se solicita en cumplimiento de la normatividad 
+                SARLAFT y del Programa de Transparencia y Ética Empresarial (PTEE).
+                </p>
                 {errors.activos_virtuales && (
                   <p className="mt-1 text-xs text-red-500">
                     {errors.activos_virtuales}
@@ -1066,6 +1204,22 @@ const handleSubmit = async (e) => {
                     }
                   />
                 </div>
+
+                 <div className="md:col-span-2 lg:col-span-1">
+                   <InputField
+                     id="contacto_correo_pedidos_confirm"
+                     label="Confirmar correo corporativo para pedidos"
+                     value={form.contacto_correo_pedidos_confirm}
+                     onChange={(e) =>
+                       handleChange("contacto_correo_pedidos_confirm", e.target.value)
+                     }
+                     onBlur={blurValidate("contacto_correo_pedidos_confirm")}
+                     placeholder="Repite el correo"
+                   />
+                   {errors.contacto_correo_pedidos_confirm && (
+                     <p className="mt-1 text-xs text-red-500">{errors.contacto_correo_pedidos_confirm}</p>
+                   )}
+                 </div>
               </div>
             </section>
 
@@ -1079,62 +1233,54 @@ const handleSubmit = async (e) => {
                   isDark ? "text-gray-400" : "text-gray-600"
                 }`}
               >
-                Conteste las siguientes preguntas y relacione si Usted, los
-                representantes legales, miembros de la Junta directiva o
-                accionistas de la sociedad o entidad, es una Persona Expuesta
-                Políticamente (PEP*) o han ocupado cargos públicos o manejado
-                recursos públicos en los últimos dos (2) años
+                Por favor, conteste las siguientes preguntas y declare si usted, sus 
+representantes legales, miembros de junta directiva o accionistas de la sociedad son o han 
+sido Personas Expuestas Políticamente (PEP) o han manejado recursos públicos en los 
+últimos dos (2) años.
               </p>
               <p
                 className={`text-xs leading-snug mb-4 ${
                   isDark ? "text-gray-400" : "text-gray-600"
                 }`}
               >
-                *PEP: servidores públicos, funcionarios públicos, políticos o
-                particulares que ejerzan funciones públicas o maneja recursos
-                públicos en entidades de caracter nacional, departamental,
-                municipal o de una entidad pública Internacional o extranjera
+                Definición PEP nacional: Persona que desempeña o ha desempeñado funciones públicas 
+destacadas, administra recursos públicos o tiene autoridad en entidades del orden 
+nacional, departamental o municipal en Colombia, conforme a la normatividad vigente 
+(Circular Básica Jurídica de la Superintendencia de Sociedades, Cap. XIII). 
+<br></br> 
+Definición PEP internacional o extranjera: Persona que ejerce funciones directivas en una 
+organización internacional (ej. ONU, OCDE, UNICEF, OEA, entre otras), o que desempeña 
+funciones públicas prominentes en otro país.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <BoolRadio
                   id="pep_actual"
-                  label="¿Actualmente usted o administradores ostentan calidad de PEP?"
+                  label="¿Actualmente usted o alguno de los administradores ostenta 
+calidad de PEP?"
                   value={form.pep_actual}
                   onChange={(v) => handleChange("pep_actual", v)}
                 />
                 <BoolRadio
                   id="pep_ult2anios"
-                  label="¿Manejó recursos públicos en últimos 2 años o fue PEP?"
+                  label="¿Ha ocupado cargos públicos o manejado recursos públicos en los 
+últimos dos (2) años?"
                   value={form.pep_ult2anios}
                   onChange={(v) => handleChange("pep_ult2anios", v)}
                 />
                 <BoolRadio
                   id="pep_parentesco"
-                  label="¿Existe vínculo de parentesco con alguna PEP?"
+                  label="¿Tiene parentesco (primer y segundo grado de consanguinidad, 
+segundo de afinidad, primero civil), compañero(a) permanente o es socio cercano de 
+alguna PEP?"
                   value={form.pep_parentesco}
                   onChange={(v) => handleChange("pep_parentesco", v)}
                 />
               </div>
-              <p
-                className={`text-xs leading-snug mb-4 mt-4 ${
-                  isDark ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                *PEP de Organizaciones Internacionales: son aquellas personas
-                naturales que ejercen funciones directivas en una organización
-                internacional, tales como la Organización de Naciones Unidas,
-                Organización para la Cooperación y el Desarrollo Económicos, el
-                Fondo de las Naciones Unidas para la Infancia (UNICEF) y la
-                Organización de Estados Americanos, entre otros (vr.gr.
-                directores, subdirectores, miembros de junta directiva
-                ocualquier persona que ejerza una función equivalente). PEP
-                Extranjeras: son aquellas personas naturales que desempeñan
-                funciones públicas prominentes y destacadas en otro país.
-              </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <BoolRadio
                   id="pep_organizaciones_internacionales"
-                  label="¿PEP de Organizaciones Internacionales?"
+                  label="¿Es PEP en una organización internacional? (Ej. ONU, OCDE, 
+UNICEF, OEA, entre otras)"
                   value={form.pep_organizaciones_internacionales}
                   onChange={(v) =>
                     handleChange("pep_organizaciones_internacionales", v)
@@ -1142,7 +1288,8 @@ const handleSubmit = async (e) => {
                 />
                 <BoolRadio
                   id="pep_extranjero"
-                  label="¿PEP extranjero?"
+                  label="¿Es PEP extranjera? (Desempeña funciones públicas prominentes 
+en otro país)"
                   value={form.pep_extranjero}
                   onChange={(v) => handleChange("pep_extranjero", v)}
                 />
@@ -1152,8 +1299,16 @@ const handleSubmit = async (e) => {
             {/* ====== FINANCIERA (COP) ====== */}
             <section>
               <h3 className="text-sm font-semibold mb-3 opacity-80">
-                Información Financiera (COP)
+                Información Financiera (COP) 
               </h3>
+               <p
+                className={`text-xs leading-snug mb-4 ${
+                  isDark ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Por favor diligencie los valores anuales con corte al 31 de diciembre del 
+último año reportado, de acuerdo con sus estados financieros certificados o auditados.
+</p>
 
               {/* Fila 1 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1378,7 +1533,7 @@ const handleSubmit = async (e) => {
                 <div className="grid grid-cols-1">
                   <BoolRadio
                     id="regimen_esal"
-                    label="Régimen ESAL"
+                    label="Entidad sin ánimo de lucro (ESAL)"
                     value={form.regimen_esal}
                     onChange={(v) => handleChange("regimen_esal", v)}
                   />
@@ -1398,7 +1553,7 @@ const handleSubmit = async (e) => {
                 <div className="grid grid-cols-1">
                   <BoolRadio
                     id="regimen_simple"
-                    label="Régimen simple de tributación"
+                    label="Régimen Simple de Tributación (RST)"
                     value={form.regimen_simple}
                     onChange={(v) => handleChange("regimen_simple", v)}
                   />
@@ -1408,7 +1563,7 @@ const handleSubmit = async (e) => {
                 <div className="grid grid-cols-1">
                   <BoolRadio
                     id="responsable_ica"
-                    label="Responsable de Impuesto de Industria y Comercio"
+                    label="Responsable de Impuesto de Industria y Comercio (ICA)"
                     value={form.responsable_ica}
                     onChange={(v) => {
                       handleChange("responsable_ica", v);
@@ -1492,11 +1647,11 @@ const handleSubmit = async (e) => {
 
                 <div className="grid grid-cols-1">
                   <BoolRadio
-                    id="gran_contribuyente_ica_bogota"
-                    label="Gran contribuyente de ICA en Bogotá"
-                    value={form.gran_contribuyente_ica_bogota}
+                    id="gran_contribuyente_ica_bucaramanga"
+                    label="Gran contribuyente de ICA en Bucaramanga"
+                    value={form.gran_contribuyente_ica_bucaramanga}
                     onChange={(v) =>
-                      handleChange("gran_contribuyente_ica_bogota", v)
+                      handleChange("gran_contribuyente_ica_bucaramanga", v)
                     }
                   />
                 </div>
@@ -1538,6 +1693,22 @@ const handleSubmit = async (e) => {
                     </p>
                   )}
                 </div>
+                 {isTrue(form.obligado_fe) && (
+                   <div className="grid grid-cols-1">
+                     <label className="text-xs block mb-1">Confirmar correo para factura electrónica</label>
+                     <InputField
+                       id="correo_fe_confirm"
+                       label=""
+                       value={form.correo_fe_confirm}
+                       onChange={(e) => handleChange("correo_fe_confirm", e.target.value)}
+                       onBlur={blurValidate("correo_fe_confirm")}
+                       placeholder="Repite el correo FE"
+                     />
+                     {errors.correo_fe_confirm && (
+                       <p className="mt-1 text-xs text-red-500">{errors.correo_fe_confirm}</p>
+                     )}
+                   </div>
+                 )}
               </div>
             </section>
 
@@ -1658,7 +1829,27 @@ const handleSubmit = async (e) => {
                     </p>
                   )}
                 </div>
-                <div>
+
+                 <div>
+                  <label className="text-xs block mb-1">Confirmar N° de cuenta bancaria</label>
+                  <InputField
+                    id="banco_cuenta_numero_confirm"
+                    label=""
+                    value={form.banco_cuenta_numero_confirm}
+                    onChange={(e) =>
+                      handleChange(
+                        "banco_cuenta_numero_confirm",
+                        onlyDigits(e.target.value)
+                      )
+                    }
+                    onBlur={blurValidate("banco_cuenta_numero_confirm")}
+                    placeholder="Repite el número de cuenta"
+                  />
+                  {errors.banco_cuenta_numero_confirm && (
+                    <p className="mt-1 text-xs text-red-500">{errors.banco_cuenta_numero_confirm}</p>
+                  )}
+                </div>
+               <div>
                   <RequiredLabel>Tipo de cuenta</RequiredLabel>
                   <select
                     id="banco_cuenta_tipo"
@@ -1699,6 +1890,22 @@ const handleSubmit = async (e) => {
                     </p>
                   )}
                 </div>
+
+               <div>
+                 <label className="text-xs block mb-1">Confirmar correo de tesorería</label>
+                 <InputField
+                   id="correo_tesoreria_confirm"
+                   label=""
+                   value={form.correo_tesoreria_confirm}
+                   onChange={(e) => handleChange("correo_tesoreria_confirm", e.target.value)}
+                   onBlur={blurValidate("correo_tesoreria_confirm")}
+                   placeholder="Repite el correo de tesorería"
+                 />
+                 {errors.correo_tesoreria_confirm && (
+                   <p className="mt-1 text-xs text-red-500">{errors.correo_tesoreria_confirm}</p>
+                 )}
+               </div>
+
               </div>
             </section>
 
@@ -1712,12 +1919,10 @@ const handleSubmit = async (e) => {
                   isDark ? "text-gray-400" : "text-gray-600"
                 }`}
               >
-                Yo, obrando en representación legal o en nombre propio, según
-                los datos diligenciados en el presente formato, de manera
-                voluntaria declaro bajo gravedad de juramento que: a) Que mis
-                propios recursos y los recursos de la persona jurídica que
-                represento, provienen de actividades lícitas que se originan o
-                provienen de: (Describa a continuación el origen de los recusos)
+                Yo, obrando en nombre propio o en representación legal, según los 
+                  datos diligenciados en el presente formato, declaro voluntariamente bajo la gravedad de 
+                  juramento que mis propios recursos, y los de la persona jurídica que represento, provienen 
+                  de actividades lícitas, que se originan o provienen de:
               </p>
               <div className="mb-4">
                 <RequiredLabel>
@@ -1733,7 +1938,8 @@ const handleSubmit = async (e) => {
                     handleChange("origen_recursos_desc", e.target.value)
                   }
                   onBlur={blurValidate("origen_recursos_desc")}
-                  placeholder="Ej: Ingresos por arrendamientos…"
+                  placeholder="Ejemplo: ingresos por arrendamientos, 
+ventas, prestación de servicios, rendimientos financieros o inversiones…"
                 />
                 {errors.origen_recursos_desc && (
                   <p className="mt-1 text-xs text-red-500">
@@ -1745,30 +1951,27 @@ const handleSubmit = async (e) => {
                     isDark ? "text-gray-400" : "text-gray-600"
                   }`}
                 >
-                  Los recursos provenientes de mi actividad económica no
-                  provienen de actividades ilícitas, ni actividades contempladas
-                  en el Código Penal Colombiano o en cualquier norma que lo
-                  modifique o accione. En tal sentido, se obliga expresamente a
-                  no destinar sus recursos, y en particular aquellos recursos
-                  recibidos en desarrollo de la eventual relación con La
-                  Compañía, a ninguna actividad ilícita de las previstas en el
-                  Código Penal Colombiano o actividades de financiación o apoyo
-                  directo o indirecto del terrorismo nacional o internacional;
-                  b) En caso de ser requerido por parte de la Compañía o de
-                  algún organismo de investigación, vigilancia y control del
-                  estado, estoy dispuesto a suministrar los soportes requeridos
-                  que evidencian el origen o destino de los recursos. c) Eximo a
-                  la Compañía de toda responsabilidad que se derive por
-                  información errónea, falsa o inexacta que yo hubiere
-                  suministrado en este documento o de la violación del mismo. d)
-                  Certifico que la información suministrada es veraz y
-                  verificable y me obligo a actualizarla por lo menos una (1)
-                  vez al año, o cada vez que así lo solicite La Compañía,
-                  suministrando la totalidad de los soportes documentales
-                  exigidos. e) Autorizo para que esta información sea
-                  verificada, contrastada y analizada con las fuentes que la
-                  Compañía considere adecuadas para garantizar la gestión del
-                  riesgo de LA/FT/FPADM de acuerdo con Sistema Anti-LA/FT/FPADM.
+                  <b>Declaro adicionalmente que:</b> a) Los recursos provenientes de mi actividad económica no provienen de actividades 
+                  ilícitas, ni de las contempladas en el Código Penal Colombiano, ni de las que lo modifiquen 
+                  o sustituyan. b) Me obligo expresamente a no destinar recursos propios o de terceros —y en 
+                  particular aquellos recibidos en desarrollo de la relación con Supermercados Mas por 
+                  Menos S.A.S.— a actividades ilícitas, ni a la financiación o apoyo directo o indirecto del 
+                  terrorismo nacional o internacional, ni a la proliferación de armas de destrucción masiva 
+                  (FPADM). c) En caso de ser requerido por la Compañía o por algún organismo de 
+                  investigación, vigilancia o control del Estado, me comprometo a suministrar los soportes 
+                  documentales que evidencien el origen o destino de los recursos. d) Eximo a la Compañía 
+                  de toda responsabilidad derivada de información errónea, falsa o inexacta que haya 
+                  suministrado, o del incumplimiento de las obligaciones aquí declaradas. e) Certifico que la 
+                  información es veraz y verificable, y me obligo a actualizarla al menos una (1) vez al año o 
+                  cuando la Compañía lo solicite, adjuntando los soportes exigidos conforme al 
+                  procedimiento de conocimiento de contrapartes (M-COM-FO02). f) Autorizo expresamente 
+                  a Supermercados Mas por Menos S.A.S. para verificar, contrastar y analizar esta 
+                  información con fuentes públicas o privadas, nacionales e internacionales, incluyendo 
+                  listas restrictivas (OFAC, ONU, UE, entre otras), en cumplimiento del Sistema de 
+                  Administración del Riesgo de LA/FT/FPADM (SAGRILAFT) y del Programa de Transparencia y 
+                  Ética Empresarial (PTEE). g) Reconozco que el incumplimiento o falsedad de esta 
+                  declaración podrá ser causal de rechazo o terminación inmediata de cualquier relación 
+                  comercial, sin perjuicio de las acciones legales que correspondan.
                 </p>
               </div>
             </section>
@@ -1783,43 +1986,40 @@ const handleSubmit = async (e) => {
                   isDark ? "text-gray-400" : "text-gray-600"
                 }`}
               >
-                Con la firma y envío de este documento confirmo que he leído y
-                entendido El Código de ética, y la Política SAGRILAFT de la
-                Compañía (las "Políticas"), a las cuales tengo acceso en la
-                página web: https://info.mxm.com.co/politicas-tratamiento-datos/
-                o me las suministrará directamente la Compañía, si así lo
-                solicito. Además, declaro lo siguiente: a) que acepto cumplir
-                con las Políticas y revisar su contenido antes de participar en
-                cualquier actividad que involucre a la Compañía, y que
-                eventualmente pudiera estar en contravía de las Políticas. Si
-                tengo alguna duda o inquietud en relación con la aplicación de
-                las Políticas, me pondré en contacto con el Oficial de
-                Cumplimiento por medio de la Línea Ética, para solicitar su
-                orientación y acompañamiento con el fin de garantizar la
-                adecuada aplicación de las Políticas; b) Que he conducido mi
-                operación en cumplimiento con, y/o no he incurrido en Conductas
-                Prohibidas por, las Leyes Anticorrupción y SAGRILAFT; c) Tomo
-                medidas para evitar introducir recursos provenientes del lavado
-                de activos o se financie el terrorismo y la Proliferación de
-                armas de destrucción masiva; d)No estoy relacionado o tengo
-                vínculos con personas que realizan Lavado de Activos,
-                Financiación del Terrorismo y el Financiamiento de la
-                Proliferación de armas de destrucción masiva; e) En caso de
-                identificar cualquier tipo de operación intentada u Operación
-                Sospechosa relacionada con el Lavado de Activos, Financiación
-                del Terrorismo y Financiamiento de la Proliferación de armas de
-                destrucción masiva, o si tengo conocimiento de alguna conducta
-                sospechosa, no ética o violación a las normas o de las
-                Políticas, seguiré los procedimientos para utilizar los canales
-                establecidos por la Compañía en la Línea Ética ingresando a{" "}
-                <a
+                Con la firma y envío de este documento, declaro que he leído y entendido el Código de 
+Ética, la Política SAGRILAFT y el Programa de Transparencia y Ética Empresarial (PTEE) de 
+Supermercados Mas por Menos S.A.S., disponibles en la página web: {" "} <a
                   className="underline"
                   href="https://info.mxm.com.co/politicas-tratamiento-datos/"
                   target="_blank"
                   rel="noreferrer"
                 >
                   https://info.mxm.com.co/politicas-tratamiento-datos/
+                </a> 
+ o que me serán suministrados 
+directamente por la Compañía si así lo solicito. 
+a) Acepto cumplir las Políticas, revisar su contenido antes de participar en cualquier 
+actividad que involucre a la Compañía y abstenerme de realizar actos que puedan 
+contravenirlas. En caso de duda sobre su aplicación, consultaré al Oficial de Cumplimiento 
+a través de los canales definidos en la Línea Ética. b) He conducido mis operaciones en 
+cumplimiento de las Leyes Anticorrupción, del SAGRILAFT y del PTEE, y declaro no haber 
+incurrido en conductas prohibidas por dichas normas. c) Implemento medidas para evitar 
+la introducción de recursos provenientes del lavado de activos, la financiación del 
+terrorismo (FT) y la proliferación de armas de destrucción masiva (FPADM). d) Declaro que 
+no tengo vínculos con personas naturales o jurídicas involucradas directa o indirectamente 
+en actividades de LA/FT/FPADM, ni con personas incluidas en listas restrictivas nacionales 
+o internacionales. e) En caso de identificar una operación sospechosa o intento de 
+operación relacionada con LA/FT/FPADM, o cualquier conducta no ética o violación a las 
+Políticas, me comprometo a reportarla inmediatamente por los canales establecidos en la 
+Línea Ética o al correo del Oficial de Cumplimiento:{" "} <a
+                  className="underline"
+                  href="oficialdecumplimiento@mxm.com.co"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  oficialdecumplimiento@mxm.com.co
                 </a>
+                
                 .
               </p>
               <CheckboxWithLabel
@@ -1851,37 +2051,23 @@ const handleSubmit = async (e) => {
                 }`}
               >
                 <p>
-                  1. Que yo, o la compañía que represento no nos encontramos en
-                  las prohibiciones o inhabilidades para contratar, señaladas en
-                  las leyes colombianas vigentes aplicables.<br></br> 2. Que en
-                  cada una de mis actuaciones o de las actuaciones de la
-                  compañía se preserva la dignificación del trabajo y la no
-                  discriminación y se aplican prácticas de seguridad y
-                  protección en el trabajo, de remuneración de acuerdo a la ley,
-                  de equidad de género, religión, raza y de eliminación del
-                  trabajo infantil. <br></br>3. Que a la firma de este documento
-                  confirmo que leído y entendido el Código de Ética de la
-                  Compañía, al cual tengo acceso a través de la página web:
-                  https://info.mxm.com.co/politicas-tratamiento-datos/, y, en
-                  consecuencia, me comprometo a cumplirlos. Que yo, o la
-                  compañía que represento no tienemos ningún conflicto de
-                  interés para contratar, y que en caso de existir durante la
-                  vigencia de la relación jurídica con Supermercados Mas por
-                  Menos S.A.S, lo reportaré de inmediato. <br></br>4. Que yo, o
-                  la compañía que represento fomentamos y desarrollamos
-                  prácticas ambientales dentro de los procesos productivos en
-                  cumplimiento de las normas ambientales de conformidad con las
-                  leyes vigentes. <br></br>5. Que a la firma de este documento
-                  confirmo que he leído y entendido la Política de prevención de
-                  LA, FT, FPADM de Supermercados Mas por Menos S.A.S, y así
-                  mismo que conozco el Programa de Transparencia y Ética
-                  Empresarial (PTEE) de Supermercados Mas por Menos S.A.S, así
-                  como las consecuencias de infringirlo. Las Políticas las puedo
-                  encontrar en la página web:
-                  https://info.mxm.com.co/politicas-tratamiento-datos/.{" "}
-                  <br></br>6. Que yo, o la compañía que represento acepto y
-                  declaro conocer la posibilidad que tiene Supermercados Mas por
-                  Menos S.A.S de adelantar, procedimientos de Debida Diligencia.
+                  1. Declaro que ni yo ni la compañía que represento estamos incursos en prohibiciones o 
+inhabilidades para contratar según la legislación colombiana vigente. 
+<br></br>2. En todas las actuaciones se preserva la dignificación del trabajo, la no discriminación y 
+el cumplimiento de las normas laborales sobre seguridad y salud en el trabajo, 
+remuneración legal, equidad de género, religión, raza y prohibición de trabajo infantil. 
+<br></br>3. Confirmo que he leído y entendido el Código de Ética de la Compañía, disponible en el 
+sitio web institucional, y me comprometo a su cumplimiento. Declaro que no existe 
+conflicto de interés para contratar y que, si llegare a presentarse durante la relación 
+contractual, lo reportaré de inmediato a la Compañía. 
+<br></br>4. Declaro que fomento prácticas ambientales responsables en mis procesos productivos, 
+conforme a la normatividad vigente. 
+<br></br>5. Confirmo que he leído y entiendo la Política de Prevención de LA/FT/FPADM y el 
+Programa de Transparencia y Ética Empresarial (PTEE), y conozco las consecuencias de 
+su incumplimiento. 
+<br></br>6. Reconozco y acepto que la Compañía podrá adelantar procedimientos de Debida 
+Diligencia para verificar mi idoneidad, antecedentes y cumplimiento normativo en 
+cualquier momento de la relación comercial.
                 </p>
               </div>
               <div className="mt-3">
@@ -1914,14 +2100,12 @@ const handleSubmit = async (e) => {
                   isDark ? "text-gray-400" : "text-gray-600"
                 }`}
               >
-                Declaro que toda la información inscrita en el presente
-                formulario y en los soportes que lo acompañan son veraces y
-                autorizo a la Compañía para corroborar la información
-                suministrada. Admito que cualquier falsedad, omisión inexactitud
-                en la información podrá dar lugar al rechazo de mi inscripción
-                como proveedor, cliente, acreedor o deudor de La Compañía y al
-                cobro de la indemnización por los daños, que debidamente
-                probados, llegue a causar a La Compañía.
+                Declaro que toda la información registrada en el presente formulario y en los documentos 
+que lo acompañan es veraz, completa y verificable, y autorizo a la Compañía a corroborarla 
+mediante las fuentes que estime convenientes. 
+Entiendo que cualquier falsedad, omisión o inexactitud podrá dar lugar al rechazo de mi 
+vinculación o actualización como proveedor, o a la terminación de la relación comercial, 
+además de las acciones legales correspondientes.
               </p>
               <CheckboxWithLabel
                 id="acepta_veracidad_info"
@@ -1944,8 +2128,8 @@ const handleSubmit = async (e) => {
             {/* ====== DATOS PERSONALES ====== */}
             <section>
               <h3 className="text-sm font-semibold mb-3 opacity-80">
-                Autorización para el Tratamiento de Datos Personales Mas x Menos
-                S.A.S
+                Autorización para el Tratamiento de Datos Personales – 
+Supermercados Mas por Menos S.A.S.
               </h3>
               <div
                 className={`text-xs leading-snug space-y-3 mb-3 ${
@@ -1953,87 +2137,73 @@ const handleSubmit = async (e) => {
                 }`}
               >
                 <p>
-                  Autorizo el tratamiento de los datos personales de manera
-                  previa, expresa e informada a Supermercados Mas por Menos
-                  S.A.S. con NIT 900119072-8 en adelante “la Compañía” con
-                  domicilio principal en la ciudad de Bucaramanga. Colombia,
-                  correo electrónico notificaciones.mxm@mxm.com.co y teléfono
-                  (607) 6370099 Ext100, para capturar, almacenar, usar,
-                  circular, suprimir, transmitir o transferir a Encargados o
-                  Responsables, la información personal entregada o por
-                  entregarse, para los siguientes fines:
+                  Autorizo el tratamiento de mis datos personales de manera previa, expresa e informada a 
+Supermercados Mas por Menos S.A.S., identificada con NIT 900.119.072-8, con domicilio 
+principal en Bucaramanga, Colombia, correo electrónico protecciondedatos@mxm.com.co 
+y teléfono (607) 6370099 Ext. 100, en adelante la “Compañía”, para capturar, almacenar, 
+usar, circular, suprimir, transmitir o transferir la información personal entregada o por 
+entregarse, con las siguientes finalidades: 
                 </p>
                 <p>
-                  <br></br> 1.Expedir o solicitar facturas, o información
-                  relacionada con estas, certificados de retención en la fuente,
-                  paz y salvos y cualquier otro documento necesario que se deba
-                  suscribir en cuanto a la relación contractual o comercial del
-                  tercero objeto de vinculación.<br></br> 2. Procesar pagos a mi
-                  favor.
-                  <br></br> 3. Contactar y/o compartir información de interés
-                  general, para actividades de formación, encuestas, temas
-                  comerciales, promocionales, de venta o servicios cuando la
-                  Compañía lo considere pertinente a través de correo físico o
-                  electrónico, vía mensaje de datos (SMS O MMS), vía WhatsApp,
-                  llamadas telefónicas que podrán ser grabadas, o cualquier
-                  medio análogo o digital permitido por la Ley creado o por
-                  crearse.<br></br> 4. Conocer y tratar los datos personales de
-                  los empleados y contratistas que emplee para la prestación de
-                  los servicios o la adquisición de bienes.<br></br> 5. Evaluar
-                  el cumplimiento de la prestación de los servicios contratados
-                  o la adquisición de bienes.<br></br> 6. Realizar análisis
-                  estadísticos y reportes de mercadeo.<br></br> 7. Transferir y
-                  transmitir esta información a distintas áreas de la Compañía y
-                  a sus entidades vinculadas y Encargados del tratamiento, para
-                  evaluar la idoneidad del proveedor; o cuando ello sea
-                  necesario para el desarrollo de sus operaciones.<br></br> 8.
-                  Exigir el cumplimiento de los servicios contratados.<br></br>{" "}
-                  9. Autorizar el ingreso de contratistas y empleados a mi
-                  cargo, a las instalaciones de Compañía. <br></br> 10.
-                  Implementar medidas de seguridad industrial adecuadas para el
-                  ingreso a las instalaciones. <br></br> 11. Gestionar la
-                  prestación médica de emergencias, de ser requerido. <br></br>{" "}
-                  12. Realizar consultas y/o reportes de antecedentes
-                  comerciales, reputacionales, financieros, antecedentes
-                  disciplinarios, judiciales, eventuales riesgos de
-                  relacionamientos asociados al Lavado de Activos y Financiación
-                  del terrorismo, corrupción, soborno trasnacional, conflictos
-                  de interés y otras actividades ilícitas, que permitan un
-                  adecuado conocimiento y gestión de la contraparte.
-                  <br></br> 13. Captar a través de cámaras de video vigilancia
-                  imágenes y sonidos que serán almacenados por la Compañía para
-                  la para la seguridad de sus visitantes y colaboradores.{" "}
-                  <br></br> 14. Cualquier otra actividad de naturaleza similar a
-                  las anteriormente descritas que sean necesarias para
-                  desarrollar el objeto social de la Compañía, y las demás
-                  finalidades contempladas en la Política de Tratamiento de
-                  Datos Personales.
+                  <br></br>1. Expedir o solicitar facturas, certificados de retención, paz y salvos u otros documentos 
+relacionados con la relación comercial o contractual. 
+<br></br>2. Procesar pagos a mi favor y registrar transacciones contables o financieras. 
+<br></br>3. Contactar y/o compartir información relacionada con actividades de formación, 
+encuestas, asuntos comerciales, promocionales, de venta o de servicio, por medios 
+físicos o electrónicos, incluyendo correo, SMS, WhatsApp o llamadas telefónicas (que 
+podrán ser grabadas). 
+<br></br>4. Conocer y tratar los datos personales de empleados, contratistas o representantes 
+asociados a la prestación de servicios o venta de bienes. 
+<br></br>5. Evaluar el cumplimiento de los contratos o adquisiciones, y medir la satisfacción en la 
+relación comercial. 
+<br></br>6. Realizar análisis estadísticos, reportes de desempeño y estudios de mercado.” 
+<br></br>7. Transferir y/o transmitir la información a las distintas áreas de la Compañía, a sus 
+filiales, subordinadas o Encargados de tratamiento, para evaluar la idoneidad del 
+proveedor y garantizar la continuidad operativa. 
+<br></br>8. Exigir y verificar el cumplimiento de obligaciones contractuales o legales. 
+<br></br>9. Autorizar y controlar el ingreso de contratistas y empleados a las instalaciones de la 
+Compañía. 
+<br></br>10. Implementar medidas de seguridad industrial, salud ocupacional y gestión de 
+emergencias. 
+<br></br>11. Gestionar la atención médica de urgencias en caso de requerirse. 
+<br></br>12. Realizar consultas y/o reportes de antecedentes comerciales, financieros, 
+reputacionales, disciplinarios o judiciales, así como evaluaciones de riesgo asociadas a 
+LA/FT/FPADM, corrupción, soborno transnacional y conflicto de interés, en 
+cumplimiento del Sistema SAGRILAFT y del PTEE. 
+<br></br>13. Captar, mediante sistemas de videovigilancia, imágenes y sonidos con fines de 
+seguridad para visitantes, empleados y bienes de la Compañía, almacenados por un 
+período máximo de noventa (90) días, salvo cuando se requiera como prueba ante una 
+autoridad competente. 
+<br></br>14. Desarrollar cualquier otra actividad de naturaleza similar o complementaria a las 
+anteriores, necesaria para ejecutar el objeto social de la Compañía o las finalidades 
+previstas en la Política de Tratamiento de Datos Personales. 
+                </p>
+
+                <h3 className="text-sm font-semibold mb-3 opacity-80">
+                Tratamiento de Datos Sensibles
+              </h3>
+                <p>
+                  Manifiesto que entiendo que el tratamiento de datos sensibles (como los que revelan origen 
+étnico, creencias, orientación política, salud, datos biométricos o de geolocalización) 
+puede afectar mi intimidad o generar discriminación. 
+Reconozco que no estoy obligado a suministrar este tipo de datos, pero que de manera 
+libre, previa, expresa e informada autorizo su tratamiento, cuando sean requeridos para las 
+finalidades descritas y conforme a la Política vigente.
                 </p>
                 <p>
-                  Manifiesto que estoy informado que el tratamiento de datos
-                  sensibles pueden afectar la intimidad de una persona o su uso
-                  indebido puede generar discriminación, por lo que se hace
-                  necesario indicar que reconozco que no estoy obligado a
-                  contestar o a brindar este tipo de información que se
-                  considera como sensible, sin embargo, consciente de lo antes
-                  mencionado en caso de requerirse alguno de estos datos
-                  especialmente aquellos como los datos biométricos o de
-                  geolocalización, autorizo de manera previa, expresa, e
-                  informada, el tratamiento de estos datos.
+                  Conozco que tengo derecho a:
+<br></br>- Acceder, consultar y obtener copia de mis datos personales. 
+<br></br>- Solicitar su actualización, rectificación, corrección o supresión, así como revocar total o 
+parcialmente la autorización otorgada, siempre que no exista una obligación legal, 
+contractual o regulatoria que lo impida. 
+<br></br>- Solicitar prueba de esta autorización y ser informado sobre el uso que se ha dado a mis 
+datos. 
+<br></br>- Presentar reclamos ante la Superintendencia de Industria y Comercio (SIC) cuando 
+considere que mis derechos han sido vulnerados. 
                 </p>
                 <p>
-                  Conozco que tengo derecho a acceder y/o consultar mi
-                  información, actualizar, corregir, suprimir, solicitar prueba
-                  o soporte del consentimiento y/o a recovar el mismo parcial o
-                  totalmente, siempre que no exista una obligación contractual,
-                  comercial, legal y/o regulatoria que lo impida, así como a
-                  interponer reclamos ante la Superintendencia de industria y
-                  Comercio (SIC) cuando considere que mis derechos no fueron
-                  atendidos o fueron vulnerados.
-                </p>
-                <p>
-                  La Política de tratamiento de información de Supermercados Mas
-                  por Menos la encuentro para consulta en{" "}
+                  La <b>Política de Tratamiento de Información de Supermercados Mas por Menos S.A.S.</b> se 
+encuentra disponible para consulta en:{" "}
                   <a
                     href="https://info.mxm.com.co/politicas-tratamiento-datos/"
                     target="_blank"
@@ -2042,8 +2212,8 @@ const handleSubmit = async (e) => {
                   >
                     https://info.mxm.com.co/politicas-tratamiento-datos/
                   </a>{" "}
-                  y en ella encuentro los canales para el ejercicio de mis
-                  derechos.
+                 En dicha Política se detallan los canales y procedimientos para el ejercicio de los 
+derechos descritos. 
                 </p>
               </div>
               <CheckboxWithLabel
@@ -2066,6 +2236,15 @@ const handleSubmit = async (e) => {
 
             {/* ====== DOCUMENTOS (MODO DIFERIDO) ====== */}
             <section id="docs-section">
+              <p
+                className={`text-xs leading-snug mb-4 ${
+                  isDark ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                  Por favor, adjunte los documentos requeridos para completar el proceso de 
+vinculación o actualización. Todos los archivos deben estar vigentes (no mayores a 30 días) 
+y en formato PDF o imagen legible.
+                </p>
               <h3 className="text-sm font-semibold mb-3 opacity-80">Documentos para Vinculación</h3>
               {isTrue(form.obligado_fe) && (
                 <p className={`text-xs mb-2 ${isDark ? "text-yellow-300" : "text-yellow-700"}`}>
@@ -2101,9 +2280,23 @@ const handleSubmit = async (e) => {
               >
                 Salir
               </button>
-              <PrimaryButton type="submit" disabled={saving}>
+<CheckboxWithLabel
+                id="acepta_envio"
+                checked={!!form.acepta_envio}
+                onChange={(e) =>
+                  handleChange("acepta_envio", e.target.checked)
+                }
+                onBlur={blurValidate("acepta_envio")}
+              >
+                Confirmo que he leído y acepto todas las declaraciones, políticas y autorizaciones 
+                  incluidas en este formulario.{" "}
+                <span className="text-red-500">*</span>
+              </CheckboxWithLabel>
+              
+              <PrimaryButton type="submit" disabled={saving || !form.acepta_envio}>
   {saving ? "Guardando…" : "Enviar"}
 </PrimaryButton>
+
 
             </div>
           </form>
