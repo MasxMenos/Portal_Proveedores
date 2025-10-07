@@ -272,7 +272,7 @@
   "crecimiento": "taux de croissance (année en cours/année précédente)"
     },
     "totalSales": {
-      "title": "Total des ventes",
+      "title": "Achats totaux",
       "graphiqueLabel": "Valeur"
     },
     "topProducts": 

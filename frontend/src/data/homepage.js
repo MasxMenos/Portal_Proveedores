@@ -16,11 +16,11 @@
   // ];
 
   export const contacts = [
-    { tipo: "Conciliaciones", email: "conciliaciones@mxm.com.co", note: "Para conciliaciones" },
-    { tipo: "Comercial", email: "comercial@mxm.com.co", note: "Problemas de precios" },
-    { tipo: "Facturación Comercial", email: "facturacion@mxm.com.co", note: "Error en factura electrónica" },
+    { tipo: "Conciliaciones", email: "conciliaciones@mxm.com.co", note: "Escríbenos si detectas diferencias entre tus pagos y nuestras facturas, o necesitas soporte con estados de cuenta." },
+    { tipo: "Comercial", email: "comercial@mxm.com.co", note: "Contáctanos si tienes dudas sobre precios, condiciones comerciales o promociones." },
+    { tipo: "Facturación Comercial", email: "facturacion@mxm.com.co", note: "Usa este correo si tienes inconvenientes con una factura electrónica o necesitas corrección de datos." },
     // { tipo: "Director de abastecimiento", email: "dir.abastecimiento@mxm.com.co", note: "Escribir si no hay orden de compra" },
-    { tipo: "Líder de abastecimiento", email: "lider.abastecimiento@mxm.com.co", note: "Escribir si no hay orden de compra" },
+    // { tipo: "Líder de abastecimiento", email: "lider.abastecimiento@mxm.com.co", note: "Escribir si no hay orden de compra" },
   ];
 
 

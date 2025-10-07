@@ -2,27 +2,27 @@ const data_contact_category = {
     'GENERAL' : {
         'name': 'Francisco Minorta'
         ,'email': 'francisco.minorta@mxm.com.co'
-        ,'note': 'Lider de compras'
+        ,'note': 'Temas de compras generales o coordinación con proveedores.'
     },
     'SISTEMAS' : {
         'name': 'Sistemas'
         ,'email': 'auxiliar.sistemas3@mxm.com.co'
-        ,'note': 'Soporte de sistemas'
+        ,'note': 'Soporte de sistemas.'
     },
     'ASEO' : {
         'name': 'Frank Uribe'
         ,'email': 'frank.uribe@mxm.com.co'
-        ,'note': 'Línea de compra de ASEO'
+        ,'note': 'Festión de pedidos en la línea de compra de ASEO.'
     }
     ,'LICORES Y HOGAR'  : {
         'name': 'Reynel Forero'
         ,'email': 'david.forero@mxm.com.co'
-        ,'note': 'Línea de compra de LICORES Y HOGAR'
+        ,'note': 'Festión de pedidos en la línea de compra de LICORES Y HOGAR.'
     }
     ,'COMPRAS DIARIAS'  : {
         'name': 'Camilo Rangel'
         ,'email': 'camilo.rangel@mxm.com.co'
-        ,'note': 'Línea de COMPRAS DIARIAS'
+        ,'note': 'Festión de pedidos en la línea de COMPRAS DIARIAS.'
     }
 }
 

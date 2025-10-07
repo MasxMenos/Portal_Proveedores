@@ -272,7 +272,7 @@
       "crecimiento": "Tasa de Crecimiento (Año actual/Año anterior)"
     },
     "totalSales": {
-      "title": "Ventas totales",
+      "title": "Compras totales",
       "graphiqueLabel": "Valor"
     },
     "topProducts": 
