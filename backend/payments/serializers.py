@@ -1,8 +1,11 @@
 # payments/serializers.py
 from rest_framework import serializers
+from core.serializers_mixins import CoLabelMixin
 
 
-class PaymentsSerializer(serializers.Serializer):
+
+class PaymentsSerializer(CoLabelMixin,serializers.Serializer):
+    co_label_mode = "replace"
     co               = serializers.CharField()
     documento        = serializers.CharField()
     fechaDocumento   = serializers.DateField(source="fecha_documento")
@@ -10,19 +13,22 @@ class PaymentsSerializer(serializers.Serializer):
     valorCredito        = serializers.FloatField(source="valor_credito")
 
 
-class MovementSerializer(serializers.Serializer):
+class MovementSerializer(CoLabelMixin, serializers.Serializer):
+    co_label_mode = "replace"
     CO        = serializers.CharField()
     Descripcion     = serializers.CharField()
     Debitos   = serializers.FloatField()
     Creditos  = serializers.FloatField()
 
-class RetencionSerializer(serializers.Serializer):
+class RetencionSerializer(CoLabelMixin, serializers.Serializer):
+    co_label_mode = "replace"
     CO              = serializers.CharField()
     Clase           = serializers.CharField()
     Descripcion     = serializers.CharField()
     Total_Retencion = serializers.FloatField()
 
-class PaymentsDetailSerializer(serializers.Serializer):
+class PaymentsDetailSerializer(CoLabelMixin, serializers.Serializer):
+    co_label_mode = "replace"
     CO        = serializers.CharField()
     documento = serializers.CharField()
     fecha     = serializers.DateField(format="%Y-%m-%d")
@@ -31,9 +37,10 @@ class PaymentsDetailSerializer(serializers.Serializer):
     movements = MovementSerializer(many=True)
     retencion = RetencionSerializer(many=True)
 
-class RccDetailSerializer(serializers.Serializer):
+class RccDetailSerializer(CoLabelMixin, serializers.Serializer):
     Auxiliar     = serializers.CharField()
     Razon_Social = serializers.CharField()
+    co_label_mode = "replace"
     CO           = serializers.CharField()
     Tercero      = serializers.CharField()
     Docto_Cruce  = serializers.CharField()

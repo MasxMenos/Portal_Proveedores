@@ -178,6 +178,7 @@ export default function KycFormPage() {
     contacto_cel_corporativo: "",
     contacto_correo_pedidos: "",
     contacto_correo_pedidos_confirm: "",
+    cargo: "",
     // PEP
     pep_actual: null,
     pep_ult2anios: null,
@@ -207,6 +208,7 @@ export default function KycFormPage() {
     ica_tarifa_millar: "",
     ica_ciudad: "",
     gran_contribuyente_ica_bucaramanga: null,
+    lleva_contabilidad: null,
     obligado_fe: null,
     correo_fe: "",
     correo_fe_confirm: "",
@@ -657,6 +659,7 @@ const handleSubmit = async (e) => {
       contacto_tel_oficina: form.contacto_tel_oficina?.trim(),
       contacto_cel_corporativo: form.contacto_cel_corporativo?.trim(),
       contacto_correo_pedidos: form.contacto_correo_pedidos?.trim(),
+      cargo: form.cargo?.trim(),
       // PEP
       pep_actual: form.pep_actual,
       pep_ult2anios: form.pep_ult2anios,
@@ -686,6 +689,7 @@ const handleSubmit = async (e) => {
       ica_tarifa_millar: isTrue(form.responsable_ica) ? toNumberOrNull(form.ica_tarifa_millar) : null,
       ica_ciudad: isTrue(form.responsable_ica) ? form.ica_ciudad?.trim() || null : null,
       gran_contribuyente_ica_bucaramanga: isTrue(form.gran_contribuyente_ica_bucaramanga),
+      lleva_contabilidad: isTrue(form.lleva_contabilidad),
       obligado_fe: isTrue(form.obligado_fe),
       correo_fe: isTrue(form.obligado_fe) ? form.correo_fe?.trim() || null : null,
       // Bancaria
@@ -1194,6 +1198,17 @@ Transparencia y Ética Empresarial (PTEE) de Supermercados Mas por Menos S.A.S."
                     )
                   }
                 />
+                <InputField
+                  id="cargo"
+                  label="Cargo"
+                  value={form.cargo}
+                  onChange={(e) =>
+                    handleChange(
+                      "cargo",
+                      onlyLetters(e.target.value)
+                    )
+                  }
+                />
                 <div className="md:col-span-2 lg:col-span-1">
                   <InputField
                     id="contacto_correo_pedidos"
@@ -1652,6 +1667,17 @@ en otro país)"
                     value={form.gran_contribuyente_ica_bucaramanga}
                     onChange={(v) =>
                       handleChange("gran_contribuyente_ica_bucaramanga", v)
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-1">
+                  <BoolRadio
+                    id="lleva_contabilidad"
+                    label="¿Está obligado a llevar contabilidad?"
+                    value={form.lleva_contabilidad}
+                    onChange={(v) =>
+                      handleChange("lleva_contabilidad", v)
                     }
                   />
                 </div>

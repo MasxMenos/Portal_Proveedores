@@ -6,24 +6,23 @@ services:
     command: daphne -b 0.0.0.0 -p 8000 backend.asgi:application
     volumes:
       - ./backend:/app
-      - ./documentos:/documentos 
+      - ./documentos:/documentos           # <-- carpeta de PDFs/KYC disponible en el backend
     ports:
       - "8000:8000"
     env_file:
       - .env
     environment:
-      # DB/Redis usando hostnames de los servicios (¡clave dentro de Docker!)
       POSTGRES_HOST: db
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mxm
       REDIS_URL: redis://redis:6379/0
-      # Opcional para Django
       DJANGO_SETTINGS_MODULE: backend.settings
       PYTHONUNBUFFERED: "1"
     depends_on:
       - db
       - redis
+    restart: unless-stopped
 
   db:
     image: postgres:17
@@ -35,24 +34,23 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   redis:
     image: redis:7
     ports:
       - "6379:6379"
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
-    # En producción servimos el build estático por Nginx (puerto 3000 del host)
     ports:
       - "3000:80"
     depends_on:
       - web
-    # Si quieres que Nginx del frontend pueda hablarle directo al backend por nombre:
-    # (no es obligatorio para servir estático, sólo si configuras proxy /api en nginx.conf)
-    # networks:
-    #   - default
+    volumes:
+      - ./documentos:/documentos           # <-- misma carpeta montada en el Nginx del frontend
+    restart: unless-stopped
 
 volumes:
   postgres_data:
-

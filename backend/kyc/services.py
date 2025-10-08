@@ -117,8 +117,10 @@ def create_new_submission(user, data: dict) -> KycFormSubmission:
         ica_codigo=data.get("ica_codigo"),
         ica_tarifa_millar=data.get("ica_tarifa_millar"),
         ica_ciudad=data.get("ica_ciudad"),
-        gran_contribuyente_ica_bogota=data.get("gran_contribuyente_ica_bogota"),
+        gran_contribuyente_ica_bucaramanga=data.get("gran_contribuyente_ica_bucaramanga"),
         obligado_fe=data.get("obligado_fe"),
+        lleva_contabilidad=data.get("lleva_contabilidad"),
+        cargo=data.get("cargo"),
         correo_fe=data.get("correo_fe"),
 
         bank_country_id=data.get("bank_country_id"),

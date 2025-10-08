@@ -1,7 +1,9 @@
 # invoices/serializers.py
 from rest_framework import serializers
+from core.serializers_mixins import CoLabelMixin
 
-class InvoiceSerializer(serializers.Serializer):
+class InvoiceSerializer(CoLabelMixin, serializers.Serializer):
+    co_label_mode = "replace"
     co               = serializers.CharField()
     documento        = serializers.CharField()
     fechaProveedor   = serializers.DateField(source="fecha_emision")
@@ -9,7 +11,8 @@ class InvoiceSerializer(serializers.Serializer):
     valorPago        = serializers.FloatField(source="valor_pago")
     descuentos       = serializers.FloatField()
 
-class NacDetailSerializer(serializers.Serializer):
+class NacDetailSerializer(CoLabelMixin, serializers.Serializer):
+    co_label_mode = "replace"
     CentroCosto =  serializers.CharField()
     DescripcionArticulo =  serializers.CharField()
     Tasa = serializers.CharField()

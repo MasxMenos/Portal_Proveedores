@@ -192,8 +192,10 @@ class KycFormSubmission(models.Model):
     ica_codigo                    = models.CharField(max_length=40,  null=True, blank=True)
     ica_tarifa_millar             = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
     ica_ciudad                    = models.CharField(max_length=120, null=True, blank=True)
-    gran_contribuyente_ica_bogota = models.BooleanField(null=True, blank=True)
+    gran_contribuyente_ica_bucaramanga = models.BooleanField(null=True, blank=True)
     obligado_fe                   = models.BooleanField(null=True, blank=True)
+    lleva_contabilidad                   = models.BooleanField(null=True, blank=True)
+    cargo  = models.CharField(max_length=60,  null=True, blank=True)
     correo_fe                     = models.CharField(max_length=255, null=True, blank=True)
 
     # --------- Bancaria ----------

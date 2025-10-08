@@ -1,14 +1,14 @@
+// src/components/common/PdfModal.jsx
 import React, { useEffect, useRef } from "react";
 
 export default function PdfModal({
   isOpen,
   onClose,
-  src = "../documentos/MANUAL/Portal_de_proveedores.pdf",
+  src = "/documentos/MANUAL/Portal_de_proveedores.pdf",
   title = "Manual de Portal de Proveedores",
 }) {
   const overlayRef = useRef(null);
 
-  // Cerrar con ESC
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e) => e.key === "Escape" && onClose?.();
@@ -16,7 +16,6 @@ export default function PdfModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, onClose]);
 
-  // Cerrar si hace click fuera del modal
   const onOverlayClick = (e) => {
     if (e.target === overlayRef.current) onClose?.();
   };
@@ -64,15 +63,27 @@ export default function PdfModal({
           </div>
         </div>
 
-        {/* Visor PDF */}
+        {/* Visor PDF con object + embed + fallback */}
         <div className="w-full h-[80vh] bg-gray-50">
-          {/* Iframe suele funcionar bien para PDFs; si no, se puede usar <object> como fallback */}
-          <iframe
-            title={title}
-            src={src}
+          <object
+            data={src}
+            type="application/pdf"
             className="w-full h-full"
-            loading="lazy"
-          />
+          >
+            <embed src={src} type="application/pdf" className="w-full h-full" />
+            <div className="p-4 text-sm">
+              No se pudo renderizar el PDF en el navegador.
+              <a
+                className="ml-2 underline text-blue-600"
+                href={src}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Ábrelo en una nueva pestaña
+              </a>{" "}
+              o descárgalo.
+            </div>
+          </object>
         </div>
       </div>
     </div>

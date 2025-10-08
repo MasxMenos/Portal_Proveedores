@@ -15,7 +15,6 @@ export default function LoginPage() {
   const location = useLocation();
   const isDark = theme === "dark";
 
-  // Estados del formulario
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,63 +23,67 @@ export default function LoginPage() {
   // Modal del manual
   const [showManual, setShowManual] = useState(false);
 
-  // Abrir modal automáticamente al cargar
+  // Abrir modal automáticamente al montar la página
   useEffect(() => {
     setShowManual(true);
   }, []);
 
-  // (Opcional) bloquear scroll de fondo cuando el modal esté abierto
-  useEffect(() => {
-    if (showManual) document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [showManual]);
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  const trimmedUsername = username.trim();
 
-    const trimmedUsername = username.trim();
+  try {
+    const res = await fetch("/api/users/login/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: trimmedUsername, password }),
+    });
 
-    try {
-      const res = await fetch("/api/users/login/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: trimmedUsername, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Error al autenticar");
+    // lee como texto primero para poder diagnosticar
+    const text = await res.text();
+    let data = null;
+    try { data = JSON.parse(text); } catch { /* no es JSON, queda como texto */ }
 
-      // tokens & user
-      localStorage.setItem("accessToken", data.access);
-      localStorage.setItem("refreshToken", data.refresh);
-      const cleanUser = { ...data.user, username: data.user.username.trim() };
-      localStorage.setItem("user", JSON.stringify(cleanUser));
-
-      // validar KYC inmediatamente
-      const statusRes = await fetch("/api/kyc/submissions/status", {
-        headers: { Authorization: `Bearer ${data.access}` },
-      });
-      const statusData = await statusRes.json().catch(() => ({}));
-      const mustFill = statusRes.ok ? !!statusData?.must_fill : false;
-
-      if (mustFill) {
-        navigate("/kyc", { replace: true, state: { from: location } });
-        return;
-      }
-
-      // flujo normal
-      const from = location.state?.from?.pathname || "/inicio";
-      navigate(from, { replace: true });
-    } catch (err) {
-      console.error("Login error:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      const msg =
+        (data && (data.detail || data.message)) ||
+        text.slice(0, 200) ||           // muestra el primer pedazo si vino HTML
+        `HTTP ${res.status}`;
+      throw new Error(msg);
     }
-  };
+
+    // OK: data debe tener { access, refresh, user }
+    localStorage.setItem("accessToken", data.access);
+    localStorage.setItem("refreshToken", data.refresh);
+    const cleanUser = { ...data.user, username: data.user.username?.trim?.() || "" };
+    localStorage.setItem("user", JSON.stringify(cleanUser));
+
+    // validar KYC
+    const statusRes = await fetch("/api/kyc/submissions/status", {
+      headers: { Authorization: `Bearer ${data.access}` },
+    });
+    const statusText = await statusRes.text();
+    let statusData = null;
+    try { statusData = JSON.parse(statusText); } catch {}
+    const mustFill = statusRes.ok ? !!statusData?.must_fill : false;
+
+    if (mustFill) {
+      navigate("/kyc", { replace: true, state: { from: location } });
+      return;
+    }
+
+    navigate(location.state?.from?.pathname || "/inicio", { replace: true });
+  } catch (err) {
+    console.error("Login error:", err);
+    setError(err.message || "Error al autenticar");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleForgotPassword = () => {
     navigate("/recuperar_contrasena");
@@ -92,12 +95,12 @@ export default function LoginPage() {
         isDark ? "bg-[#0d0d0d] text-white" : "bg-gray-100 text-black"
       }`}
     >
-      {/* Botón para alternar tema */}
       <button
         onClick={toggleTheme}
         className={`absolute top-4 right-4 p-2 rounded transition-colors duration-200 ${
           isDark ? "hover:bg-zinc-800" : "hover:bg-gray-300"
         }`}
+        aria-label="Cambiar tema"
       >
         {isDark ? (
           <Sun size={22} className="text-gray-400" />
@@ -106,7 +109,10 @@ export default function LoginPage() {
         )}
       </button>
 
-      <AuthCard title="Iniciar sesión" subtitle="Ingrese sus credenciales para continuar">
+      <AuthCard
+        title="Iniciar sesión"
+        subtitle="Ingrese sus credenciales para continuar"
+      >
         <form className="space-y-4" onSubmit={handleLogin}>
           <InputField
             id="user"
@@ -125,7 +131,6 @@ export default function LoginPage() {
           />
 
           <div className="flex items-center justify-between text-sm">
-            {/* Recuérdame no funcional: siempre guarda en localStorage */}
             <CheckboxWithLabel id="remember" checked={false} onChange={() => {}}>
               Recuérdame
             </CheckboxWithLabel>
@@ -146,14 +151,14 @@ export default function LoginPage() {
         </form>
       </AuthCard>
 
-      {/* Modal del PDF: se abre automáticamente al cargar */}
+      {/* Modal del PDF: abre al entrar */}
       <PdfModal
-        open={showManual}
+        isOpen={showManual}
         onClose={() => setShowManual(false)}
         title="Manual del Portal de Proveedores"
-        // Ruta estática que sirve Django/Nginx (MEDIA_URL = /documentos/)
         src="/documentos/MANUAL/Portal_de_proveedores.pdf"
       />
     </div>
   );
 }
+

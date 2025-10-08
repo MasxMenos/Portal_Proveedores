@@ -81,7 +81,7 @@ class KycFormSubmissionSerializer(serializers.ModelSerializer):
             "contribuyente_renta", "regimen_esal", "responsable_iva",
             "regimen_simple", "responsable_ica",
             "ica_codigo", "ica_tarifa_millar", "ica_ciudad",
-            "gran_contribuyente_ica_bogota", "obligado_fe", "correo_fe",
+            "gran_contribuyente_ica_bucaramanga", "obligado_fe", "lleva_contabilidad","cargo", "correo_fe",
 
             "bank_country_id", "bank_id",
             "banco_cuenta_numero", "banco_cuenta_titular", "banco_cuenta_tipo",

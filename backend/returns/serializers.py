@@ -1,14 +1,18 @@
 # returns/serializers.py
 from rest_framework import serializers
+from core.serializers_mixins import CoLabelMixin
 
-class ReturnsSerializer(serializers.Serializer):
+
+class ReturnsSerializer(CoLabelMixin, serializers.Serializer):
+    co_label_mode = "replace"
     co               = serializers.CharField()
     documento        = serializers.CharField()
     fechaEmision = serializers.DateField(source="fecha_emision")
     motivo            = serializers.CharField()
     saldo            = serializers.FloatField()
     
-class RetDetailSerializer(serializers.Serializer):
+class RetDetailSerializer(CoLabelMixin, serializers.Serializer):
+    co_label_mode = "replace"
     Codigo = serializers.CharField()
     Descripcion = serializers.CharField()
     Recibido = serializers.FloatField() 
