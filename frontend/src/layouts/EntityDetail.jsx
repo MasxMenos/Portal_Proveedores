@@ -1,5 +1,12 @@
 // src/layouts/EntityDetail.jsx
-import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Sidebar from "../components/MainSidebar";
@@ -13,6 +20,7 @@ import DraggableLine from "../components/detail/DraggableLine";
 import EntityMaster from "../components/detail/EntityMaster";
 import { usePagination } from "../hooks/usePagination";
 import Paginator from "../components/detail/Paginator";
+import SearchBar from "../components/header/SearchBar";
 
 export default function EntityDetail({ tipo }) {
   const { t } = useTranslation();
@@ -32,18 +40,17 @@ export default function EntityDetail({ tipo }) {
   const navigate = useNavigate();
   const label = t(`sidebar.${tipo}`);
 
-  /** Refs / estado **/
+  // Refs / estado
   const scrollAreaRef = useRef(null);
   const containerRef = useRef(null);
   const masterRef = useRef(null);
   const childRefs = useRef({});
-
   const [expanded, setExpanded] = useState({});
   const [paginationStates, setPaginationStates] = useState({});
 
   const CARDS_PER_PAGE = 10;
 
-  /** Datos maestro + líneas **/
+  // Datos maestro + líneas
   const { master: fetchedMaster, lines, loading, error } = useMasterLines({
     tipo,
     documentoId: csc,
@@ -52,10 +59,47 @@ export default function EntityDetail({ tipo }) {
   const master = masterFromTable || fetchedMaster;
   if (!master) return null;
 
-  /** Checks **/
+  // Checks
   const [checks, toggleCheck] = useChecks(tipo, documentoId);
 
-  /** Paginación visual de cards hijas (hook global) **/
+  // Búsqueda sobre hijas
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredLines = useMemo(() => {
+    if (!searchTerm) return lines;
+
+    const q = searchTerm.toLowerCase().trim();
+    const flatten = (obj) => {
+      const acc = [];
+      const visit = (v) => {
+        if (v == null) return;
+        if (Array.isArray(v)) return v.forEach(visit);
+        if (typeof v === "object") return Object.values(v).forEach(visit);
+        acc.push(String(v));
+      };
+      visit(obj);
+      return acc;
+    };
+
+    return (lines || []).filter((line) => {
+      const base = [
+        line.documento,
+        line.fecha,
+        line.debitos,
+        line.creditos,
+        line.CO || line.co,
+      ]
+        .filter(Boolean)
+        .map((v) => String(v).toLowerCase());
+
+      const movs = flatten(line.movements || []).map((s) => s.toLowerCase());
+      const rets = flatten(line.retencion || []).map((s) => s.toLowerCase());
+
+      return [...base, ...movs, ...rets].some((s) => s.includes(q));
+    });
+  }, [lines, searchTerm]);
+
+  // Paginación sobre filtrado
   const {
     currentPage,
     totalPages,
@@ -66,21 +110,19 @@ export default function EntityDetail({ tipo }) {
     prevGroupPage,
     nextGroupPage,
     setCurrentPage,
-  } = usePagination(lines, CARDS_PER_PAGE);
+  } = usePagination(filteredLines, CARDS_PER_PAGE);
 
-  /** Parámetros visuales **/
+  // Parámetros visuales
   const RAIL_X = 64;
   const CONNECTOR = 28;
   const CARD_GAP = "16px";
   const CARD_OFFSET = `calc(${RAIL_X}px + ${CONNECTOR}px + 8px)`;
-
   const isMobile =
-    typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
-
-  // Mantén el riel igual; solo acerca las hijas en móvil
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 640px)").matches;
   const CHILD_INDENT = isMobile ? "4px" : "56px";
 
-  /** Geometría para el dibujo **/
+  // Geometría para el dibujo
   const [geo, setGeo] = useState({
     ready: false,
     railXAbs: 0,
@@ -88,12 +130,11 @@ export default function EntityDetail({ tipo }) {
     masterY: 0,
     yStart: 0,
     yEnd: 0,
-    children: [], // [{ id, x, y }]
+    children: [],
     svgW: 0,
     svgH: 0,
   });
 
-  /** Util: obtener rect relativo al contenedor **/
   const getRectRelativeTo = (rect, containerRect) => {
     const left = rect.left - containerRect.left;
     const top = rect.top - containerRect.top;
@@ -106,14 +147,12 @@ export default function EntityDetail({ tipo }) {
     };
   };
 
-  // Throttle por frame para scroll/resize
   const rafId = useRef(null);
   const schedule = (fn) => {
     if (rafId.current) cancelAnimationFrame(rafId.current);
     rafId.current = requestAnimationFrame(fn);
   };
 
-  /** Medición (el SVG se desplaza junto al contenido, NO sticky) **/
   const recompute = useCallback(() => {
     const containerEl = containerRef.current;
     const masterEl = masterRef.current;
@@ -135,16 +174,10 @@ export default function EntityDetail({ tipo }) {
       if (!r) continue;
       const rectAbs = r.getBoundingClientRect();
       const rect = getRectRelativeTo(rectAbs, containerRect);
-      childPoints.push({
-        id: line.id,
-        x: rect.left,
-        y: rect.centerY,
-      });
+      childPoints.push({ id: line.id, x: rect.left, y: rect.centerY });
     }
 
     const railXAbs = RAIL_X;
-
-    // El riel va desde el centro del master hasta la última hija visible
     const yStart = masterRect.centerY;
     const yEnd = childPoints.length ? childPoints[childPoints.length - 1].y : yStart;
 
@@ -161,20 +194,17 @@ export default function EntityDetail({ tipo }) {
     });
   }, [visibleLines]);
 
-  /** Recalcular ante cambios de layout/estado relevante **/
   useLayoutEffect(() => {
     schedule(recompute);
   }, [currentPage, expanded, paginationStates, visibleLines.length, isDark]); // eslint-disable-line
 
-  /** Recalcular tras primer paint y cuando cambian los datos **/
   useEffect(() => {
     schedule(recompute);
     return () => {
       if (rafId.current) cancelAnimationFrame(rafId.current);
     };
-  }, [lines]); // eslint-disable-line
+  }, [filteredLines]); // eslint-disable-line
 
-  /** Recalcular al redimensionar y al hacer scroll **/
   useEffect(() => {
     const onResize = () => schedule(recompute);
     const onScroll = () => schedule(recompute);
@@ -182,14 +212,16 @@ export default function EntityDetail({ tipo }) {
     window.addEventListener("resize", onResize, { passive: true });
     const mainEl = scrollAreaRef.current;
     if (mainEl) mainEl.addEventListener("scroll", onScroll, { passive: true });
-    if (containerRef.current) containerRef.current.addEventListener("scroll", onScroll, {
-      passive: true,
-    });
+    if (containerRef.current)
+      containerRef.current.addEventListener("scroll", onScroll, {
+        passive: true,
+      });
 
     return () => {
       window.removeEventListener("resize", onResize);
       if (mainEl) mainEl.removeEventListener("scroll", onScroll);
-      if (containerRef.current) containerRef.current.removeEventListener("scroll", onScroll);
+      if (containerRef.current)
+        containerRef.current.removeEventListener("scroll", onScroll);
     };
   }, [recompute]); // eslint-disable-line
 
@@ -201,17 +233,30 @@ export default function EntityDetail({ tipo }) {
     >
       <Sidebar activePage={activePage} />
 
-      <main ref={scrollAreaRef} className="flex-1 p-6 md:ml-64 space-y-4 overflow-auto">
-        <HeaderSuperior activePage={label} title={label} onToggleTheme={toggleTheme} />
+      <main
+        ref={scrollAreaRef}
+        className="flex-1 p-6 md:ml-64 space-y-4 overflow-auto"
+      >
+        <HeaderSuperior
+          activePage={label}
+          title={label}
+          onToggleTheme={toggleTheme}
+        />
 
-        <button
-          className="flex items-center gap-2 text-gray-400 hover:underline cursor-pointer"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeftCircle size={20} /> {t("buttons.back")}
-        </button>
+        {/* Fila superior alineada a la derecha (justo debajo del título) */}
+        
+          <div className="w-full max-w-xs sm:max-w-sm md:max-w-md">
+            <SearchBar
+              isDark={isDark}
+              onSearch={(v) => {
+                setSearchTerm(v);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+      
 
-        {/* CONTENEDOR DE DETALLE (relative para posicionar el SVG encima) */}
+        {/* CONTENEDOR DE DETALLE */}
         <div
           ref={containerRef}
           className="relative p-4 md:p-8 overflow-hidden"
@@ -223,10 +268,23 @@ export default function EntityDetail({ tipo }) {
             "--child-indent": CHILD_INDENT,
           }}
         >
-          {/* SVG: absoluto y desplazándose con el contenido */}
+          {/* Botón atrás alineado a la izquierda, bajo el buscador */}
+          <div className="mb-4">
+            <button
+              className="flex items-center gap-2 text-gray-400 hover:underline cursor-pointer"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeftCircle size={20} /> {t("buttons.back")}
+            </button>
+          </div>
+
+          {/* SVG */}
           {geo.ready && (
-            <svg className="absolute inset-0 pointer-events-none z-0" width={geo.svgW} height={geo.svgH}>
-              {/* Rail vertical desde el MASTER hasta la última hija visible */}
+            <svg
+              className="absolute inset-0 pointer-events-none z-0"
+              width={geo.svgW}
+              height={geo.svgH}
+            >
               <line
                 x1={geo.railXAbs}
                 y1={geo.yStart}
@@ -235,8 +293,6 @@ export default function EntityDetail({ tipo }) {
                 stroke={isDark ? "#333" : "#d1d5db"}
                 strokeWidth="2"
               />
-
-              {/* Conector horizontal MASTER -> rail */}
               <line
                 x1={geo.railXAbs}
                 y1={geo.masterY}
@@ -245,8 +301,6 @@ export default function EntityDetail({ tipo }) {
                 stroke={isDark ? "#4b5563" : "#94a3b8"}
                 strokeWidth="2"
               />
-
-              {/* Conectores horizontales rail -> cada hija visible */}
               {geo.children.map((pt) => (
                 <line
                   key={`h-${pt.id}`}
@@ -279,8 +333,14 @@ export default function EntityDetail({ tipo }) {
             </div>
           )}
 
+          {!loading && !error && filteredLines && filteredLines.length === 0 && (
+            <div className="flex justify-center items-center h-40 text-gray-400">
+              {t("detail.noResults", "Sin resultados para tu búsqueda.")}
+            </div>
+          )}
+
           {!loading &&
-            (!error || (lines && lines.length > 0)) &&
+            (!error || (filteredLines && filteredLines.length > 0)) &&
             visibleLines.map((line) => {
               if (!childRefs.current[line.id]) {
                 childRefs.current[line.id] = React.createRef();
@@ -289,7 +349,10 @@ export default function EntityDetail({ tipo }) {
               const MOVS_PER_PAGE = 5;
               const currentLinePage = paginationStates[line.id] || 1;
               const start = (currentLinePage - 1) * MOVS_PER_PAGE;
-              const paginatedMovs = line.movements.slice(start, start + MOVS_PER_PAGE);
+              const paginatedMovs = line.movements.slice(
+                start,
+                start + MOVS_PER_PAGE
+              );
 
               return (
                 <div key={line.id} style={{ marginBottom: "var(--card-gap)" }}>
@@ -310,7 +373,7 @@ export default function EntityDetail({ tipo }) {
               );
             })}
 
-          {/* PAGINACIÓN INFERIOR: componente reutilizable */}
+          {/* Paginación inferior */}
           <Paginator
             currentPage={currentPage}
             totalPages={totalPages}

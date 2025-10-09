@@ -1,72 +1,95 @@
+// src/routes/RequireAuth.jsx
 import React, { useEffect, useState } from "react";
-import { Navigate, Outlet, useLocation,useNavigate } from "react-router-dom";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 
-/**
- * Comprueba si hay un token en localStorage (o donde lo guardes).
- * Si no existe, redirige a /login conservando la ruta de destino.
- */
 export default function RequireAuth() {
-  const token = localStorage.getItem("accessToken");
+  const navigate = useNavigate();
   const location = useLocation();
 
-  if (!token) {
-    // no autenticado: vamos a login y mantenemos la ruta en state.from
+  const [checking, setChecking] = useState(true);
+  const [shouldLogin, setShouldLogin] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const token = localStorage.getItem("accessToken");
+
+    // 1) Si no hay token → al login
+    if (!token) {
+      setShouldLogin(true);
+      setChecking(false);
+      return;
+    }
+
+    // 2) Verificar KYC con timeout de 20s
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s
+
+    const checkKyc = async () => {
+      try {
+        setChecking(true);
+
+        const res = await fetch("/api/kyc/submissions/status", {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        });
+
+        // Si el backend devuelve 401/403 → problema de token → al login
+        if (res.status === 401 || res.status === 403) {
+          throw new Error("TOKEN_INVALID");
+        }
+
+        // Intentar parsear JSON. Si llega HTML (error de proxy) lanzará excepción.
+        const data = await res.json();
+
+        if (!res.ok) {
+          // Cualquier otro error desde API también manda al login
+          throw new Error(data?.detail || "KYC_CHECK_FAILED");
+        }
+
+        // 3) Si debe llenar KYC y no estamos en /kyc → forzar
+        if (data?.must_fill && location.pathname !== "/kyc") {
+          if (!isMounted) return;
+          navigate("/kyc", { replace: true, state: { from: location } });
+          return;
+        }
+
+        // OK → puede seguir
+        if (isMounted) setChecking(false);
+      } catch (err) {
+        // Motivos: timeout (AbortError), HTML/no JSON, 401, red de backend, etc.
+        if (!isMounted) return;
+        setShouldLogin(true);
+        setChecking(false);
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    };
+
+    checkKyc();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+    // Re-verifica si cambia la ruta (útil cuando navegas directo a rutas protegidas)
+  }, [location.pathname, navigate, location]);
+
+  // Redirección centralizada al login cuando toque
+  if (shouldLogin) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-    const navigate = useNavigate();
-    const [checking, setChecking] = useState(true);
-    const [error, setError] = useState("");
+  // Mientras verifica (pero con timeout) muestra un loader simple
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm opacity-70">
+        Verificando sesión…
+      </div>
+    );
+    // Nota: si pasa de 20s o falla, el estado cambiará y se redirige a /login.
+  }
 
-    useEffect(() => {
-      let isMounted = true;
-
-      const check = async () => {
-        try {
-          setChecking(true);
-          setError("");
-          const token = localStorage.getItem("accessToken");
-          const res = await fetch("/api/kyc/submissions/status/", {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          });
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(data?.detail || "No se pudo validar KYC");
-
-          // Si debe diligenciar y NO estamos ya en /kyc, forzamos el formulario
-          if (data?.must_fill && location.pathname !== "/kyc") {
-            navigate("/kyc", { replace: true, state: { from: location } });
-            return;
-          }
-          // Caso OK: puede seguir
-          if (isMounted) setChecking(false);
-        } catch (err) {
-          // En caso de error, por seguridad enviamos a /kyc
-          console.error("RequireKyc error:", err);
-          if (isMounted) {
-            setError(err.message);
-            navigate("/kyc", { replace: true, state: { from: location } });
-          }
-        }
-      };
-
-      check();
-      return () => { isMounted = false; };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location.pathname]);
-
-    if (checking) {
-      return (
-        <div className="min-h-screen flex items-center justify-center text-sm opacity-70">
-          Verificando cumplimiento KYC…
-        </div>
-      );
-    }
-
-    if (error) {
-      // Ya redirigimos a /kyc, esto es más por completitud
-      return null;
-    }
-
-  // autenticado: renderizamos la ruta hija (<Outlet />)
+  // Autenticado y KYC ok → renderiza la ruta hija
   return <Outlet />;
 }

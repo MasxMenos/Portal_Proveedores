@@ -6,6 +6,7 @@ const DOC_TYPES = [
   { code: "RUT",            label: "Copia del RUT (No mayor a 30 días)", dateLabel: "Fecha del RUT" },
   { code: "CERT_CUENTA",    label: "Certificado de cuenta bancaria (No mayor a 30 días)", dateLabel: "Fecha del certificado" },
   { code: "REF_COMERCIAL",  label: "Referencias Comerciales (No mayores a 30 días) -  Requeridas (mínimo 2)", dateLabel: "Fecha de expedición" },
+  { code: "CERL",          label: "Certificación de existencia y representación legal" },
   { code: "CC",             label: "Fotocopia de cédula de ciudadanía" },
   { code: "AUT_DIAN",       label: "Autorización de facturación DIAN vigente" },
 ];

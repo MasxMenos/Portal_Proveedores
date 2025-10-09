@@ -231,7 +231,7 @@ export default function KycFormPage() {
   });
 
   // ====== Documentos (modo diferido en memoria) ======
-  const BASE_REQUIRED_DOCS = ["RUT", "CERT_CUENTA", "REF_COMERCIAL", "CC"];
+  const BASE_REQUIRED_DOCS = ["RUT", "CERT_CUENTA", "REF_COMERCIAL","CERL", "CC"];
   const [queuedDocs, setQueuedDocs] = useState({}); // { code: { file, date } }
 
   const conditionalRequired = isTrue(form.obligado_fe) ? [DIAN_AUTH_CODE] : [];
@@ -1418,325 +1418,291 @@ en otro país)"
             </section>
 
             {/* ====== FISCAL ====== */}
-            <section>
-              <h3 className="text-sm font-semibold mb-3 opacity-80">
-                Información Fiscal / Tributaria
-              </h3>
+<section>
+  <h3 className="text-sm font-semibold mb-3 opacity-80">
+    Información Fiscal / Tributaria
+  </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="grid grid-cols-1">
-                  <RequiredLabel>
-                    Código de Actividad económica (CIIU)
-                  </RequiredLabel>
-                  <InputField
-                    id="ciiu_code"
-                    label=""
-                    value={form.ciiu_code}
-                    onChange={(e) =>
-                      handleChange("ciiu_code", onlyDigits(e.target.value))
-                    }
-                    onBlur={blurValidate("ciiu_code")}
-                  />
-                  {errors.ciiu_code && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.ciiu_code}
-                    </p>
-                  )}
-                </div>
-                <div />
-                {/* Conmutadores + condicionales */}
-                <div className="grid grid-cols-1">
-                  <BoolRadio
-                    id="gran_contribuyente"
-                    label="Gran Contribuyente"
-                    value={form.gran_contribuyente}
-                    onChange={(v) => {
-                      handleChange("gran_contribuyente", v);
-                      setErrors((e) => ({
-                        ...e,
-                        gran_contribuyente_resolucion: "",
-                      }));
-                    }}
-                  />
-                </div>
-                <div className="grid grid-cols-1">
-                  <label className="text-xs block mb-1">
-                    Resolución No.{" "}
-                    {isTrue(form.gran_contribuyente) && (
-                      <span className="text-red-500">*</span>
-                    )}
-                  </label>
-                  <InputField
-                    id="gran_contribuyente_resolucion"
-                    label=""
-                    value={form.gran_contribuyente_resolucion}
-                    onChange={(e) =>
-                      handleChange(
-                        "gran_contribuyente_resolucion",
-                        e.target.value
-                      )
-                    }
-                    onBlur={blurValidate("gran_contribuyente_resolucion")}
-                    placeholder={
-                      isTrue(form.gran_contribuyente)
-                        ? "Obligatorio si marcaste Sí"
-                        : "Si aplica"
-                    }
-                  />
-                  {errors.gran_contribuyente_resolucion && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.gran_contribuyente_resolucion}
-                    </p>
-                  )}
-                </div>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1">
+      <RequiredLabel>
+        Código de Actividad económica (CIIU)
+      </RequiredLabel>
+      <InputField
+        id="ciiu_code"
+        label=""
+        value={form.ciiu_code}
+        onChange={(e) => handleChange("ciiu_code", onlyDigits(e.target.value))}
+        onBlur={blurValidate("ciiu_code")}
+      />
+      {errors.ciiu_code && (
+        <p className="mt-1 text-xs text-red-500">{errors.ciiu_code}</p>
+      )}
+    </div>
+    <div />
 
-                <div className="grid grid-cols-1">
-                  <BoolRadio
-                    id="autoretenedor_renta"
-                    label="Autoretenedor en impuesto a la renta"
-                    value={form.autoretenedor_renta}
-                    onChange={(v) => {
-                      handleChange("autoretenedor_renta", v);
-                      setErrors((e) => ({
-                        ...e,
-                        autoretenedor_renta_resolucion: "",
-                      }));
-                    }}
-                  />
-                </div>
-                <div className="grid grid-cols-1">
-                  <label className="text-xs block mb-1">
-                    Resolución No.{" "}
-                    {isTrue(form.autoretenedor_renta) && (
-                      <span className="text-red-500">*</span>
-                    )}
-                  </label>
-                  <InputField
-                    id="autoretenedor_renta_resolucion"
-                    label=""
-                    value={form.autoretenedor_renta_resolucion}
-                    onChange={(e) =>
-                      handleChange(
-                        "autoretenedor_renta_resolucion",
-                        e.target.value
-                      )
-                    }
-                    onBlur={blurValidate("autoretenedor_renta_resolucion")}
-                    placeholder={
-                      isTrue(form.autoretenedor_renta)
-                        ? "Obligatorio si marcaste Sí"
-                        : "Si aplica"
-                    }
-                  />
-                  {errors.autoretenedor_renta_resolucion && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.autoretenedor_renta_resolucion}
-                    </p>
-                  )}
-                </div>
+    {/* Conmutadores + condicionales */}
+    <div className="grid grid-cols-1">
+      <BoolRadio
+        id="gran_contribuyente"
+        label="Gran Contribuyente"
+        value={form.gran_contribuyente}
+        onChange={(v) => {
+          handleChange("gran_contribuyente", v);
+          setErrors((e) => ({ ...e, gran_contribuyente_resolucion: "" }));
+        }}
+      />
+    </div>
+    <div className="grid grid-cols-1">
+      <label className="text-xs block mb-1">
+        Resolución No.{" "}
+        {isTrue(form.gran_contribuyente) && <span className="text-red-500">*</span>}
+      </label>
+      <InputField
+        id="gran_contribuyente_resolucion"
+        label=""
+        value={form.gran_contribuyente_resolucion}
+        onChange={(e) =>
+          handleChange("gran_contribuyente_resolucion", e.target.value)
+        }
+        onBlur={blurValidate("gran_contribuyente_resolucion")}
+        placeholder={
+          isTrue(form.gran_contribuyente)
+            ? "Obligatorio si marcaste Sí"
+            : "Si aplica"
+        }
+      />
+      {errors.gran_contribuyente_resolucion && (
+        <p className="mt-1 text-xs text-red-500">
+          {errors.gran_contribuyente_resolucion}
+        </p>
+      )}
+    </div>
 
-                <div className="grid grid-cols-1">
-                  <BoolRadio
-                    id="contribuyente_renta"
-                    label="Contribuyente impuesto a la renta y complementarios"
-                    value={form.contribuyente_renta}
-                    onChange={(v) => handleChange("contribuyente_renta", v)}
-                  />
-                </div>
-                <div />
+    <div className="grid grid-cols-1">
+      <BoolRadio
+        id="autoretenedor_renta"
+        label="Autoretenedor en impuesto a la renta"
+        value={form.autoretenedor_renta}
+        onChange={(v) => {
+          handleChange("autoretenedor_renta", v);
+          setErrors((e) => ({ ...e, autoretenedor_renta_resolucion: "" }));
+        }}
+      />
+    </div>
+    <div className="grid grid-cols-1">
+      <label className="text-xs block mb-1">
+        Resolución No.{" "}
+        {isTrue(form.autoretenedor_renta) && <span className="text-red-500">*</span>}
+      </label>
+      <InputField
+        id="autoretenedor_renta_resolucion"
+        label=""
+        value={form.autoretenedor_renta_resolucion}
+        onChange={(e) =>
+          handleChange("autoretenedor_renta_resolucion", e.target.value)
+        }
+        onBlur={blurValidate("autoretenedor_renta_resolucion")}
+        placeholder={
+          isTrue(form.autoretenedor_renta)
+            ? "Obligatorio si marcaste Sí"
+            : "Si aplica"
+        }
+      />
+      {errors.autoretenedor_renta_resolucion && (
+        <p className="mt-1 text-xs text-red-500">
+          {errors.autoretenedor_renta_resolucion}
+        </p>
+      )}
+    </div>
 
-                <div className="grid grid-cols-1">
-                  <BoolRadio
-                    id="regimen_esal"
-                    label="Entidad sin ánimo de lucro (ESAL)"
-                    value={form.regimen_esal}
-                    onChange={(v) => handleChange("regimen_esal", v)}
-                  />
-                </div>
-                <div />
+    <div className="grid grid-cols-1">
+      <BoolRadio
+        id="contribuyente_renta"
+        label="Contribuyente impuesto a la renta y complementarios"
+        value={form.contribuyente_renta}
+        onChange={(v) => handleChange("contribuyente_renta", v)}
+      />
+    </div>
+    <div />
 
-                <div className="grid grid-cols-1">
-                  <BoolRadio
-                    id="responsable_iva"
-                    label="Responsable de IVA"
-                    value={form.responsable_iva}
-                    onChange={(v) => handleChange("responsable_iva", v)}
-                  />
-                </div>
-                <div />
+    <div className="grid grid-cols-1">
+      <BoolRadio
+        id="regimen_esal"
+        label="Entidad sin ánimo de lucro (ESAL)"
+        value={form.regimen_esal}
+        onChange={(v) => handleChange("regimen_esal", v)}
+      />
+    </div>
+    <div />
 
-                <div className="grid grid-cols-1">
-                  <BoolRadio
-                    id="regimen_simple"
-                    label="Régimen Simple de Tributación (RST)"
-                    value={form.regimen_simple}
-                    onChange={(v) => handleChange("regimen_simple", v)}
-                  />
-                </div>
-                <div />
+    <div className="grid grid-cols-1">
+      <BoolRadio
+        id="responsable_iva"
+        label="Responsable de IVA"
+        value={form.responsable_iva}
+        onChange={(v) => handleChange("responsable_iva", v)}
+      />
+    </div>
+    <div />
 
-                <div className="grid grid-cols-1">
-                  <BoolRadio
-                    id="responsable_ica"
-                    label="Responsable de Impuesto de Industria y Comercio (ICA)"
-                    value={form.responsable_ica}
-                    onChange={(v) => {
-                      handleChange("responsable_ica", v);
-                      setErrors((e) => ({
-                        ...e,
-                        ica_codigo: "",
-                        ica_tarifa_millar: "",
-                        ica_ciudad: "",
-                      }));
-                    }}
-                  />
-                </div>
-                <div />
+    <div className="grid grid-cols-1">
+      <BoolRadio
+        id="regimen_simple"
+        label="Régimen Simple de Tributación (RST)"
+        value={form.regimen_simple}
+        onChange={(v) => handleChange("regimen_simple", v)}
+      />
+    </div>
+    <div />
 
-                <div>
-                  <label className="text-xs block mb-1">
-                    Código de ICA No.{" "}
-                    {isTrue(form.responsable_ica) && (
-                      <span className="text-red-500">*</span>
-                    )}
-                  </label>
-                  <InputField
-                    id="ica_codigo"
-                    label=""
-                    value={form.ica_codigo}
-                    onChange={(e) => handleChange("ica_codigo", e.target.value)}
-                    onBlur={blurValidate("ica_codigo")}
-                  />
-                  {errors.ica_codigo && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.ica_codigo}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="text-xs block mb-1">
-                    Tarifa ICA (x 1000){" "}
-                    {isTrue(form.responsable_ica) && (
-                      <span className="text-red-500">*</span>
-                    )}
-                  </label>
-                  <InputField
-                    id="ica_tarifa_millar"
-                    label=""
-                    value={form.ica_tarifa_millar}
-                    onChange={(e) =>
-                      handleChange(
-                        "ica_tarifa_millar",
-                        onlyDigits(e.target.value)
-                      )
-                    }
-                    onBlur={blurValidate("ica_tarifa_millar")}
-                  />
-                  {errors.ica_tarifa_millar && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.ica_tarifa_millar}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="text-xs block mb-1">
-                    Ciudad donde declara ICA{" "}
-                    {isTrue(form.responsable_ica) && (
-                      <span className="text-red-500">*</span>
-                    )}
-                  </label>
-                  <InputField
-                    id="ica_ciudad"
-                    label=""
-                    value={form.ica_ciudad}
-                    onChange={(e) => handleChange("ica_ciudad", e.target.value)}
-                    onBlur={blurValidate("ica_ciudad")}
-                  />
-                  {errors.ica_ciudad && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.ica_ciudad}
-                    </p>
-                  )}
-                </div>
-                <div />
+    <div className="grid grid-cols-1">
+      <BoolRadio
+        id="responsable_ica"
+        label="Responsable de Impuesto de Industria y Comercio (ICA)"
+        value={form.responsable_ica}
+        onChange={(v) => {
+          handleChange("responsable_ica", v);
+          setErrors((e) => ({
+            ...e,
+            ica_codigo: "",
+            ica_tarifa_millar: "",
+            ica_ciudad: "",
+          }));
+        }}
+      />
+    </div>
+    <div />
 
-                <div className="grid grid-cols-1">
-                  <BoolRadio
-                    id="gran_contribuyente_ica_bucaramanga"
-                    label="Gran contribuyente de ICA en Bucaramanga"
-                    value={form.gran_contribuyente_ica_bucaramanga}
-                    onChange={(v) =>
-                      handleChange("gran_contribuyente_ica_bucaramanga", v)
-                    }
-                  />
-                </div>
+    <div>
+      <label className="text-xs block mb-1">
+        Código de ICA No.{" "}
+        {isTrue(form.responsable_ica) && <span className="text-red-500">*</span>}
+      </label>
+      <InputField
+        id="ica_codigo"
+        label=""
+        value={form.ica_codigo}
+        onChange={(e) => handleChange("ica_codigo", e.target.value)}
+        onBlur={blurValidate("ica_codigo")}
+      />
+      {errors.ica_codigo && (
+        <p className="mt-1 text-xs text-red-500">{errors.ica_codigo}</p>
+      )}
+    </div>
+    <div>
+      <label className="text-xs block mb-1">
+        Tarifa ICA (x 1000){" "}
+        {isTrue(form.responsable_ica) && <span className="text-red-500">*</span>}
+      </label>
+      <InputField
+        id="ica_tarifa_millar"
+        label=""
+        value={form.ica_tarifa_millar}
+        onChange={(e) => handleChange("ica_tarifa_millar", onlyDigits(e.target.value))}
+        onBlur={blurValidate("ica_tarifa_millar")}
+      />
+      {errors.ica_tarifa_millar && (
+        <p className="mt-1 text-xs text-red-500">{errors.ica_tarifa_millar}</p>
+      )}
+    </div>
+    <div>
+      <label className="text-xs block mb-1">
+        Ciudad donde declara ICA{" "}
+        {isTrue(form.responsable_ica) && <span className="text-red-500">*</span>}
+      </label>
+      <InputField
+        id="ica_ciudad"
+        label=""
+        value={form.ica_ciudad}
+        onChange={(e) => handleChange("ica_ciudad", e.target.value)}
+        onBlur={blurValidate("ica_ciudad")}
+      />
+      {errors.ica_ciudad && (
+        <p className="mt-1 text-xs text-red-500">{errors.ica_ciudad}</p>
+      )}
+    </div>
+    <div />
 
-                <div className="grid grid-cols-1">
-                  <BoolRadio
-                    id="lleva_contabilidad"
-                    label="¿Está obligado a llevar contabilidad?"
-                    value={form.lleva_contabilidad}
-                    onChange={(v) =>
-                      handleChange("lleva_contabilidad", v)
-                    }
-                  />
-                </div>
-                <div />
+    {/* === Aquí empieza el bloque que quieres ordenar en 2x2 === */}
+    {/* Fila 1, Col 1 */}
+    <div className="grid grid-cols-1">
+      <BoolRadio
+        id="gran_contribuyente_ica_bucaramanga"
+        label="Gran contribuyente de ICA en Bucaramanga"
+        value={form.gran_contribuyente_ica_bucaramanga}
+        onChange={(v) => handleChange("gran_contribuyente_ica_bucaramanga", v)}
+      />
+    </div>
 
-                <div className="grid grid-cols-1">
-                  <BoolRadio
-                    id="obligado_fe"
-                    label="¿Está obligado a emitir factura electrónica?"
-                    value={form.obligado_fe}
-                    onChange={(v) => {
-                      handleChange("obligado_fe", v);
-                      setErrors((e) => ({ ...e, correo_fe: "" }));
-                    }}
-                  />
-                </div>
-                <div className="grid grid-cols-1">
-                  <label className="text-xs block mb-1">
-                    Correo electrónico para radicar factura electrónica{" "}
-                    {isTrue(form.obligado_fe) && (
-                      <span className="text-red-500">*</span>
-                    )}
-                  </label>
-                  <InputField
-                    id="correo_fe"
-                    label=""
-                    value={form.correo_fe}
-                    onChange={(e) => handleChange("correo_fe", e.target.value)}
-                    onBlur={blurValidate("correo_fe")}
-                    placeholder={
-                      isTrue(form.obligado_fe)
-                        ? "Obligatorio si marcaste Sí"
-                        : "correo@factura.com"
-                    }
-                  />
-                  {errors.correo_fe && (
-                    <p className="mt-1 text-xs text-red-500">
-                      {errors.correo_fe}
-                    </p>
-                  )}
-                </div>
-                 {isTrue(form.obligado_fe) && (
-                   <div className="grid grid-cols-1">
-                     <label className="text-xs block mb-1">Confirmar correo para factura electrónica</label>
-                     <InputField
-                       id="correo_fe_confirm"
-                       label=""
-                       value={form.correo_fe_confirm}
-                       onChange={(e) => handleChange("correo_fe_confirm", e.target.value)}
-                       onBlur={blurValidate("correo_fe_confirm")}
-                       placeholder="Repite el correo FE"
-                     />
-                     {errors.correo_fe_confirm && (
-                       <p className="mt-1 text-xs text-red-500">{errors.correo_fe_confirm}</p>
-                     )}
-                   </div>
-                 )}
-              </div>
-            </section>
+    {/* Fila 1, Col 2 */}
+    <div className="grid grid-cols-1">
+      <BoolRadio
+        id="lleva_contabilidad"
+        label="¿Está obligado a llevar contabilidad?"
+        value={form.lleva_contabilidad}
+        onChange={(v) => handleChange("lleva_contabilidad", v)}
+      />
+    </div>
+
+    {/* Fila 2, Col 1 */}
+    <div className="grid grid-cols-1">
+      <BoolRadio
+        id="obligado_fe"
+        label="¿Está obligado a emitir factura electrónica?"
+        value={form.obligado_fe}
+        onChange={(v) => {
+          handleChange("obligado_fe", v);
+          setErrors((e) => ({ ...e, correo_fe: "" }));
+        }}
+      />
+    </div>
+
+    {/* Fila 2, Col 2 */}
+    <div className="grid grid-cols-1">
+      <label className="text-xs block mb-1">
+        Correo electrónico para radicar factura electrónica{" "}
+        {isTrue(form.obligado_fe) && <span className="text-red-500">*</span>}
+      </label>
+      <InputField
+        id="correo_fe"
+        label=""
+        value={form.correo_fe}
+        onChange={(e) => handleChange("correo_fe", e.target.value)}
+        onBlur={blurValidate("correo_fe")}
+        placeholder={
+          isTrue(form.obligado_fe)
+            ? "Obligatorio si marcaste Sí"
+            : "correo@factura.com"
+        }
+      />
+      {errors.correo_fe && (
+        <p className="mt-1 text-xs text-red-500">{errors.correo_fe}</p>
+      )}
+    </div>
+
+    {/* Confirmación correo FE: debajo y en la misma columna (col 2) */}
+    {isTrue(form.obligado_fe) && (
+      <div className="grid grid-cols-1 md:col-start-2">
+        <label className="text-xs block mb-1">
+          Confirmar correo para factura electrónica
+        </label>
+        <InputField
+          id="correo_fe_confirm"
+          label=""
+          value={form.correo_fe_confirm}
+          onChange={(e) => handleChange("correo_fe_confirm", e.target.value)}
+          onBlur={blurValidate("correo_fe_confirm")}
+          placeholder="Repite el correo FE"
+        />
+        {errors.correo_fe_confirm && (
+          <p className="mt-1 text-xs text-red-500">{errors.correo_fe_confirm}</p>
+        )}
+      </div>
+    )}
+  </div>
+</section>
+
 
             {/* ====== BANCARIA ====== */}
             <section>

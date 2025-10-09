@@ -260,7 +260,8 @@
     "title":"Zona en construcción",
     "subtitle": "Estamos trabajando para habilitar esta sección. Vuelve más tarde.",
     "goHome":"Ir al incio",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "note": "Gracias por tu paciencia."
   },
 
   "homepage": {

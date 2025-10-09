@@ -108,6 +108,14 @@ export default function UnderConstructionPage({
               <span className={isDark ? "text-gray-500" : "text-gray-500"}>
                 {t("construction.note", "Gracias por tu paciencia.")}
               </span>
+              <span className={isDark ? "text-gray-500" : "text-gray-500"}>
+                Visita el antiguo portal si necesitas ver los certificados ahora mismo <a
+                  className="underline"
+                  href="http://152.200.181.42/proveedores/#/"
+                  target="_blank"
+                  rel="noreferrer"
+                >http://152.200.181.42/proveedores/#/</a>
+              </span>
             </div>
           </div>
         </section>

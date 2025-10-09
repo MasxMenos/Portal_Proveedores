@@ -260,7 +260,8 @@
     "title":"Under construction",
     "subtitle": "We’re working to enable this section. Please check back later.",
     "goHome":"Back to home",
-    "retry": "Try again"
+    "retry": "Try again",
+    "note": "Thank you for your patience."
   },
   "homepage": {
     "welcome": "Welcome back",
