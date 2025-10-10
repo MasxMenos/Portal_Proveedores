@@ -10,24 +10,20 @@ export default function ReturnsPage() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-      // Recuperar usuario autenticado (almacenado en localStorage)
   const stored = localStorage.getItem("user");
   const user = stored ? JSON.parse(stored) : null;
-  const nit = user?.username || ""; // usa campo 'username' como NIT si existe
+  const nit = user?.username || "";
+  const isAdmin = !!user?.is_admin;
 
-  // 1) botones extra con su tipo de documento asociado
   const botones = [
-    { label: t("entity.returns.buttons.damageReturn"),      tipo: "DPA" },
+    { label: t("entity.returns.buttons.damageReturn"),  tipo: "DPA" },
     { label: t("entity.returns.buttons.purchaseReturn"), tipo: "DPC" },
   ];
 
-  // 2) estado de selección del botón
   const [selectedIndex, setSelectedIndex] = useState(0);
-  // 3) datos y loading
   const [datos, setDatos]     = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 4) filtros de fecha (rango)
   const {
     start: fechaInicio,
     end:   fechaFin,
@@ -35,17 +31,42 @@ export default function ReturnsPage() {
     onEndChange,
   } = useDateRange();
 
-  // 5) función de fetch parametrizada
+  // Admin provider picker
+  const [provQuery, setProvQuery] = useState("");
+  const [provOptions, setProvOptions] = useState([]);
+  const [selectedProvider, setSelectedProvider] = useState(null);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const ctrl = new AbortController();
+    const h = setTimeout(async () => {
+      try {
+        const q = provQuery.trim();
+        const url = new URL("/api/users/providers", window.location.origin);
+        if (q) url.searchParams.set("q", q);
+         const access = localStorage.getItem("accessToken");
+         const res = await fetch(url.toString(), {
+           signal: ctrl.signal,
+           headers: access ? { Authorization: `Bearer ${access}` } : {},
+         });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const list = await res.json();
+        setProvOptions(Array.isArray(list) ? list : []);
+      } catch (e) {
+        if (e.name !== "AbortError") setProvOptions([]);
+      }
+    }, 300);
+    return () => { clearTimeout(h); ctrl.abort(); };
+  }, [provQuery, isAdmin]);
+
+  const effectiveNit = isAdmin ? (selectedProvider?.usuario || "") : nit;
+
   const fetchReturns = useCallback(
     async (tipoDocto) => {
+      if (!effectiveNit) { setDatos([]); return; }
       setLoading(true);
       try {
-        // Parámetros base
-        const params = new URLSearchParams({
-          tipoDocto,
-          nit,
-        });
-        // Solo agregamos fechas al query (el backend no las requiere)
+        const params = new URLSearchParams({ tipoDocto, nit: effectiveNit });
         if (fechaInicio) params.set("from", fechaInicio);
         if (fechaFin)   params.set("to",   fechaFin);
 
@@ -53,7 +74,6 @@ export default function ReturnsPage() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const raw = await res.json();
 
-        // Filtrado extra en frontend por FechaProveedor
         const filtrados = raw.filter(item => {
           const f = new Date(item.FechaProveedor);
           if (fechaInicio && f < new Date(fechaInicio)) return false;
@@ -69,20 +89,52 @@ export default function ReturnsPage() {
         setLoading(false);
       }
     },
-    [fechaInicio, fechaFin, nit]
+    [fechaInicio, fechaFin, effectiveNit]
   );
 
-  // 6) ARRANQUE: consultamos el primer botón por defecto
   useEffect(() => {
     fetchReturns(botones[0].tipo);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // solo al mount
+  }, []); // mount
 
-  // 7) manejador al click en un botón extra
   const handleButtonClick = (idx) => {
     setSelectedIndex(idx);
     fetchReturns(botones[idx].tipo);
   };
+
+  const AdminProviderFilter = isAdmin ? (
+    <div className="flex flex-col gap-2">
+      <label className="text-sm opacity-80">Proveedor</label>
+      <input
+        className={`px-3 py-2 rounded ${isDark ? "bg-[#0b0f12] border-[#1c2329] text-white" : "bg-white border-gray-300"} border`}
+        placeholder="Buscar por descripción…"
+        value={provQuery}
+        onChange={(e) => setProvQuery(e.target.value)}
+      />
+      {provOptions.length > 0 && (
+        <ul className={`max-h-48 overflow-auto border rounded ${isDark ? "border-[#1c2329]" : "border-gray-300"}`}>
+          {provOptions.map((p) => (
+            <li
+              key={p.usuario}
+              className={`px-3 py-2 cursor-pointer hover:opacity-80 ${isDark ? "text-white" : "text-black"}`}
+              onClick={() => {
+                setSelectedProvider(p);
+                setProvQuery(p.descripcion || p.usuario);
+              }}
+            >
+              <div className="text-sm font-medium">{p.descripcion || "(Sin descripción)"}</div>
+              <div className="text-xs opacity-70">{p.usuario}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {selectedProvider && (
+        <div className="text-xs opacity-70">
+          Seleccionado: <b>{selectedProvider.descripcion || selectedProvider.usuario}</b> ({selectedProvider.usuario})
+        </div>
+      )}
+    </div>
+  ) : null;
 
   return (
     <EntidadPage
@@ -98,6 +150,7 @@ export default function ReturnsPage() {
         onStartChange,
         onEndChange,
         onConsultar: () => fetchReturns(botones[selectedIndex].tipo),
+        adminFilterSlot: AdminProviderFilter,
       }}
       loading={loading}
       selectedButtonIndex={selectedIndex}

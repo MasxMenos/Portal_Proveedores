@@ -12,6 +12,13 @@ from users.clients import usersClient
 from django.utils import timezone
 import random
 import string
+from django.db.models import F
+from homepage.models import Counter
+from .serializers import ProviderLiteSerializer
+from django.db.models import Q
+
+
+
 
 class LoginView(APIView):
     def post(self, request):
@@ -73,6 +80,11 @@ class LoginView(APIView):
 
         # 4) Genero tokens JWT
         refresh = RefreshToken.for_user(user)
+        username_lower = (getattr(user, "usuario", "") or "").strip().lower()
+        if not getattr(user, "admin", False) and username_lower != "admin":
+            obj, created = Counter.objects.get_or_create(key="visits", defaults={"value": 0})
+            Counter.objects.filter(pk=obj.pk).update(value=F("value") + 1)
+        
         return Response({
             'access':  str(refresh.access_token),
             'refresh': str(refresh),
@@ -182,3 +194,37 @@ class PasswordResetView(APIView):
                 "new_password": new_pw
             }
         )
+
+class ProvidersListView(APIView):
+    """
+    GET /api/users/providers?q=texto
+    Solo admin. Devuelve [{usuario, descripcion}, ...]
+    """
+    authentication_classes = [PrvUsuarioJWTAuthentication]
+    permission_classes     = [IsAuthenticated]
+
+    def get(self, request):
+        # Solo administradores
+        req_user = request.user
+        if not getattr(req_user, "admin", False):
+            return Response({"detail": "No autorizado."}, status=status.HTTP_403_FORBIDDEN)
+
+        q = (request.query_params.get("q") or "").strip()
+
+        qs = (
+            PrvUsuario.objects
+            .filter(bloqueado=False)
+            .exclude(usuario__iexact="admin")
+        )
+
+        if q:
+            qs = qs.filter(
+                Q(descripcion__icontains=q) |
+                Q(usuario__icontains=q)
+            )
+
+        # Orden sugerido: por descripcion y respaldo por usuario
+        qs = qs.order_by("descripcion", "usuario")[:50]
+
+        data = ProviderLiteSerializer(qs, many=True).data
+        return Response(data)

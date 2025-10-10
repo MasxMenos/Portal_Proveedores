@@ -7,6 +7,11 @@ from rest_framework import serializers
 from .models import PrvUsuario
 from django.contrib.auth.hashers import check_password, make_password
 
+class ProviderLiteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrvUsuario
+        fields = ("usuario", "descripcion")
+
 
 class PrvTokenObtainPairSerializer(TokenObtainPairSerializer):
     """

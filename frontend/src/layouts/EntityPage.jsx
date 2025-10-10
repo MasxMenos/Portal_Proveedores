@@ -22,7 +22,8 @@ export default function EntidadPage({
   datos,
   onNavigateBase,
   botonesExtra = [],
-  extraFilters,          // { start, end, onStartChange, onEndChange, onConsultar }
+  // extraFilters ahora puede incluir adminFilterSlot
+  extraFilters,          // { start, end, onStartChange, onEndChange, onConsultar, adminFilterSlot? }
   loading = false,
   error = null,
   selectedButtonIndex,   // índice controlado por el padre (opcional)
@@ -45,7 +46,6 @@ export default function EntidadPage({
     }
     return selectedButtonIndex ?? 0;
   });
-  // cuando cambie selectedButtonIndex desde padre, sobreescribimos
   useEffect(() => {
     if (selectedButtonIndex != null) {
       _setLocalSelected(selectedButtonIndex);
@@ -70,6 +70,7 @@ export default function EntidadPage({
     onStartChange,
     onEndChange,
     onConsultar,
+    adminFilterSlot,   // ← AQUI desestructuramos el slot (si viene)
   } = extraFilters || useDateRange();
 
   // ────────────────────────────── búsqueda global ──────────────────────────────
@@ -84,8 +85,8 @@ export default function EntidadPage({
     );
     return matches.sort((a, b) => {
       const rank = vals => {
-        if (vals.some(v => v === q))      return 0;
-        if (vals.some(v => v.startsWith(q))) return 1;
+        if (vals.some(v => v === q))           return 0;
+        if (vals.some(v => v.startsWith(q)))   return 1;
         return 2;
       };
       const ra = rank(Object.values(a).map(v => String(v).toLowerCase()));
@@ -107,15 +108,10 @@ export default function EntidadPage({
     setCurrentPage,
   } = usePagination(filteredDatos, 10);
 
-  // reset página al cambiar filtro, búsqueda o tipo
   useEffect(() => setCurrentPage(1), [selected, searchTerm, setCurrentPage]);
 
-
-
   return (
-    <div className={`flex flex-col md:flex-row min-h-screen ${
-      isDark ? "bg-black text-white" : "bg-white text-black"
-    }`}>
+    <div className={`flex flex-col md:flex-row min-h-screen ${isDark ? "bg-black text-white" : "bg-white text-black"}`}>
       <Sidebar activePage={activePage} onNavClick={navigate} />
 
       <main className="flex-1 p-6 md:ml-64 space-y-6 overflow-auto">
@@ -144,11 +140,13 @@ export default function EntidadPage({
                 {label}
               </button>
             ))}
-            
           </div>
         )}
 
-      <SearchBar isDark={isDark} onSearch={setSearchTerm} />
+        <SearchBar isDark={isDark} onSearch={setSearchTerm} />
+
+        {/* ─── Filtro de proveedor (solo admin) ─────────────────── */}
+        {adminFilterSlot}
 
         {/* ─── Filtros de fecha ─────────────────── */}
         <EntidadFilters
@@ -159,8 +157,6 @@ export default function EntidadPage({
           onEndChange={onEndChange}
           onConsultar={onConsultar}
         />
-
-        
 
         {/* ─── Exportar XLSX ─────────────────── */}
         <EntidadDownloadButton

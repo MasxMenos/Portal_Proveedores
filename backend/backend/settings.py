@@ -81,7 +81,7 @@ ROOT_URLCONF = "backend.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, '../frontend/dist')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -101,7 +101,7 @@ DATABASES = {
         "NAME": os.getenv("POSTGRES_DB", "postgres"),
         "USER": os.getenv("POSTGRES_USER", "postgres"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "mxm"),
-        "HOST": os.getenv("POSTGRES_HOST", "db"),   # <--- antes 192.168.1.8
+        "HOST": os.getenv("POSTGRES_HOST", "192.168.1.8"),   # <--- antes 192.168.1.8
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
     }
 }
@@ -135,9 +135,9 @@ SIMPLE_JWT = {
 
 ASGI_APPLICATION = "backend.asgi.application"
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://192.168.1.178:3000",
+    "http://localhost:8666",
+    "http://127.0.0.1:8666",
+    "http://192.168.1.178:8666",
 ]
 
 CHANNEL_LAYERS = {

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ProfileViewSet, LoginView,PasswordResetView
+from .views import ProfileViewSet, LoginView,PasswordResetView, ProvidersListView
 
 profile = ProfileViewSet.as_view({
     'get': 'list',
@@ -10,4 +10,5 @@ urlpatterns = [
     path('login/',   LoginView.as_view(), name='login'),
     path('profile/', profile,               name='profile'),
     path("password-reset/", PasswordResetView.as_view(), name="password-reset"),
+    path("providers", ProvidersListView.as_view(), name="providers"),
 ]

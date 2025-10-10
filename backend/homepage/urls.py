@@ -1,6 +1,6 @@
 # invoices/urls.py
 from django.urls import path
-from .views import ServerLevelView,TotalSalesView,TotalSalesProductsView,TotalSalesMonthsView,TopProductsView, GrowthPorcenView,CategorySupplierView
+from .views import ServerLevelView,TotalSalesView,TotalSalesProductsView,TotalSalesMonthsView,TopProductsView, GrowthPorcenView,CategorySupplierView,VisitsView
 
 urlpatterns = [
     path('service_level', ServerLevelView.as_view(), name='server-level'),
@@ -10,5 +10,5 @@ urlpatterns = [
     path('top_products',  TopProductsView.as_view(), name='top-products'),
     path('growth_porcent',  GrowthPorcenView.as_view(), name='growth-porcent'),
     path('category_supplier',  CategorySupplierView.as_view(), name='category-supplier'),
-
+    path("visits", VisitsView.as_view(), name="visits"),
 ]

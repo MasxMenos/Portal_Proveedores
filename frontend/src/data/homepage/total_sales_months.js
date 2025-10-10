@@ -56,7 +56,6 @@ export async function fetchTotalSalesSeries({ nit, startDate = currentStartDate,
   url.searchParams.set("nitProveedor", nit);
   url.searchParams.set("fechaInicial", toLocalDateStr(startDate));
   url.searchParams.set("fechaFinal", toLocalDateStr(endDate));
-  console.log("Fetching sales months from", url.toString());
 
   const res = await fetch(url.toString(), {
     method: "GET",

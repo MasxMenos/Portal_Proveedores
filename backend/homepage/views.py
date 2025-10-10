@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from .services  import get_service_level, get_total_sales, get_total_sales_products,get_total_sales_months,get_top_products,get_growth_porcent, get_category_supplier
 from .serializers import ServiceLevelSerializer, TotalSalesSerializer, TotalSalesProductSerializer,TotalSalesMonthsSerializer,TopProductsSerializer,GrowthPorcentSerializer,CategorySupplierSerializer
+from .models import Counter
 
 class ServerLevelView(APIView):
     permission_classes = [AllowAny]
@@ -165,3 +166,10 @@ class CategorySupplierView(APIView):
 
         serializer = CategorySupplierSerializer(dtos, many=True)
         return Response(serializer.data)
+
+class VisitsView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        total = Counter.objects.filter(key="visits").values_list("value", flat=True).first() or 0
+        return Response({"visits": int(total)})

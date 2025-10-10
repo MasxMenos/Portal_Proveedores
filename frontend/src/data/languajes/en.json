@@ -269,7 +269,8 @@
   "servicio": "Service level",
   "ventas": "Total billed amount",
   "productos": "Total units billed",
-  "crecimiento": "growth rate (current year/previous year)"
+  "crecimiento": "growth rate (current year/previous year)",
+  "visitas": "Visits"
     },
     "totalSales": {
       "title": "Total purchases",
